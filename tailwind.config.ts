@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -51,6 +52,27 @@ export default {
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
+				},
+				// Custom colors for outdoor adventure theme
+				forest: {
+					DEFAULT: '#2D6A4F',
+					light: '#40916C',
+					dark: '#1B4332'
+				},
+				earth: {
+					DEFAULT: '#774936',
+					light: '#A98467',
+					dark: '#5F4339'
+				},
+				sky: {
+					DEFAULT: '#64A6BD',
+					light: '#90E0EF',
+					dark: '#3A86FF'
+				},
+				tan: {
+					DEFAULT: '#D8C3A5',
+					light: '#E9EAEC',
+					dark: '#B7AD99'
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
