@@ -57,6 +57,77 @@ export type Database = {
         }
         Relationships: []
       }
+      gear: {
+        Row: {
+          available: number
+          condition: string
+          created_at: string
+          id: string
+          last_maintenance: string | null
+          name: string
+          notes: string | null
+          quantity: number
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          available?: number
+          condition?: string
+          created_at?: string
+          id?: string
+          last_maintenance?: string | null
+          name: string
+          notes?: string | null
+          quantity?: number
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          available?: number
+          condition?: string
+          created_at?: string
+          id?: string
+          last_maintenance?: string | null
+          name?: string
+          notes?: string | null
+          quantity?: number
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gear_events: {
+        Row: {
+          created_at: string
+          event_id: string
+          gear_id: string
+          id: string
+          quantity: number
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          gear_id: string
+          id?: string
+          quantity?: number
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          gear_id?: string
+          id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gear_events_gear_id_fkey"
+            columns: ["gear_id"]
+            isOneToOne: false
+            referencedRelation: "gear"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notes: {
         Row: {
           contact_id: string
