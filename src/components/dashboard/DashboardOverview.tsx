@@ -65,7 +65,7 @@ const DashboardOverview = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="mb-2">Welcome to Adventure Planner</h1>
+        <h1 className="mb-2">Welcome to TPAC OS</h1>
         <p className="text-muted-foreground">
           Manage your outdoor adventures from one place
         </p>
