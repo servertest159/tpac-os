@@ -7,7 +7,7 @@ const Auth = () => {
     <div className="min-h-screen bg-tan-light flex flex-col items-center justify-center p-4">
       <div className="text-center mb-6">
         <h1 className="text-4xl font-bold text-forest">TPAC OS</h1>
-        <p className="text-forest-dark mt-2">Plan, organize, and track your outdoor adventures</p>
+        <p className="text-forest-dark mt-2">Discover and organize Singapore's outdoor adventures</p>
       </div>
       
       <div className="w-full max-w-md">

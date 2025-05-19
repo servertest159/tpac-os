@@ -40,24 +40,24 @@ const stats = [
 const upcomingEvents = [
   {
     id: "1",
-    title: "Mountain Hiking Weekend",
+    title: "MacRitchie Trail Hike",
     date: "2025-05-24",
     participants: 8,
-    location: "Blue Ridge Mountains",
+    location: "MacRitchie Reservoir Park",
   },
   {
     id: "2",
-    title: "Kayaking Trip",
+    title: "Southern Islands Kayaking",
     date: "2025-06-05",
     participants: 6,
-    location: "Lake Superior",
+    location: "Sentosa Island",
   },
   {
     id: "3",
-    title: "Camping Under Stars",
+    title: "Night Safari Camping",
     date: "2025-06-15",
     participants: 4,
-    location: "Yellowstone National Park",
+    location: "Pulau Ubin",
   },
 ];
 
@@ -67,7 +67,7 @@ const DashboardOverview = () => {
       <div>
         <h1 className="mb-2">Welcome to TPAC OS</h1>
         <p className="text-muted-foreground">
-          Manage your outdoor adventures from one place
+          Discover Singapore's green spaces and blue waters
         </p>
       </div>
 
@@ -142,10 +142,10 @@ const DashboardOverview = () => {
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Button asChild className="w-full">
-            <Link to="/events/new">Create New Event</Link>
+            <Link to="/events/new">Plan New Activity</Link>
           </Button>
           <Button asChild variant="outline" className="w-full">
-            <Link to="/gear/new">Add Gear Item</Link>
+            <Link to="/gear/new">Add Equipment</Link>
           </Button>
           <Button asChild variant="secondary" className="w-full">
             <Link to="/feedback/new">Create Feedback Form</Link>

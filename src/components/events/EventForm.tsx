@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20,11 +19,11 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
   // Sample event data for editing (in a real app, would fetch from API)
   const eventData = isEditing
     ? {
-        title: "Mountain Hiking Weekend",
+        title: "MacRitchie Trail Hike",
         date: "2025-05-24",
         time: "08:00",
-        location: "Blue Ridge Mountains",
-        description: "A weekend hiking trip through the beautiful Blue Ridge Mountains with camping overnight.",
+        location: "MacRitchie Reservoir Park",
+        description: "A half-day hiking trip through the beautiful MacRitchie trails with a visit to the famous TreeTop Walk.",
         maxParticipants: 12,
       }
     : {
@@ -76,7 +75,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
               name="title"
               value={formData.title}
               onChange={handleChange}
-              placeholder="Enter event name"
+              placeholder="Enter event name (e.g. Southern Ridges Hike)"
               required
             />
           </div>
@@ -113,7 +112,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
               name="location"
               value={formData.location}
               onChange={handleChange}
-              placeholder="Enter event location"
+              placeholder="Enter location (e.g. East Coast Park)"
               required
             />
           </div>
@@ -125,7 +124,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
               name="description"
               value={formData.description}
               onChange={handleChange}
-              placeholder="Enter event description"
+              placeholder="Describe your event including meeting points, difficulty level, and what participants should expect"
               rows={4}
               required
             />

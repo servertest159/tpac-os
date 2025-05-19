@@ -12,32 +12,32 @@ import { useToast } from "@/components/ui/use-toast";
 // Sample event data (in a real app this would come from an API)
 const eventData = {
   id: "1",
-  title: "Mountain Hiking Weekend",
+  title: "MacRitchie Trail Hike",
   date: "2025-05-24",
   time: "08:00 AM",
-  location: "Blue Ridge Mountains, Appalachian Trail Entrance",
+  location: "MacRitchie Reservoir Park, Venus Drive Entrance",
   participants: [
-    { id: "1", name: "John Doe", email: "john@example.com" },
-    { id: "2", name: "Jane Smith", email: "jane@example.com" },
-    { id: "3", name: "Mike Johnson", email: "mike@example.com" },
-    { id: "4", name: "Sarah Williams", email: "sarah@example.com" },
-    { id: "5", name: "Tom Brown", email: "tom@example.com" },
-    { id: "6", name: "Lisa Davis", email: "lisa@example.com" },
-    { id: "7", name: "David Wilson", email: "david@example.com" },
-    { id: "8", name: "Emma Miller", email: "emma@example.com" },
+    { id: "1", name: "John Tan", email: "john@example.com" },
+    { id: "2", name: "Jane Lim", email: "jane@example.com" },
+    { id: "3", name: "Michael Ng", email: "mike@example.com" },
+    { id: "4", name: "Sarah Wong", email: "sarah@example.com" },
+    { id: "5", name: "Thomas Loh", email: "tom@example.com" },
+    { id: "6", name: "Lisa Chan", email: "lisa@example.com" },
+    { id: "7", name: "David Goh", email: "david@example.com" },
+    { id: "8", name: "Emma Tay", email: "emma@example.com" },
   ],
   maxParticipants: 12,
-  description: "A weekend hiking trip through the beautiful Blue Ridge Mountains with camping overnight. We'll be hiking approximately 10 miles per day with moderate elevation gain. Suitable for intermediate hikers with some experience. We'll camp at designated sites along the Appalachian Trail and enjoy stunning sunset views from the ridge.",
+  description: "A half-day hiking trip through the beautiful MacRitchie trails with a visit to the famous TreeTop Walk. We'll cover approximately 7km of trail through primary and secondary rainforest. Suitable for beginner hikers with moderate fitness levels. Remember to bring mosquito repellent and plenty of water as Singapore's humidity can be challenging.",
   status: "upcoming",
   itinerary: [
-    { day: "Day 1", activities: "Meet at trailhead (8:00 AM), Hike to Bear Mountain (5 miles), Lunch at vista point, Continue to campsite (3 miles), Setup camp, Dinner around campfire" },
-    { day: "Day 2", activities: "Sunrise hike to ridge (1 mile), Breakfast at camp, Pack up, Hike to Blue Lake (4 miles), Lunch at lake, Return to trailhead (7 miles), Departure (approx 5:00 PM)" },
+    { day: "Morning", activities: "Meet at Venus Drive entrance (8:00 AM), Hike to TreeTop Walk (3km), Rest and take photos at the suspension bridge, Continue to Jelutong Tower for panoramic views" },
+    { day: "Afternoon", activities: "Lunch at Mushroom Cafe, Hike around the reservoir (2km), Visit the HSBC TreeTop Walk, Return to starting point (2km), Departure (approx 2:00 PM)" },
   ],
   gearRequired: [
-    "Tent", "Sleeping bag", "Hiking boots", "Water bottles (2L minimum)", "Backpack (40L+)", "Headlamp", "Weather-appropriate clothing"
+    "Comfortable walking shoes", "Water bottle (1L minimum)", "Mosquito repellent", "Sunscreen", "Lightweight breathable clothing", "Small backpack", "Rain poncho (just in case)"
   ],
   gearProvided: [
-    "Cooking equipment", "First aid kit", "Emergency satellite phone", "Maps and compass"
+    "Trail maps", "First aid kit", "Electrolyte drinks", "Light snacks"
   ],
 };
 
@@ -157,18 +157,18 @@ const EventDetail = () => {
                     
                     <div className="grid grid-cols-1 gap-2 mt-2">
                       <Button asChild>
-                        <Link to={`/events/${id}/invite`}>
+                        <Link to={`/events/${eventData.id}/invite`}>
                           <Plus className="mr-2 h-4 w-4" />
                           Invite Participants
                         </Link>
                       </Button>
                       <Button asChild variant="outline">
-                        <Link to={`/feedback/new?eventId=${id}`}>
+                        <Link to={`/feedback/new?eventId=${eventData.id}`}>
                           Create Feedback Form
                         </Link>
                       </Button>
                       <Button asChild variant="secondary">
-                        <Link to={`/events/${id}/gear`}>
+                        <Link to={`/events/${eventData.id}/gear`}>
                           Manage Event Gear
                         </Link>
                       </Button>

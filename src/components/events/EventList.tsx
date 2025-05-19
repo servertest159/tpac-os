@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,68 +9,68 @@ import { Badge } from "@/components/ui/badge";
 const events = [
   {
     id: "1",
-    title: "Mountain Hiking Weekend",
+    title: "MacRitchie Trail Hike",
     date: "2025-05-24",
     time: "08:00 AM",
-    location: "Blue Ridge Mountains",
+    location: "MacRitchie Reservoir Park",
     participants: 8,
     maxParticipants: 12,
-    description: "A weekend hiking trip through the beautiful Blue Ridge Mountains with camping overnight.",
+    description: "Explore the TreeTop Walk and enjoy the lush greenery of Singapore's central catchment nature reserve.",
     status: "upcoming",
   },
   {
     id: "2",
-    title: "Kayaking Trip",
+    title: "Southern Islands Kayaking",
     date: "2025-06-05",
     time: "09:30 AM",
-    location: "Lake Superior",
+    location: "Sentosa Island",
     participants: 6,
     maxParticipants: 10,
-    description: "Explore the crystal clear waters of Lake Superior on a guided kayaking adventure.",
+    description: "Paddle through the crystal clear waters around Singapore's Southern Islands and discover hidden beaches.",
     status: "upcoming",
   },
   {
     id: "3",
-    title: "Camping Under Stars",
+    title: "Night Camping at Pulau Ubin",
     date: "2025-06-15",
     time: "04:00 PM",
-    location: "Yellowstone National Park",
+    location: "Pulau Ubin",
     participants: 4,
     maxParticipants: 8,
-    description: "Experience the magic of camping under the stars at Yellowstone, with guided stargazing.",
+    description: "Experience a night under the stars at one of Singapore's last rural areas with authentic kampong vibes.",
     status: "upcoming",
   },
   {
     id: "4",
-    title: "Rock Climbing Workshop",
+    title: "Climbing at Dairy Farm",
     date: "2025-04-15",
     time: "10:00 AM",
-    location: "Red Rock Canyon",
+    location: "Dairy Farm Nature Park",
     participants: 12,
     maxParticipants: 12,
-    description: "Learn rock climbing techniques from expert instructors at the famous Red Rock Canyon.",
+    description: "Scale the natural rock walls at Singapore's premier outdoor climbing spot with certified instructors.",
     status: "past",
   },
   {
     id: "5",
-    title: "Trail Running Event",
+    title: "Rail Corridor Run",
     date: "2025-05-02",
     time: "07:00 AM",
-    location: "Appalachian Trail",
+    location: "Rail Corridor (Green Corridor)",
     participants: 20,
     maxParticipants: 30,
-    description: "Join fellow trail runners for a morning run along a beautiful section of the Appalachian Trail.",
+    description: "Join fellow runners for a morning jog along Singapore's historic and scenic Rail Corridor trail.",
     status: "past",
   },
   {
     id: "6",
-    title: "Mountain Biking Adventure",
+    title: "Pulau Ubin Cycling Adventure",
     date: "2025-07-12",
     time: "08:30 AM",
-    location: "Moab, Utah",
+    location: "Pulau Ubin",
     participants: 0,
     maxParticipants: 15,
-    description: "Tackle the renowned mountain biking trails of Moab with guides who know all the best routes.",
+    description: "Explore the rustic island of Pulau Ubin on two wheels and discover its rich biodiversity and quarries.",
     status: "upcoming",
   },
 ];
@@ -89,7 +88,7 @@ const EventList = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1>Events</h1>
-          <p className="text-muted-foreground">Manage your outdoor adventures</p>
+          <p className="text-muted-foreground">Discover Singapore's outdoor activities</p>
         </div>
         <Button asChild>
           <Link to="/events/new">Create Event</Link>
