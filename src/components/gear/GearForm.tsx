@@ -41,6 +41,29 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
   };
 
   const [formData, setFormData] = useState<GearFormData>(initialFormData);
+  // Add state for session checking
+  const [isSessionChecked, setIsSessionChecked] = useState(false);
+  const [sessionError, setSessionError] = useState(false);
+
+  // Check for an active session on component mount
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      
+      if (error || !data.session) {
+        setSessionError(true);
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to manage gear. Please sign in.",
+          variant: "destructive"
+        });
+      }
+      
+      setIsSessionChecked(true);
+    };
+    
+    checkSession();
+  }, [toast]);
 
   // Fetch gear item data if editing an existing item
   const { isLoading } = useQuery({
@@ -71,12 +94,18 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
       
       return data;
     },
-    enabled: !!gearId
+    enabled: !!gearId && isSessionChecked && !sessionError
   });
 
   // Create or update gear mutation
   const mutation = useMutation({
     mutationFn: async (data: GearFormData) => {
+      // Check for active session before proceeding
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error("You must be logged in to manage gear");
+      }
+      
       if (isEditing) {
         const { error } = await supabase
           .from('gear')
@@ -105,6 +134,7 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
       navigate("/gear");
     },
     onError: (error) => {
+      console.error("Mutation error:", error);
       toast({
         title: "Error",
         description: error.message,
@@ -149,11 +179,29 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
   
   const conditions = ["Excellent", "Good", "Fair", "Poor"];
 
-  if (isEditing && isLoading) {
+  if (sessionError) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Loading gear item...</CardTitle>
+          <CardTitle>Authentication Required</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>You need to be logged in to manage gear inventory.</p>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={() => navigate("/auth")}>
+            Go to Login
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+  }
+
+  if ((isEditing && isLoading) || !isSessionChecked) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Loading...</CardTitle>
         </CardHeader>
       </Card>
     );
