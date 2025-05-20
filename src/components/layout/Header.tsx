@@ -1,72 +1,21 @@
 
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Calendar, Users, Package, MessageSquare } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
-  const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    // Get current session
-    const getSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setUser(data.session?.user || null);
-    };
-    
-    getSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user || null);
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  // Helper function to clean up auth state
-  const cleanupAuthState = () => {
-    // Remove all Supabase auth related items from storage
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-        localStorage.removeItem(key);
-      }
-    });
-  };
+  const { user, signOut } = useAuth();
 
   const handleLogout = async () => {
     try {
-      // Clean up auth state
-      cleanupAuthState();
-      
-      // Sign out from Supabase with global scope
-      await supabase.auth.signOut({ scope: 'global' });
-      
-      // Show success message
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out.",
-      });
-      
-      // Force page reload for a clean state
-      window.location.href = '/auth';
-    } catch (error: any) {
-      toast({
-        title: "Logout failed",
-        description: error.message || "An error occurred during logout. Please try again.",
-        variant: "destructive"
-      });
+      await signOut();
+    } catch (error) {
+      console.error("Error during logout:", error);
     }
   };
 

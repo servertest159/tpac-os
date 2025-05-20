@@ -1,20 +1,20 @@
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 const AuthForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
-  const navigate = useNavigate();
   const { toast } = useToast();
-
+  const { signIn, signUp } = useAuth();
+  
   // Form state
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -22,59 +22,14 @@ const AuthForm = () => {
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
 
-  // Helper function to clean up auth state
-  const cleanupAuthState = () => {
-    // Remove all Supabase auth related items from storage
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-        localStorage.removeItem(key);
-      }
-    });
-    
-    // Also clean sessionStorage if needed
-    Object.keys(sessionStorage || {}).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-        sessionStorage.removeItem(key);
-      }
-    });
-  };
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      // Clean up existing auth state
-      cleanupAuthState();
-      
-      // Attempt global sign out first
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-      } catch (err) {
-        // Continue even if this fails
-      }
-      
-      // Sign in with Supabase
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: loginEmail,
-        password: loginPassword
-      });
-      
-      if (error) throw error;
-
-      toast({
-        title: "Welcome back!",
-        description: "You have been successfully logged in.",
-      });
-      
-      // Force page reload for a clean state
-      window.location.href = '/dashboard';
-    } catch (error: any) {
-      toast({
-        title: "Login failed",
-        description: error.message || "An error occurred during login. Please try again.",
-        variant: "destructive"
-      });
+      await signIn(loginEmail, loginPassword);
+    } catch (error) {
+      // Error is already handled in signIn
     } finally {
       setIsLoading(false);
     }
@@ -85,50 +40,17 @@ const AuthForm = () => {
     setIsLoading(true);
     
     try {
-      // Clean up existing auth state
-      cleanupAuthState();
+      const data = await signUp(registerEmail, registerPassword, registerName);
       
-      // Attempt global sign out first
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-      } catch (err) {
-        // Continue even if this fails
+      if (!data?.session) {
+        setVerificationSent(true);
+        toast({
+          title: "Account created!",
+          description: "We've sent you an email verification link. Please check your inbox and verify your email to continue.",
+        });
       }
-      
-      // Get the current origin for redirect URL
-      const origin = window.location.origin;
-      const redirectTo = `${origin}/auth`; // Redirect back to auth page after verification
-      
-      // Sign up with Supabase
-      const { data, error } = await supabase.auth.signUp({
-        email: registerEmail,
-        password: registerPassword,
-        options: {
-          data: {
-            full_name: registerName
-          },
-          emailRedirectTo: redirectTo
-        }
-      });
-      
-      if (error) throw error;
-
-      setVerificationSent(true);
-      toast({
-        title: "Account created!",
-        description: "We've sent you an email verification link. Please check your inbox and verify your email to continue.",
-      });
-      
-      // If autoconfirm is enabled, redirect to dashboard
-      if (data.session) {
-        window.location.href = '/dashboard';
-      }
-    } catch (error: any) {
-      toast({
-        title: "Registration failed",
-        description: error.message || "An error occurred during registration. Please try again.",
-        variant: "destructive"
-      });
+    } catch (error) {
+      // Error is already handled in signUp
     } finally {
       setIsLoading(false);
     }
