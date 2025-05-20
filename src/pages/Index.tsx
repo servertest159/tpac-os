@@ -31,12 +31,8 @@ const Index = () => {
             title: "Account updated",
             description: "Your account has been successfully updated.",
           });
-        } else if (event === 'EMAIL_VERIFICATION_STATUS_CHANGED') {
-          toast({
-            title: "Email verification status updated",
-            description: "Your email verification status has been updated.",
-          });
-        }
+        } 
+        // Email verification status is handled separately via URL hash params
       }
     );
 
