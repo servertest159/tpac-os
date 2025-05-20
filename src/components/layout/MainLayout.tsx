@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "./Header";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -11,32 +12,57 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is logged in with Supabase
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        navigate("/auth");
-      }
-      setLoading(false);
-    };
-
-    checkAuth();
-
-    // Listen for auth changes
+    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        const currentUser = session?.user || null;
+        setUser(currentUser);
+        
         if (event === 'SIGNED_OUT') {
           navigate("/auth");
+        } else if (event === 'USER_UPDATED') {
+          toast({
+            title: "Profile updated",
+            description: "Your profile has been updated successfully.",
+          });
         }
       }
     );
 
+    // Then check current session
+    const checkAuth = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) throw error;
+        
+        if (!data.session) {
+          navigate("/auth");
+        } else {
+          setUser(data.session.user);
+        }
+      } catch (error: any) {
+        toast({
+          title: "Authentication error",
+          description: error.message || "There was a problem verifying your authentication.",
+          variant: "destructive"
+        });
+        navigate("/auth");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, toast]);
 
   if (loading) {
     return <div className="flex h-screen items-center justify-center">Loading...</div>;

@@ -10,26 +10,7 @@ const Index = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is logged in with Supabase
-    const checkUser = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      
-      // Check if we have a hash fragment that might indicate email verification
-      const hash = window.location.hash;
-      if (hash && hash.includes('type=email_verification')) {
-        toast({
-          title: "Email verification successful",
-          description: "Your email has been verified. You can now log in to your account.",
-        });
-      }
-      
-      setUser(data.session?.user || null);
-      setLoading(false);
-    };
-
-    checkUser();
-
-    // Set up auth state listener
+    // Set up auth state listener FIRST to prevent missing events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user || null);
@@ -50,9 +31,42 @@ const Index = () => {
             title: "Account updated",
             description: "Your account has been successfully updated.",
           });
+        } else if (event === 'EMAIL_VERIFICATION_STATUS_CHANGED') {
+          toast({
+            title: "Email verification status updated",
+            description: "Your email verification status has been updated.",
+          });
         }
       }
     );
+
+    // THEN check for existing session and verification status
+    const checkUser = async () => {
+      // Check if user is logged in with Supabase
+      const { data, error } = await supabase.auth.getSession();
+      
+      // Check URL for verification success
+      const url = new URL(window.location.href);
+      const hashParams = new URLSearchParams(url.hash.slice(1));
+      const type = hashParams.get('type');
+      
+      if (type === 'email_verification') {
+        toast({
+          title: "Email verification successful",
+          description: "Your email has been verified. You can now access all features.",
+        });
+        
+        // Clean URL to remove hash fragments
+        setTimeout(() => {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }, 0);
+      }
+      
+      setUser(data.session?.user || null);
+      setLoading(false);
+    };
+
+    checkUser();
 
     return () => {
       subscription.unsubscribe();

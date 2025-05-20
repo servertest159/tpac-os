@@ -30,6 +30,13 @@ const AuthForm = () => {
         localStorage.removeItem(key);
       }
     });
+    
+    // Also clean sessionStorage if needed
+    Object.keys(sessionStorage || {}).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        sessionStorage.removeItem(key);
+      }
+    });
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -88,6 +95,10 @@ const AuthForm = () => {
         // Continue even if this fails
       }
       
+      // Get the current origin for redirect URL
+      const origin = window.location.origin;
+      const redirectTo = `${origin}/auth`; // Redirect back to auth page after verification
+      
       // Sign up with Supabase
       const { data, error } = await supabase.auth.signUp({
         email: registerEmail,
@@ -96,7 +107,7 @@ const AuthForm = () => {
           data: {
             full_name: registerName
           },
-          emailRedirectTo: window.location.origin + '/auth'
+          emailRedirectTo: redirectTo
         }
       });
       
@@ -105,7 +116,7 @@ const AuthForm = () => {
       setVerificationSent(true);
       toast({
         title: "Account created!",
-        description: "We've sent you an email verification link. Please check your inbox and verify your email.",
+        description: "We've sent you an email verification link. Please check your inbox and verify your email to continue.",
       });
       
       // If autoconfirm is enabled, redirect to dashboard
@@ -126,15 +137,37 @@ const AuthForm = () => {
   useEffect(() => {
     // Check if user arrived here after email verification
     const checkEmailConfirmation = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (data.session && !error) {
+      const url = new URL(window.location.href);
+      const hashParams = new URLSearchParams(url.hash.slice(1));
+      const type = hashParams.get('type');
+      
+      if (type === 'email_confirmation' || type === 'recovery' || type === 'invite') {
         toast({
-          title: "Email verified!",
-          description: "Your email has been successfully verified. You are now logged in.",
+          title: "Processing authentication...",
+          description: "Please wait while we complete the process.",
         });
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 1000);
+        
+        // Let Supabase handle the token
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (data.session) {
+          toast({
+            title: "Authentication successful!",
+            description: "Your account has been verified. You'll be redirected shortly.",
+          });
+          
+          // Clean URL to remove hash fragments
+          setTimeout(() => {
+            window.history.replaceState({}, document.title, window.location.pathname);
+            window.location.href = '/dashboard';
+          }, 1500);
+        } else if (error) {
+          toast({
+            title: "Authentication error",
+            description: error.message || "There was a problem with authentication. Please try again.",
+            variant: "destructive"
+          });
+        }
       }
     };
 
