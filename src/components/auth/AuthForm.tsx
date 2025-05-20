@@ -7,27 +7,117 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const AuthForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // For demo purposes only - would be replaced with actual authentication
-  const handleAuth = (type: "login" | "register", event: React.FormEvent) => {
-    event.preventDefault();
+  // Form state
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [registerName, setRegisterName] = useState("");
+  const [registerEmail, setRegisterEmail] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
+
+  // Helper function to clean up auth state
+  const cleanupAuthState = () => {
+    // Remove all Supabase auth related items from storage
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        localStorage.removeItem(key);
+      }
+    });
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
     
-    // Simulate authentication
-    setTimeout(() => {
-      setIsLoading(false);
-      localStorage.setItem("user", JSON.stringify({ id: "1", name: "Demo User" }));
-      toast({
-        title: type === "login" ? "Welcome back!" : "Account created!",
-        description: "You have been successfully authenticated.",
+    try {
+      // Clean up existing auth state
+      cleanupAuthState();
+      
+      // Attempt global sign out first
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+      }
+      
+      // Sign in with Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: loginEmail,
+        password: loginPassword
       });
-      navigate("/dashboard");
-    }, 1000);
+      
+      if (error) throw error;
+
+      toast({
+        title: "Welcome back!",
+        description: "You have been successfully logged in.",
+      });
+      
+      // Force page reload for a clean state
+      window.location.href = '/dashboard';
+    } catch (error: any) {
+      toast({
+        title: "Login failed",
+        description: error.message || "An error occurred during login. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    try {
+      // Clean up existing auth state
+      cleanupAuthState();
+      
+      // Attempt global sign out first
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+      }
+      
+      // Sign up with Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email: registerEmail,
+        password: registerPassword,
+        options: {
+          data: {
+            full_name: registerName
+          }
+        }
+      });
+      
+      if (error) throw error;
+
+      toast({
+        title: "Account created!",
+        description: "Your account has been successfully created. Please check your email for verification.",
+      });
+      
+      // If autoconfirm is enabled, redirect to dashboard
+      if (data.session) {
+        window.location.href = '/dashboard';
+      }
+    } catch (error: any) {
+      toast({
+        title: "Registration failed",
+        description: error.message || "An error occurred during registration. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -42,18 +132,31 @@ const AuthForm = () => {
           <CardHeader>
             <CardTitle>Login</CardTitle>
             <CardDescription>
-              Access your adventure planning dashboard
+              Access your Singapore adventure planning dashboard
             </CardDescription>
           </CardHeader>
-          <form onSubmit={(e) => handleAuth("login", e)}>
+          <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="hello@example.com" required />
+                <Label htmlFor="login-email">Email</Label>
+                <Input 
+                  id="login-email" 
+                  type="email" 
+                  placeholder="hello@example.com" 
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  required 
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" required />
+                <Label htmlFor="login-password">Password</Label>
+                <Input 
+                  id="login-password" 
+                  type="password" 
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  required 
+                />
               </div>
             </CardContent>
             <CardFooter>
@@ -70,22 +173,42 @@ const AuthForm = () => {
           <CardHeader>
             <CardTitle>Register</CardTitle>
             <CardDescription>
-              Create an account to start planning your adventures
+              Create an account to start planning your Singapore adventures
             </CardDescription>
           </CardHeader>
-          <form onSubmit={(e) => handleAuth("register", e)}>
+          <form onSubmit={handleRegister}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" type="text" placeholder="John Doe" required />
+                <Label htmlFor="register-name">Name</Label>
+                <Input 
+                  id="register-name" 
+                  type="text" 
+                  placeholder="John Doe" 
+                  value={registerName}
+                  onChange={(e) => setRegisterName(e.target.value)}
+                  required 
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="register-email">Email</Label>
-                <Input id="register-email" type="email" placeholder="hello@example.com" required />
+                <Input 
+                  id="register-email" 
+                  type="email" 
+                  placeholder="hello@example.com" 
+                  value={registerEmail}
+                  onChange={(e) => setRegisterEmail(e.target.value)}
+                  required 
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="register-password">Password</Label>
-                <Input id="register-password" type="password" required />
+                <Input 
+                  id="register-password" 
+                  type="password" 
+                  value={registerPassword}
+                  onChange={(e) => setRegisterPassword(e.target.value)}
+                  required 
+                />
               </div>
             </CardContent>
             <CardFooter>

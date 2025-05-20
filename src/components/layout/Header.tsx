@@ -1,29 +1,73 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Calendar, Users, Package, MessageSquare } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
-  const handleLogout = () => {
-    // Clear user data from local storage
-    localStorage.removeItem("user");
+  useEffect(() => {
+    // Get current session
+    const getSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setUser(data.session?.user || null);
+    };
     
-    // Show success message
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out.",
+    getSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user || null);
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Helper function to clean up auth state
+  const cleanupAuthState = () => {
+    // Remove all Supabase auth related items from storage
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        localStorage.removeItem(key);
+      }
     });
-    
-    // Redirect to login page
-    navigate("/auth");
+  };
+
+  const handleLogout = async () => {
+    try {
+      // Clean up auth state
+      cleanupAuthState();
+      
+      // Sign out from Supabase with global scope
+      await supabase.auth.signOut({ scope: 'global' });
+      
+      // Show success message
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+      
+      // Force page reload for a clean state
+      window.location.href = '/auth';
+    } catch (error: any) {
+      toast({
+        title: "Logout failed",
+        description: error.message || "An error occurred during logout. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const navItems = [
@@ -62,6 +106,11 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center space-x-4">
+          {user && (
+            <div className="hidden md:block text-sm text-muted-foreground">
+              {user.email}
+            </div>
+          )}
           <Button
             variant="outline"
             onClick={handleLogout}
@@ -121,6 +170,11 @@ const Header = () => {
                 <span>{item.label}</span>
               </Link>
             ))}
+            {user && (
+              <div className="text-sm text-muted-foreground py-2">
+                {user.email}
+              </div>
+            )}
             <Button
               variant="outline"
               onClick={handleLogout}
