@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const AuthForm = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -94,15 +95,17 @@ const AuthForm = () => {
         options: {
           data: {
             full_name: registerName
-          }
+          },
+          emailRedirectTo: window.location.origin + '/auth'
         }
       });
       
       if (error) throw error;
 
+      setVerificationSent(true);
       toast({
         title: "Account created!",
-        description: "Your account has been successfully created. Please check your email for verification.",
+        description: "We've sent you an email verification link. Please check your inbox and verify your email.",
       });
       
       // If autoconfirm is enabled, redirect to dashboard
@@ -119,6 +122,24 @@ const AuthForm = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    // Check if user arrived here after email verification
+    const checkEmailConfirmation = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (data.session && !error) {
+        toast({
+          title: "Email verified!",
+          description: "Your email has been successfully verified. You are now logged in.",
+        });
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 1000);
+      }
+    };
+
+    checkEmailConfirmation();
+  }, [toast]);
 
   return (
     <Tabs defaultValue="login" className="w-full max-w-md">
@@ -176,47 +197,65 @@ const AuthForm = () => {
               Create an account to start planning your Singapore adventures
             </CardDescription>
           </CardHeader>
-          <form onSubmit={handleRegister}>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="register-name">Name</Label>
-                <Input 
-                  id="register-name" 
-                  type="text" 
-                  placeholder="John Doe" 
-                  value={registerName}
-                  onChange={(e) => setRegisterName(e.target.value)}
-                  required 
-                />
+          {verificationSent ? (
+            <CardContent className="space-y-4 text-center">
+              <div className="p-4 bg-green-50 rounded-md">
+                <h3 className="font-medium text-green-800">Email Verification Sent</h3>
+                <p className="mt-2 text-sm text-green-700">
+                  Please check your email inbox for a verification link. You need to verify your email before you can log in.
+                </p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="register-email">Email</Label>
-                <Input 
-                  id="register-email" 
-                  type="email" 
-                  placeholder="hello@example.com" 
-                  value={registerEmail}
-                  onChange={(e) => setRegisterEmail(e.target.value)}
-                  required 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="register-password">Password</Label>
-                <Input 
-                  id="register-password" 
-                  type="password" 
-                  value={registerPassword}
-                  onChange={(e) => setRegisterPassword(e.target.value)}
-                  required 
-                />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating account..." : "Register"}
+              <Button 
+                variant="outline" 
+                className="mt-4" 
+                onClick={() => setVerificationSent(false)}
+              >
+                Register another account
               </Button>
-            </CardFooter>
-          </form>
+            </CardContent>
+          ) : (
+            <form onSubmit={handleRegister}>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="register-name">Name</Label>
+                  <Input 
+                    id="register-name" 
+                    type="text" 
+                    placeholder="John Doe" 
+                    value={registerName}
+                    onChange={(e) => setRegisterName(e.target.value)}
+                    required 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="register-email">Email</Label>
+                  <Input 
+                    id="register-email" 
+                    type="email" 
+                    placeholder="hello@example.com" 
+                    value={registerEmail}
+                    onChange={(e) => setRegisterEmail(e.target.value)}
+                    required 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="register-password">Password</Label>
+                  <Input 
+                    id="register-password" 
+                    type="password" 
+                    value={registerPassword}
+                    onChange={(e) => setRegisterPassword(e.target.value)}
+                    required 
+                  />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Creating account..." : "Register"}
+                </Button>
+              </CardFooter>
+            </form>
+          )}
         </Card>
       </TabsContent>
     </Tabs>
