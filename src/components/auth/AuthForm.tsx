@@ -42,7 +42,7 @@ const AuthForm = () => {
     try {
       const data = await signUp(registerEmail, registerPassword, registerName);
       
-      if (!data?.session) {
+      if (data && !data.session) {
         setVerificationSent(true);
         toast({
           title: "Account created!",
