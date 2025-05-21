@@ -6,11 +6,10 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Clock, Users, Edit, Trash2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase, castUUID } from "@/integrations/supabase/client";
+import { supabase, castUUID, DbEvent, DbGearEvent } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Database } from "@/integrations/supabase/types";
 
 interface EventData {
   id: string;
@@ -53,7 +52,7 @@ const EventDetail = () => {
       const { data, error } = await supabase
         .from('events')
         .select('*')
-        .eq('id', castUUID(id))
+        .eq('id', id)
         .single();
         
       if (error) throw new Error(error.message);
@@ -76,13 +75,12 @@ const EventDetail = () => {
           gear_id, 
           gear:gear_id (name, type, condition)
         `)
-        .eq('event_id', castUUID(id));
+        .eq('event_id', id);
         
       if (error) throw new Error(error.message);
       
       // Explicitly cast the data to match our expected shape
-      const typedData = (data || []) as unknown as EventGearData[];
-      return typedData;
+      return (data || []) as unknown as EventGearData[];
     },
     enabled: !!id
   });
@@ -149,7 +147,7 @@ const EventDetail = () => {
       const { error } = await supabase
         .from('events')
         .delete()
-        .eq('id', castUUID(id));
+        .eq('id', id);
         
       if (error) throw error;
     },

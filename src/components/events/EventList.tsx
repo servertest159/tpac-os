@@ -1,27 +1,17 @@
+
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, User, Users, Clock } from "lucide-react";
+import { Calendar, MapPin, Users, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, DbEvent } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
-import { Database } from "@/integrations/supabase/types";
 
-interface Event {
-  id: string;
-  title: string;
-  date: string;
-  location: string | null;
-  description: string | null;
-  current_participants: number | null;
-  max_participants: number | null;
+interface Event extends DbEvent {
   status?: 'upcoming' | 'past';
 }
-
-// Define the event type from Supabase
-type DbEvent = Database['public']['Tables']['events']['Row'];
 
 const EventList = () => {
   const [filter, setFilter] = useState<"all" | "upcoming" | "past">("all");
@@ -39,6 +29,7 @@ const EventList = () => {
 
       if (error) throw new Error(error.message);
 
+      // Cast the data to our Event type and add status property
       const typedData = data as DbEvent[];
       return typedData.map((event) => ({
         ...event,

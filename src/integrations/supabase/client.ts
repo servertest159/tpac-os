@@ -28,6 +28,14 @@ export const supabase = createClient<Database>(
 // Helper function to safely cast UUIDs for Supabase equality filters
 export const castUUID = (id: string | undefined) => {
   if (!id) return undefined;
-  return id as unknown as string;
+  return id as string;
 };
 
+// Helper to properly type event data
+export type DbEvent = Database['public']['Tables']['events']['Row'];
+export type DbEventInsert = Database['public']['Tables']['events']['Insert'];
+export type DbEventUpdate = Database['public']['Tables']['events']['Update'];
+
+// Helper to properly type gear_events data
+export type DbGearEvent = Database['public']['Tables']['gear_events']['Row'];
+export type DbGearEventInsert = Database['public']['Tables']['gear_events']['Insert'];
