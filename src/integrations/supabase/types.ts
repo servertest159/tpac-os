@@ -57,6 +57,42 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          created_at: string | null
+          current_participants: number | null
+          date: string
+          description: string | null
+          id: string
+          location: string | null
+          max_participants: number | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_participants?: number | null
+          date: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          max_participants?: number | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_participants?: number | null
+          date?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          max_participants?: number | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       gear: {
         Row: {
           available: number
@@ -119,6 +155,13 @@ export type Database = {
           quantity?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "gear_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "gear_events_gear_id_fkey"
             columns: ["gear_id"]

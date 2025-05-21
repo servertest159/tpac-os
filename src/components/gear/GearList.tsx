@@ -45,6 +45,34 @@ const GearList = () => {
     }
   });
 
+  // Set up real-time subscription for gear updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('public:gear')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'gear'
+        },
+        () => {
+          // When any gear changes, refresh the data
+          queryClient.invalidateQueries({ queryKey: ['gear'] });
+          toast({
+            title: "Gear Inventory Updated",
+            description: "The gear inventory has been updated in real-time."
+          });
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription when component unmounts
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient, toast]);
+
   // Delete gear mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {

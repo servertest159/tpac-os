@@ -1,87 +1,99 @@
-import React from "react";
+
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, MapPin, User, Users, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/components/ui/use-toast";
 
-// Sample data for demonstration purposes
-const events = [
-  {
-    id: "1",
-    title: "MacRitchie Trail Hike",
-    date: "2025-05-24",
-    time: "08:00 AM",
-    location: "MacRitchie Reservoir Park",
-    participants: 8,
-    maxParticipants: 12,
-    description: "Explore the TreeTop Walk and enjoy the lush greenery of Singapore's central catchment nature reserve.",
-    status: "upcoming",
-  },
-  {
-    id: "2",
-    title: "Southern Islands Kayaking",
-    date: "2025-06-05",
-    time: "09:30 AM",
-    location: "Sentosa Island",
-    participants: 6,
-    maxParticipants: 10,
-    description: "Paddle through the crystal clear waters around Singapore's Southern Islands and discover hidden beaches.",
-    status: "upcoming",
-  },
-  {
-    id: "3",
-    title: "Night Camping at Pulau Ubin",
-    date: "2025-06-15",
-    time: "04:00 PM",
-    location: "Pulau Ubin",
-    participants: 4,
-    maxParticipants: 8,
-    description: "Experience a night under the stars at one of Singapore's last rural areas with authentic kampong vibes.",
-    status: "upcoming",
-  },
-  {
-    id: "4",
-    title: "Climbing at Dairy Farm",
-    date: "2025-04-15",
-    time: "10:00 AM",
-    location: "Dairy Farm Nature Park",
-    participants: 12,
-    maxParticipants: 12,
-    description: "Scale the natural rock walls at Singapore's premier outdoor climbing spot with certified instructors.",
-    status: "past",
-  },
-  {
-    id: "5",
-    title: "Rail Corridor Run",
-    date: "2025-05-02",
-    time: "07:00 AM",
-    location: "Rail Corridor (Green Corridor)",
-    participants: 20,
-    maxParticipants: 30,
-    description: "Join fellow runners for a morning jog along Singapore's historic and scenic Rail Corridor trail.",
-    status: "past",
-  },
-  {
-    id: "6",
-    title: "Pulau Ubin Cycling Adventure",
-    date: "2025-07-12",
-    time: "08:30 AM",
-    location: "Pulau Ubin",
-    participants: 0,
-    maxParticipants: 15,
-    description: "Explore the rustic island of Pulau Ubin on two wheels and discover its rich biodiversity and quarries.",
-    status: "upcoming",
-  },
-];
+interface Event {
+  id: string;
+  title: string;
+  date: string;
+  location: string;
+  description: string;
+  current_participants: number;
+  max_participants: number;
+}
 
 const EventList = () => {
-  const [filter, setFilter] = React.useState<"all" | "upcoming" | "past">("all");
+  const [filter, setFilter] = useState<"all" | "upcoming" | "past">("all");
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  // Fetch events from Supabase
+  const { data: events = [], isLoading, error } = useQuery({
+    queryKey: ['events'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .order('date', { ascending: true });
+
+      if (error) throw new Error(error.message);
+
+      return data.map(event => ({
+        ...event,
+        status: new Date(event.date) > new Date() ? 'upcoming' : 'past'
+      }));
+    }
+  });
+
+  // Set up real-time subscription for events updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('public:events')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', 
+          schema: 'public',
+          table: 'events'
+        },
+        () => {
+          // When any event changes, refresh the data
+          queryClient.invalidateQueries({ queryKey: ['events'] });
+          toast({
+            title: "Events Updated",
+            description: "The events list has been updated in real-time."
+          });
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription when component unmounts
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient, toast]);
 
   const filteredEvents = events.filter((event) => {
     if (filter === "all") return true;
     return event.status === filter;
   });
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p>Loading events...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <h3 className="mb-2">Error loading events</h3>
+        <p className="text-muted-foreground mb-4">{error.message}</p>
+        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['events'] })}>
+          Retry
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -148,7 +160,7 @@ const EventList = () => {
                   </div>
                   <div className="flex items-center text-sm">
                     <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>{event.time}</span>
+                    <span>{new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
                   <div className="flex items-center text-sm">
                     <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
@@ -157,7 +169,7 @@ const EventList = () => {
                   <div className="flex items-center text-sm">
                     <Users className="mr-2 h-4 w-4 text-muted-foreground" />
                     <span>
-                      {event.participants} / {event.maxParticipants} participants
+                      {event.current_participants} / {event.max_participants} participants
                     </span>
                   </div>
                 </div>

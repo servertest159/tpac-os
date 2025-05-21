@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,9 +7,20 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation } from "@tanstack/react-query";
 
 interface EventFormProps {
   eventId?: string;
+}
+
+interface EventFormData {
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  description: string;
+  maxParticipants: number;
 }
 
 const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
@@ -16,38 +28,101 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
   const { toast } = useToast();
   const isEditing = !!eventId;
   
-  // Sample event data for editing (in a real app, would fetch from API)
-  const eventData = isEditing
-    ? {
-        title: "MacRitchie Trail Hike",
-        date: "2025-05-24",
-        time: "08:00",
-        location: "MacRitchie Reservoir Park",
-        description: "A half-day hiking trip through the beautiful MacRitchie trails with a visit to the famous TreeTop Walk.",
-        maxParticipants: 12,
-      }
-    : {
-        title: "",
-        date: "",
-        time: "",
-        location: "",
-        description: "",
-        maxParticipants: 10,
+  const defaultFormData: EventFormData = {
+    title: "",
+    date: "",
+    time: "",
+    location: "",
+    description: "",
+    maxParticipants: 10,
+  };
+  
+  const [formData, setFormData] = useState<EventFormData>(defaultFormData);
+
+  // Fetch event data if editing
+  const { data: eventData, isLoading } = useQuery({
+    queryKey: ['event', eventId],
+    queryFn: async () => {
+      if (!eventId) return null;
+      
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('id', eventId)
+        .single();
+        
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    enabled: !!eventId
+  });
+
+  // Update form data when event data is loaded
+  useEffect(() => {
+    if (eventData) {
+      const eventDate = new Date(eventData.date);
+      setFormData({
+        title: eventData.title,
+        date: eventDate.toISOString().split('T')[0],
+        time: eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+        location: eventData.location || "",
+        description: eventData.description || "",
+        maxParticipants: eventData.max_participants,
+      });
+    }
+  }, [eventData]);
+
+  // Create/update event mutation
+  const eventMutation = useMutation({
+    mutationFn: async (data: EventFormData) => {
+      // Combine date and time
+      const dateTime = new Date(`${data.date}T${data.time}`);
+      
+      const eventData = {
+        title: data.title,
+        date: dateTime.toISOString(),
+        location: data.location,
+        description: data.description,
+        max_participants: data.maxParticipants,
       };
-
-  const [formData, setFormData] = React.useState(eventData);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Simulate API call
-    setTimeout(() => {
+      
+      if (isEditing) {
+        const { error } = await supabase
+          .from('events')
+          .update(eventData)
+          .eq('id', eventId);
+          
+        if (error) throw error;
+        return { id: eventId };
+      } else {
+        const { data: newEvent, error } = await supabase
+          .from('events')
+          .insert(eventData)
+          .select();
+          
+        if (error) throw error;
+        return newEvent[0];
+      }
+    },
+    onSuccess: () => {
       toast({
         title: isEditing ? "Event Updated" : "Event Created",
         description: `Successfully ${isEditing ? "updated" : "created"} ${formData.title}`,
       });
       navigate("/events");
-    }, 500);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to ${isEditing ? "update" : "create"} event: ${error.message}`,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    eventMutation.mutate(formData);
   };
 
   const handleChange = (
@@ -60,6 +135,14 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
   const handleCancel = () => {
     navigate("/events");
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p>Loading event data...</p>
+      </div>
+    );
+  }
 
   return (
     <Card>
@@ -148,8 +231,10 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
           <Button type="button" variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button type="submit">
-            {isEditing ? "Update Event" : "Create Event"}
+          <Button type="submit" disabled={eventMutation.isPending}>
+            {eventMutation.isPending 
+              ? (isEditing ? "Updating..." : "Creating...") 
+              : (isEditing ? "Update Event" : "Create Event")}
           </Button>
         </CardFooter>
       </form>

@@ -1,76 +1,184 @@
 
-import React from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, MapPin, User, Users, Clock, Edit, Trash2, Plus } from "lucide-react";
+import { Calendar, MapPin, Clock, Users, Edit, Trash2 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-
-// Sample event data (in a real app this would come from an API)
-const eventData = {
-  id: "1",
-  title: "MacRitchie Trail Hike",
-  date: "2025-05-24",
-  time: "08:00 AM",
-  location: "MacRitchie Reservoir Park, Venus Drive Entrance",
-  participants: [
-    { id: "1", name: "John Tan", email: "john@example.com" },
-    { id: "2", name: "Jane Lim", email: "jane@example.com" },
-    { id: "3", name: "Michael Ng", email: "mike@example.com" },
-    { id: "4", name: "Sarah Wong", email: "sarah@example.com" },
-    { id: "5", name: "Thomas Loh", email: "tom@example.com" },
-    { id: "6", name: "Lisa Chan", email: "lisa@example.com" },
-    { id: "7", name: "David Goh", email: "david@example.com" },
-    { id: "8", name: "Emma Tay", email: "emma@example.com" },
-  ],
-  maxParticipants: 12,
-  description: "A half-day hiking trip through the beautiful MacRitchie trails with a visit to the famous TreeTop Walk. We'll cover approximately 7km of trail through primary and secondary rainforest. Suitable for beginner hikers with moderate fitness levels. Remember to bring mosquito repellent and plenty of water as Singapore's humidity can be challenging.",
-  status: "upcoming",
-  itinerary: [
-    { day: "Morning", activities: "Meet at Venus Drive entrance (8:00 AM), Hike to TreeTop Walk (3km), Rest and take photos at the suspension bridge, Continue to Jelutong Tower for panoramic views" },
-    { day: "Afternoon", activities: "Lunch at Mushroom Cafe, Hike around the reservoir (2km), Visit the HSBC TreeTop Walk, Return to starting point (2km), Departure (approx 2:00 PM)" },
-  ],
-  gearRequired: [
-    "Comfortable walking shoes", "Water bottle (1L minimum)", "Mosquito repellent", "Sunscreen", "Lightweight breathable clothing", "Small backpack", "Rain poncho (just in case)"
-  ],
-  gearProvided: [
-    "Trail maps", "First aid kit", "Electrolyte drinks", "Light snacks"
-  ],
-};
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const EventDetail = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
 
-  const handleDelete = () => {
-    // Simulate API call to delete
-    setTimeout(() => {
+  // Fetch event details
+  const { data: event, isLoading: eventLoading, error: eventError } = useQuery({
+    queryKey: ['event', id],
+    queryFn: async () => {
+      if (!id) return null;
+      
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('id', id)
+        .single();
+        
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    enabled: !!id
+  });
+
+  // Fetch assigned gear for this event
+  const { data: eventGear = [], isLoading: gearLoading } = useQuery({
+    queryKey: ['event-gear', id],
+    queryFn: async () => {
+      if (!id) return [];
+      
+      const { data, error } = await supabase
+        .from('gear_events')
+        .select(`
+          id, 
+          quantity, 
+          gear_id, 
+          gear:gear_id (name, type, condition)
+        `)
+        .eq('event_id', id);
+        
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    enabled: !!id
+  });
+
+  // Set up real-time subscription for this event
+  useEffect(() => {
+    if (!id) return;
+    
+    const channel = supabase
+      .channel(`event-${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'events',
+          filter: `id=eq.${id}`
+        },
+        () => {
+          // When event changes, refresh the data
+          queryClient.invalidateQueries({ queryKey: ['event', id] });
+          toast({
+            title: "Event Updated",
+            description: "This event has been updated in real-time."
+          });
+        }
+      )
+      .subscribe();
+
+    // Also subscribe to gear_events changes for this event
+    const gearChannel = supabase
+      .channel(`event-gear-${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'gear_events',
+          filter: `event_id=eq.${id}`
+        },
+        () => {
+          // When gear assignments change, refresh the data
+          queryClient.invalidateQueries({ queryKey: ['event-gear', id] });
+          toast({
+            title: "Event Gear Updated",
+            description: "Equipment assigned to this event has been updated."
+          });
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription when component unmounts
+    return () => {
+      supabase.removeChannel(channel);
+      supabase.removeChannel(gearChannel);
+    };
+  }, [id, queryClient, toast]);
+
+  // Delete event mutation
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!id) return;
+      
+      const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', id);
+        
+      if (error) throw error;
+    },
+    onSuccess: () => {
       toast({
         title: "Event Deleted",
-        description: "The event has been successfully deleted.",
+        description: "The event has been successfully deleted."
       });
       navigate("/events");
-    }, 500);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to delete event: ${error.message}`,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleDelete = () => {
+    deleteMutation.mutate();
   };
 
+  if (eventLoading || gearLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p>Loading event details...</p>
+      </div>
+    );
+  }
+
+  if (eventError || !event) {
+    return (
+      <div className="text-center py-12">
+        <h3 className="mb-2">Error loading event</h3>
+        <p className="text-muted-foreground mb-4">
+          {eventError?.message || "Event not found"}
+        </p>
+        <Button asChild>
+          <Link to="/events">Back to Events</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  const isUpcoming = new Date(event.date) > new Date();
+  const eventDate = new Date(event.date);
+  
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-2">
-            <h1>{eventData.title}</h1>
-            <Badge variant={eventData.status === "upcoming" ? "default" : "secondary"}>
-              {eventData.status === "upcoming" ? "Upcoming" : "Past"}
-            </Badge>
-          </div>
-          <p className="text-muted-foreground">Event details and management</p>
+          <Link to="/events" className="text-sm text-muted-foreground hover:underline mb-2 inline-block">
+            ← Back to Events
+          </Link>
+          <h1>{event.title}</h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex space-x-2">
           <Button asChild variant="outline">
             <Link to={`/events/${id}/edit`}>
               <Edit className="mr-2 h-4 w-4" />
@@ -88,15 +196,19 @@ const EventDetail = () => {
               <DialogHeader>
                 <DialogTitle>Delete Event</DialogTitle>
                 <DialogDescription>
-                  Are you sure you want to delete this event? This action cannot be undone.
+                  Are you sure you want to delete {event.title}? This action cannot be undone.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
                   Cancel
                 </Button>
-                <Button variant="destructive" onClick={handleDelete}>
-                  Delete Event
+                <Button 
+                  variant="destructive" 
+                  onClick={handleDelete}
+                  disabled={deleteMutation.isPending}
+                >
+                  {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -104,198 +216,98 @@ const EventDetail = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="participants">Participants</TabsTrigger>
-          <TabsTrigger value="gear">Gear</TabsTrigger>
-          <TabsTrigger value="itinerary">Itinerary</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="overview" className="space-y-4 pt-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-medium text-lg">Event Details</h3>
-                    <div className="space-y-2 mt-2">
-                      <div className="flex items-center">
-                        <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                        <span>{new Date(eventData.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                        <span>{eventData.time}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
-                        <span>{eventData.location}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Users className="mr-2 h-4 w-4 text-muted-foreground" />
-                        <span>
-                          {eventData.participants.length} / {eventData.maxParticipants} participants
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h3 className="font-medium text-lg">Description</h3>
-                    <p className="mt-2 text-muted-foreground whitespace-pre-line">
-                      {eventData.description}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-medium text-lg">Quick Actions</h3>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 gap-2 mt-2">
-                      <Button asChild>
-                        <Link to={`/events/${eventData.id}/invite`}>
-                          <Plus className="mr-2 h-4 w-4" />
-                          Invite Participants
-                        </Link>
-                      </Button>
-                      <Button asChild variant="outline">
-                        <Link to={`/feedback/new?eventId=${eventData.id}`}>
-                          Create Feedback Form
-                        </Link>
-                      </Button>
-                      <Button asChild variant="secondary">
-                        <Link to={`/events/${eventData.id}/gear`}>
-                          Manage Event Gear
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base">Participant Status</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between">
-                        <div className="text-2xl font-bold">{eventData.participants.length}/{eventData.maxParticipants}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {eventData.maxParticipants - eventData.participants.length} spots remaining
-                        </div>
-                      </div>
-                      <div className="w-full bg-secondary h-2 rounded-full mt-2">
-                        <div 
-                          className="bg-primary h-2 rounded-full" 
-                          style={{ width: `${(eventData.participants.length / eventData.maxParticipants) * 100}%` }}
-                        ></div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="participants" className="space-y-4 pt-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle>Participants ({eventData.participants.length})</CardTitle>
-                <Button asChild size="sm">
-                  <Link to={`/events/${id}/invite`}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Invite
-                  </Link>
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <div className="grid grid-cols-3 p-3 font-medium border-b">
-                  <div>Name</div>
-                  <div>Email</div>
-                  <div className="text-right">Actions</div>
-                </div>
-                {eventData.participants.map((participant) => (
-                  <div key={participant.id} className="grid grid-cols-3 p-3 border-b last:border-0 items-center">
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      {participant.name}
-                    </div>
-                    <div>{participant.email}</div>
-                    <div className="text-right">
-                      <Button variant="ghost" size="sm">Remove</Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="gear" className="space-y-4 pt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Required Gear</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-1">
-                  {eventData.gearRequired.map((item, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Provided Gear</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-1">
-                  {eventData.gearProvided.map((item, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <div className="h-1.5 w-1.5 rounded-full bg-secondary"></div>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-start">
+            <CardTitle>Event Details</CardTitle>
+            <Badge variant={isUpcoming ? "default" : "secondary"}>
+              {isUpcoming ? "Upcoming" : "Past"}
+            </Badge>
           </div>
-          <Button asChild>
-            <Link to={`/events/${id}/gear`}>
-              Manage Event Gear
-            </Link>
-          </Button>
-        </TabsContent>
-        
-        <TabsContent value="itinerary" className="space-y-4 pt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Event Itinerary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {eventData.itinerary.map((item, index) => (
-                  <div key={index}>
-                    <h3 className="font-medium text-lg mb-2">{item.day}</h3>
-                    <p className="whitespace-pre-line text-muted-foreground">{item.activities}</p>
-                  </div>
-                ))}
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <Calendar className="mr-3 h-5 w-5 text-muted-foreground" />
+                <span>
+                  {eventDate.toLocaleDateString(undefined, { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </span>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              <div className="flex items-center">
+                <Clock className="mr-3 h-5 w-5 text-muted-foreground" />
+                <span>
+                  {eventDate.toLocaleTimeString([], { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
+                </span>
+              </div>
+              <div className="flex items-center">
+                <MapPin className="mr-3 h-5 w-5 text-muted-foreground" />
+                <span>{event.location}</span>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <Users className="mr-3 h-5 w-5 text-muted-foreground" />
+                <div>
+                  <span className="font-medium">{event.current_participants} / {event.max_participants}</span>
+                  <p className="text-sm text-muted-foreground">Participants</p>
+                </div>
+              </div>
+              {isUpcoming && (
+                <Button className="w-full">Join Event</Button>
+              )}
+            </div>
+          </div>
+
+          <div className="pt-4 border-t">
+            <h3 className="text-lg font-medium mb-2">Description</h3>
+            <p className="text-muted-foreground whitespace-pre-line">
+              {event.description || "No description provided."}
+            </p>
+          </div>
+
+          <div className="pt-4 border-t">
+            <h3 className="text-lg font-medium mb-4">Equipment</h3>
+            {eventGear.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Item</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Condition</TableHead>
+                    <TableHead className="text-right">Quantity</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {eventGear.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell>{item.gear.name}</TableCell>
+                      <TableCell>{item.gear.type}</TableCell>
+                      <TableCell>{item.gear.condition}</TableCell>
+                      <TableCell className="text-right">{item.quantity}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <p className="text-muted-foreground">No equipment assigned to this event yet.</p>
+            )}
+          </div>
+        </CardContent>
+        <CardFooter>
+          <div className="w-full text-sm text-muted-foreground text-right">
+            Last updated: {new Date(event.updated_at).toLocaleString()}
+          </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 };
