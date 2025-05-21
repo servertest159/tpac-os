@@ -23,6 +23,15 @@ interface EventFormData {
   maxParticipants: number;
 }
 
+interface EventData {
+  id: string;
+  title: string;
+  date: string;
+  location: string | null;
+  description: string | null;
+  max_participants: number | null;
+}
+
 const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -52,7 +61,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
         .single();
         
       if (error) throw new Error(error.message);
-      return data;
+      return data as EventData;
     },
     enabled: !!eventId
   });
@@ -67,7 +76,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
         time: eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
         location: eventData.location || "",
         description: eventData.description || "",
-        maxParticipants: eventData.max_participants,
+        maxParticipants: eventData.max_participants || 10,
       });
     }
   }, [eventData]);
@@ -86,7 +95,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
         max_participants: data.maxParticipants,
       };
       
-      if (isEditing) {
+      if (isEditing && eventId) {
         const { error } = await supabase
           .from('events')
           .update(eventData)

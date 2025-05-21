@@ -13,10 +13,11 @@ interface Event {
   id: string;
   title: string;
   date: string;
-  location: string;
-  description: string;
-  current_participants: number;
-  max_participants: number;
+  location: string | null;
+  description: string | null;
+  current_participants: number | null;
+  max_participants: number | null;
+  status?: 'upcoming' | 'past';
 }
 
 const EventList = () => {
@@ -35,7 +36,7 @@ const EventList = () => {
 
       if (error) throw new Error(error.message);
 
-      return data.map(event => ({
+      return data.map((event: Event) => ({
         ...event,
         status: new Date(event.date) > new Date() ? 'upcoming' : 'past'
       }));
@@ -151,7 +152,7 @@ const EventList = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground text-sm line-clamp-2">
-                  {event.description}
+                  {event.description || "No description available"}
                 </p>
                 <div className="space-y-2">
                   <div className="flex items-center text-sm">
@@ -164,12 +165,12 @@ const EventList = () => {
                   </div>
                   <div className="flex items-center text-sm">
                     <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>{event.location}</span>
+                    <span>{event.location || "No location specified"}</span>
                   </div>
                   <div className="flex items-center text-sm">
                     <Users className="mr-2 h-4 w-4 text-muted-foreground" />
                     <span>
-                      {event.current_participants} / {event.max_participants} participants
+                      {event.current_participants || 0} / {event.max_participants || 0} participants
                     </span>
                   </div>
                 </div>

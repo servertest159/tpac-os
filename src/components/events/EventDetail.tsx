@@ -11,6 +11,31 @@ import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
+interface EventData {
+  id: string;
+  title: string;
+  date: string;
+  location: string | null;
+  description: string | null;
+  current_participants: number | null;
+  max_participants: number | null;
+  updated_at: string | null;
+}
+
+interface GearItem {
+  id: string;
+  name: string;
+  type: string;
+  condition: string;
+}
+
+interface EventGearData {
+  id: string;
+  quantity: number;
+  gear_id: string;
+  gear: GearItem;
+}
+
 const EventDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -31,7 +56,7 @@ const EventDetail = () => {
         .single();
         
       if (error) throw new Error(error.message);
-      return data;
+      return data as EventData;
     },
     enabled: !!id
   });
@@ -53,7 +78,7 @@ const EventDetail = () => {
         .eq('event_id', id);
         
       if (error) throw new Error(error.message);
-      return data;
+      return data as EventGearData[];
     },
     enabled: !!id
   });
@@ -250,14 +275,14 @@ const EventDetail = () => {
               </div>
               <div className="flex items-center">
                 <MapPin className="mr-3 h-5 w-5 text-muted-foreground" />
-                <span>{event.location}</span>
+                <span>{event.location || 'No location specified'}</span>
               </div>
             </div>
             <div className="space-y-4">
               <div className="flex items-center">
                 <Users className="mr-3 h-5 w-5 text-muted-foreground" />
                 <div>
-                  <span className="font-medium">{event.current_participants} / {event.max_participants}</span>
+                  <span className="font-medium">{event.current_participants || 0} / {event.max_participants || 0}</span>
                   <p className="text-sm text-muted-foreground">Participants</p>
                 </div>
               </div>
@@ -304,7 +329,7 @@ const EventDetail = () => {
         </CardContent>
         <CardFooter>
           <div className="w-full text-sm text-muted-foreground text-right">
-            Last updated: {new Date(event.updated_at).toLocaleString()}
+            Last updated: {event.updated_at ? new Date(event.updated_at).toLocaleString() : 'N/A'}
           </div>
         </CardFooter>
       </Card>
