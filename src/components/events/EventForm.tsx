@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase, DbEvent, DbEventInsert, DbEventUpdate } from "@/integrations/supabase/client";
+import { supabase, DbEventInsert, DbEventUpdate, castUUID, castData } from "@/integrations/supabase/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
 
 interface EventFormProps {
@@ -57,11 +57,11 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
       const { data, error } = await supabase
         .from('events')
         .select('*')
-        .eq('id', eventId)
+        .eq('id', castUUID(eventId))
         .single();
         
       if (error) throw new Error(error.message);
-      return data as EventData;
+      return castData<EventData>(data);
     },
     enabled: !!eventId
   });
@@ -99,7 +99,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
         const { error } = await supabase
           .from('events')
           .update(eventData)
-          .eq('id', eventId);
+          .eq('id', castUUID(eventId));
           
         if (error) throw error;
         return { id: eventId };

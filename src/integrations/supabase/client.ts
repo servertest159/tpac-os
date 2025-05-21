@@ -39,3 +39,8 @@ export type DbEventUpdate = Database['public']['Tables']['events']['Update'];
 // Helper to properly type gear_events data
 export type DbGearEvent = Database['public']['Tables']['gear_events']['Row'];
 export type DbGearEventInsert = Database['public']['Tables']['gear_events']['Insert'];
+
+// Helper for type casting Supabase query results
+export function castData<T>(data: unknown): T {
+  return data as T;
+}

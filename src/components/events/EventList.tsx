@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, MapPin, Users, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { supabase, DbEvent } from "@/integrations/supabase/client";
+import { supabase, DbEvent, castData } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -30,8 +30,7 @@ const EventList = () => {
       if (error) throw new Error(error.message);
 
       // Cast the data to our Event type and add status property
-      const typedData = data as DbEvent[];
-      return typedData.map((event) => ({
+      return castData<DbEvent[]>(data || []).map((event) => ({
         ...event,
         status: new Date(event.date) > new Date() ? 'upcoming' : 'past'
       } as Event));
