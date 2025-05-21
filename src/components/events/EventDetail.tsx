@@ -10,9 +10,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-interface EventData extends Omit<DbEvent, 'id'> {
-  id: string;
-}
+interface EventData extends DbEvent {}
 
 interface GearItem {
   id: string;

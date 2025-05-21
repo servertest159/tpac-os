@@ -18,9 +18,8 @@ export const supabase = createClient<Database>(
       autoRefreshToken: true,
     },
     realtime: {
-      channels: {
-        retryIntervalMillis: 1000
-      }
+      // Fix: Remove the 'channels' property as it doesn't exist in RealtimeClientOptions
+      retryIntervalMs: 1000
     }
   }
 );

@@ -118,7 +118,7 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
         throw new Error("You must be logged in to manage gear");
       }
       
-      if (isEditing) {
+      if (isEditing && gearId) {
         // For type safety, explicitly create a DbGearUpdate object
         const gearData: DbGearUpdate = {
           name: data.name,
