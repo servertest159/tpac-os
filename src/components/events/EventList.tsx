@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
+import { Database } from "@/integrations/supabase/types";
 
 interface Event {
   id: string;
@@ -19,6 +19,9 @@ interface Event {
   max_participants: number | null;
   status?: 'upcoming' | 'past';
 }
+
+// Define the event type from Supabase
+type DbEvent = Database['public']['Tables']['events']['Row'];
 
 const EventList = () => {
   const [filter, setFilter] = useState<"all" | "upcoming" | "past">("all");
@@ -36,10 +39,11 @@ const EventList = () => {
 
       if (error) throw new Error(error.message);
 
-      return data.map((event: Event) => ({
+      const typedData = data as DbEvent[];
+      return typedData.map((event) => ({
         ...event,
         status: new Date(event.date) > new Date() ? 'upcoming' : 'past'
-      }));
+      } as Event));
     }
   });
 
@@ -88,7 +92,7 @@ const EventList = () => {
     return (
       <div className="text-center py-12">
         <h3 className="mb-2">Error loading events</h3>
-        <p className="text-muted-foreground mb-4">{error.message}</p>
+        <p className="text-muted-foreground mb-4">{error instanceof Error ? error.message : 'Unknown error'}</p>
         <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['events'] })}>
           Retry
         </Button>

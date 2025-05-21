@@ -6,10 +6,11 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Clock, Users, Edit, Trash2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, castUUID } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Database } from "@/integrations/supabase/types";
 
 interface EventData {
   id: string;
@@ -44,7 +45,7 @@ const EventDetail = () => {
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
 
   // Fetch event details
-  const { data: event, isLoading: eventLoading, error: eventError } = useQuery({
+  const { data: eventData, isLoading: eventLoading, error: eventError } = useQuery({
     queryKey: ['event', id],
     queryFn: async () => {
       if (!id) return null;
@@ -52,7 +53,7 @@ const EventDetail = () => {
       const { data, error } = await supabase
         .from('events')
         .select('*')
-        .eq('id', id)
+        .eq('id', castUUID(id))
         .single();
         
       if (error) throw new Error(error.message);
@@ -62,7 +63,7 @@ const EventDetail = () => {
   });
 
   // Fetch assigned gear for this event
-  const { data: eventGear = [], isLoading: gearLoading } = useQuery({
+  const { data: gearData = [], isLoading: gearLoading } = useQuery({
     queryKey: ['event-gear', id],
     queryFn: async () => {
       if (!id) return [];
@@ -75,10 +76,13 @@ const EventDetail = () => {
           gear_id, 
           gear:gear_id (name, type, condition)
         `)
-        .eq('event_id', id);
+        .eq('event_id', castUUID(id));
         
       if (error) throw new Error(error.message);
-      return data as EventGearData[];
+      
+      // Explicitly cast the data to match our expected shape
+      const typedData = (data || []) as unknown as EventGearData[];
+      return typedData;
     },
     enabled: !!id
   });
@@ -145,7 +149,7 @@ const EventDetail = () => {
       const { error } = await supabase
         .from('events')
         .delete()
-        .eq('id', id);
+        .eq('id', castUUID(id));
         
       if (error) throw error;
     },
@@ -159,7 +163,7 @@ const EventDetail = () => {
     onError: (error) => {
       toast({
         title: "Error",
-        description: `Failed to delete event: ${error.message}`,
+        description: `Failed to delete event: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive"
       });
     }
@@ -177,12 +181,12 @@ const EventDetail = () => {
     );
   }
 
-  if (eventError || !event) {
+  if (eventError || !eventData) {
     return (
       <div className="text-center py-12">
         <h3 className="mb-2">Error loading event</h3>
         <p className="text-muted-foreground mb-4">
-          {eventError?.message || "Event not found"}
+          {eventError instanceof Error ? eventError.message : "Event not found"}
         </p>
         <Button asChild>
           <Link to="/events">Back to Events</Link>
@@ -191,6 +195,8 @@ const EventDetail = () => {
     );
   }
 
+  const event = eventData as EventData;
+  const eventGear = gearData as EventGearData[];
   const isUpcoming = new Date(event.date) > new Date();
   const eventDate = new Date(event.date);
   
@@ -314,9 +320,9 @@ const EventDetail = () => {
                 <TableBody>
                   {eventGear.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell>{item.gear.name}</TableCell>
-                      <TableCell>{item.gear.type}</TableCell>
-                      <TableCell>{item.gear.condition}</TableCell>
+                      <TableCell>{item.gear?.name}</TableCell>
+                      <TableCell>{item.gear?.type}</TableCell>
+                      <TableCell>{item.gear?.condition}</TableCell>
                       <TableCell className="text-right">{item.quantity}</TableCell>
                     </TableRow>
                   ))}

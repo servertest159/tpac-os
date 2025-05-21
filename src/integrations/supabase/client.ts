@@ -24,3 +24,10 @@ export const supabase = createClient<Database>(
     }
   }
 );
+
+// Helper function to safely cast UUIDs for Supabase equality filters
+export const castUUID = (id: string | undefined) => {
+  if (!id) return undefined;
+  return id as unknown as string;
+};
+

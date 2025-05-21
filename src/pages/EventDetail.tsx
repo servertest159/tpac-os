@@ -6,7 +6,7 @@ import EventDetailComponent from "@/components/events/EventDetail";
 import EventForm from "@/components/events/EventForm";
 
 const EventDetail = () => {
-  const { id, action } = useParams();
+  const { id, action } = useParams<{ id?: string; action?: string }>();
   
   return (
     <MainLayout>

@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, castUUID } from "@/integrations/supabase/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { Database } from "@/integrations/supabase/types";
 
 interface EventFormProps {
   eventId?: string;
@@ -31,6 +32,11 @@ interface EventData {
   description: string | null;
   max_participants: number | null;
 }
+
+// Type for Supabase event insert
+type EventInsert = Database['public']['Tables']['events']['Insert'];
+// Type for Supabase event update
+type EventUpdate = Database['public']['Tables']['events']['Update'];
 
 const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
   const navigate = useNavigate();
@@ -57,7 +63,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
       const { data, error } = await supabase
         .from('events')
         .select('*')
-        .eq('id', eventId)
+        .eq('id', castUUID(eventId))
         .single();
         
       if (error) throw new Error(error.message);
@@ -87,7 +93,8 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
       // Combine date and time
       const dateTime = new Date(`${data.date}T${data.time}`);
       
-      const eventData = {
+      // Prepare data matching Supabase schema
+      const eventData: EventInsert = {
         title: data.title,
         date: dateTime.toISOString(),
         location: data.location,
@@ -98,8 +105,8 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
       if (isEditing && eventId) {
         const { error } = await supabase
           .from('events')
-          .update(eventData)
-          .eq('id', eventId);
+          .update(eventData as EventUpdate)
+          .eq('id', castUUID(eventId));
           
         if (error) throw error;
         return { id: eventId };
@@ -123,7 +130,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
     onError: (error) => {
       toast({
         title: "Error",
-        description: `Failed to ${isEditing ? "update" : "create"} event: ${error.message}`,
+        description: `Failed to ${isEditing ? "update" : "create"} event: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive"
       });
     }
