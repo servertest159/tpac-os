@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,15 +10,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-interface EventData {
+interface EventData extends Omit<DbEvent, 'id'> {
   id: string;
-  title: string;
-  date: string;
-  location: string | null;
-  description: string | null;
-  current_participants: number | null;
-  max_participants: number | null;
-  updated_at: string | null;
 }
 
 interface GearItem {

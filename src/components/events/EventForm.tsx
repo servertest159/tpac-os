@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -88,6 +87,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
       const dateTime = new Date(`${data.date}T${data.time}`);
       
       if (isEditing && eventId) {
+        // For TypeScript safety, explicitly define the shape of the data we're sending
         const eventData: DbEventUpdate = {
           title: data.title,
           date: dateTime.toISOString(),
@@ -104,6 +104,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
         if (error) throw error;
         return { id: eventId };
       } else {
+        // For new events
         const eventData: DbEventInsert = {
           title: data.title,
           date: dateTime.toISOString(),

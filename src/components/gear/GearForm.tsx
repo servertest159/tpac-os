@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, castUUID, castData, DbGearInsert, DbGearUpdate } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface GearFormProps {
@@ -22,6 +21,17 @@ interface GearFormData {
   condition: string;
   notes: string;
   last_maintenance: string;
+}
+
+interface GearData {
+  id: string;
+  name: string;
+  type: string;
+  quantity: number;
+  available: number;
+  condition: string;
+  last_maintenance: string | null;
+  notes: string | null;
 }
 
 const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
@@ -74,7 +84,7 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
       const { data, error } = await supabase
         .from('gear')
         .select('*')
-        .eq('id', gearId)
+        .eq('id', castUUID(gearId))
         .single();
         
       if (error) {
@@ -82,12 +92,14 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
       }
       
       if (data) {
-        // Format date for input field
-        let formattedData = {
-          ...data,
-          last_maintenance: data.last_maintenance ? 
-            new Date(data.last_maintenance).toISOString().split('T')[0] : 
-            new Date().toISOString().split('T')[0]
+        // Format date for input field and cast data to our type
+        const gearData = castData<GearData>(data);
+        const formattedData = {
+          ...gearData,
+          last_maintenance: gearData.last_maintenance ? 
+            new Date(gearData.last_maintenance).toISOString().split('T')[0] : 
+            new Date().toISOString().split('T')[0],
+          notes: gearData.notes || ""
         };
         setFormData(formattedData);
       }
@@ -107,19 +119,39 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
       }
       
       if (isEditing) {
+        // For type safety, explicitly create a DbGearUpdate object
+        const gearData: DbGearUpdate = {
+          name: data.name,
+          type: data.type,
+          quantity: data.quantity,
+          available: data.available,
+          condition: data.condition,
+          notes: data.notes,
+          last_maintenance: data.last_maintenance
+        };
+        
         const { error } = await supabase
           .from('gear')
-          .update(data)
-          .eq('id', gearId);
+          .update(gearData)
+          .eq('id', castUUID(gearId));
         
         if (error) throw new Error(error.message);
         return { message: "Gear Updated" };
       } else {
         // For new items, set available = quantity
-        const newData = { ...data, available: data.quantity };
+        const newData: DbGearInsert = { 
+          name: data.name,
+          type: data.type,
+          quantity: data.quantity,
+          available: data.quantity,
+          condition: data.condition,
+          notes: data.notes,
+          last_maintenance: data.last_maintenance
+        };
+        
         const { error } = await supabase
           .from('gear')
-          .insert([newData]);
+          .insert(newData);
           
         if (error) throw new Error(error.message);
         return { message: "Gear Added" };

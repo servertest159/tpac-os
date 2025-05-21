@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,19 +7,10 @@ import { Package, Edit, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, castUUID, castData, DbGear } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-interface GearItem {
-  id: string;
-  name: string;
-  type: string;
-  quantity: number;
-  available: number;
-  condition: string;
-  last_maintenance: string;
-  notes?: string;
-}
+interface GearItem extends DbGear {}
 
 const GearList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -41,7 +31,7 @@ const GearList = () => {
         throw new Error(error.message);
       }
       
-      return data as GearItem[];
+      return castData<GearItem[]>(data || []);
     }
   });
 
@@ -79,7 +69,7 @@ const GearList = () => {
       const { error } = await supabase
         .from('gear')
         .delete()
-        .eq('id', id);
+        .eq('id', castUUID(id));
       
       if (error) {
         throw new Error(error.message);
