@@ -1,12 +1,15 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import CameraCapture from "./CameraCapture";
+import ImagePreview from "./ImagePreview";
 
 interface GearFormProps {
   gearId?: string;
@@ -37,6 +40,8 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
       };
 
   const [formData, setFormData] = React.useState(gearData);
+  const [showCamera, setShowCamera] = React.useState(false);
+  const [capturedImages, setCapturedImages] = React.useState<string[]>([]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +71,16 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
     navigate("/gear");
   };
 
+  const handleCameraCapture = (imageBlob: Blob) => {
+    const imageUrl = URL.createObjectURL(imageBlob);
+    setCapturedImages(prev => [...prev, imageUrl]);
+    setShowCamera(false);
+  };
+
+  const removeImage = (index: number) => {
+    setCapturedImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   const gearTypes = [
     "Shelter",
     "Sleep",
@@ -78,6 +93,17 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
   ];
   
   const conditions = ["Excellent", "Good", "Fair", "Poor"];
+
+  if (showCamera) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <CameraCapture
+          onCapture={handleCameraCapture}
+          onClose={() => setShowCamera(false)}
+        />
+      </div>
+    );
+  }
 
   return (
     <Card>
@@ -156,6 +182,28 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
                 onChange={handleChange}
                 required
               />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Photos</Label>
+            <div className="flex flex-wrap gap-4 items-center">
+              {capturedImages.map((imageUrl, index) => (
+                <ImagePreview
+                  key={index}
+                  imageUrl={imageUrl}
+                  onRemove={() => removeImage(index)}
+                />
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowCamera(true)}
+                className="flex items-center gap-2 h-32 w-32 border-dashed"
+              >
+                <Camera className="h-6 w-6" />
+                <span className="text-sm">Add Photo</span>
+              </Button>
             </div>
           </div>
           
