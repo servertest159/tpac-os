@@ -6,12 +6,12 @@ import EventDetailComponent from "@/components/events/EventDetail";
 import EventForm from "@/components/events/EventForm";
 
 const EventDetail = () => {
-  const { id, action } = useParams<{ id?: string; action?: string }>();
+  const { id, action } = useParams();
   
   return (
     <MainLayout>
       {action === "edit" ? (
-        <EventForm eventId={id} />
+        <EventForm gearId={id} />
       ) : (
         <EventDetailComponent />
       )}

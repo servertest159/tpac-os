@@ -53,26 +53,26 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				// Updated custom colors for red, black, and white theme
+				// Custom colors for outdoor adventure theme
 				forest: {
-					DEFAULT: '#E60000',
-					light: '#FF3333',
-					dark: '#B30000'
+					DEFAULT: '#2D6A4F',
+					light: '#40916C',
+					dark: '#1B4332'
 				},
 				earth: {
-					DEFAULT: '#000000',
-					light: '#333333',
-					dark: '#000000'
+					DEFAULT: '#774936',
+					light: '#A98467',
+					dark: '#5F4339'
 				},
 				sky: {
-					DEFAULT: '#FFFFFF',
-					light: '#FFFFFF',
-					dark: '#F0F0F0'
+					DEFAULT: '#64A6BD',
+					light: '#90E0EF',
+					dark: '#3A86FF'
 				},
 				tan: {
-					DEFAULT: '#F0F0F0',
-					light: '#FFFFFF',
-					dark: '#E0E0E0'
+					DEFAULT: '#D8C3A5',
+					light: '#E9EAEC',
+					dark: '#B7AD99'
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',

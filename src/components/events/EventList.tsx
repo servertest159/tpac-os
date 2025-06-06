@@ -1,101 +1,95 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Users, Clock } from "lucide-react";
+import { Calendar, MapPin, User, Users, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { supabase, DbEvent, castData } from "@/integrations/supabase/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/components/ui/use-toast";
 
-interface Event extends DbEvent {
-  status?: 'upcoming' | 'past';
-}
+// Sample data for demonstration purposes
+const events = [
+  {
+    id: "1",
+    title: "Mountain Hiking Weekend",
+    date: "2025-05-24",
+    time: "08:00 AM",
+    location: "Blue Ridge Mountains",
+    participants: 8,
+    maxParticipants: 12,
+    description: "A weekend hiking trip through the beautiful Blue Ridge Mountains with camping overnight.",
+    status: "upcoming",
+  },
+  {
+    id: "2",
+    title: "Kayaking Trip",
+    date: "2025-06-05",
+    time: "09:30 AM",
+    location: "Lake Superior",
+    participants: 6,
+    maxParticipants: 10,
+    description: "Explore the crystal clear waters of Lake Superior on a guided kayaking adventure.",
+    status: "upcoming",
+  },
+  {
+    id: "3",
+    title: "Camping Under Stars",
+    date: "2025-06-15",
+    time: "04:00 PM",
+    location: "Yellowstone National Park",
+    participants: 4,
+    maxParticipants: 8,
+    description: "Experience the magic of camping under the stars at Yellowstone, with guided stargazing.",
+    status: "upcoming",
+  },
+  {
+    id: "4",
+    title: "Rock Climbing Workshop",
+    date: "2025-04-15",
+    time: "10:00 AM",
+    location: "Red Rock Canyon",
+    participants: 12,
+    maxParticipants: 12,
+    description: "Learn rock climbing techniques from expert instructors at the famous Red Rock Canyon.",
+    status: "past",
+  },
+  {
+    id: "5",
+    title: "Trail Running Event",
+    date: "2025-05-02",
+    time: "07:00 AM",
+    location: "Appalachian Trail",
+    participants: 20,
+    maxParticipants: 30,
+    description: "Join fellow trail runners for a morning run along a beautiful section of the Appalachian Trail.",
+    status: "past",
+  },
+  {
+    id: "6",
+    title: "Mountain Biking Adventure",
+    date: "2025-07-12",
+    time: "08:30 AM",
+    location: "Moab, Utah",
+    participants: 0,
+    maxParticipants: 15,
+    description: "Tackle the renowned mountain biking trails of Moab with guides who know all the best routes.",
+    status: "upcoming",
+  },
+];
 
 const EventList = () => {
-  const [filter, setFilter] = useState<"all" | "upcoming" | "past">("all");
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  // Fetch events from Supabase
-  const { data: events = [], isLoading, error } = useQuery({
-    queryKey: ['events'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .order('date', { ascending: true });
-
-      if (error) throw new Error(error.message);
-
-      // Cast the data to our Event type and add status property
-      return castData<DbEvent[]>(data || []).map((event) => ({
-        ...event,
-        status: new Date(event.date) > new Date() ? 'upcoming' : 'past'
-      } as Event));
-    }
-  });
-
-  // Set up real-time subscription for events updates
-  useEffect(() => {
-    const channel = supabase
-      .channel('public:events')
-      .on(
-        'postgres_changes',
-        {
-          event: '*', 
-          schema: 'public',
-          table: 'events'
-        },
-        () => {
-          // When any event changes, refresh the data
-          queryClient.invalidateQueries({ queryKey: ['events'] });
-          toast({
-            title: "Events Updated",
-            description: "The events list has been updated in real-time."
-          });
-        }
-      )
-      .subscribe();
-
-    // Cleanup subscription when component unmounts
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient, toast]);
+  const [filter, setFilter] = React.useState<"all" | "upcoming" | "past">("all");
 
   const filteredEvents = events.filter((event) => {
     if (filter === "all") return true;
     return event.status === filter;
   });
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <p>Loading events...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center py-12">
-        <h3 className="mb-2">Error loading events</h3>
-        <p className="text-muted-foreground mb-4">{error instanceof Error ? error.message : 'Unknown error'}</p>
-        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['events'] })}>
-          Retry
-        </Button>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1>Events</h1>
-          <p className="text-muted-foreground">Discover Singapore's outdoor activities</p>
+          <p className="text-muted-foreground">Manage your outdoor adventures</p>
         </div>
         <Button asChild>
           <Link to="/events/new">Create Event</Link>
@@ -146,7 +140,7 @@ const EventList = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground text-sm line-clamp-2">
-                  {event.description || "No description available"}
+                  {event.description}
                 </p>
                 <div className="space-y-2">
                   <div className="flex items-center text-sm">
@@ -155,16 +149,16 @@ const EventList = () => {
                   </div>
                   <div className="flex items-center text-sm">
                     <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>{new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span>{event.time}</span>
                   </div>
                   <div className="flex items-center text-sm">
                     <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>{event.location || "No location specified"}</span>
+                    <span>{event.location}</span>
                   </div>
                   <div className="flex items-center text-sm">
                     <Users className="mr-2 h-4 w-4 text-muted-foreground" />
                     <span>
-                      {event.current_participants || 0} / {event.max_participants || 0} participants
+                      {event.participants} / {event.maxParticipants} participants
                     </span>
                   </div>
                 </div>

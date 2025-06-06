@@ -40,24 +40,24 @@ const stats = [
 const upcomingEvents = [
   {
     id: "1",
-    title: "MacRitchie Trail Hike",
+    title: "Mountain Hiking Weekend",
     date: "2025-05-24",
     participants: 8,
-    location: "MacRitchie Reservoir Park",
+    location: "Blue Ridge Mountains",
   },
   {
     id: "2",
-    title: "Southern Islands Kayaking",
+    title: "Kayaking Trip",
     date: "2025-06-05",
     participants: 6,
-    location: "Sentosa Island",
+    location: "Lake Superior",
   },
   {
     id: "3",
-    title: "Night Safari Camping",
+    title: "Camping Under Stars",
     date: "2025-06-15",
     participants: 4,
-    location: "Pulau Ubin",
+    location: "Yellowstone National Park",
   },
 ];
 
@@ -65,9 +65,9 @@ const DashboardOverview = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="mb-2">Welcome to TPAC OS</h1>
+        <h1 className="mb-2">Welcome to Adventure Planner</h1>
         <p className="text-muted-foreground">
-          Discover Singapore's green spaces and blue waters
+          Manage your outdoor adventures from one place
         </p>
       </div>
 
@@ -142,10 +142,10 @@ const DashboardOverview = () => {
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Button asChild className="w-full">
-            <Link to="/events/new">Plan New Activity</Link>
+            <Link to="/events/new">Create New Event</Link>
           </Button>
           <Button asChild variant="outline" className="w-full">
-            <Link to="/gear/new">Add Equipment</Link>
+            <Link to="/gear/new">Add Gear Item</Link>
           </Button>
           <Button asChild variant="secondary" className="w-full">
             <Link to="/feedback/new">Create Feedback Form</Link>

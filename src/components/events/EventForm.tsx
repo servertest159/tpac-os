@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,29 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase, DbEventInsert, DbEventUpdate, castUUID, castData } from "@/integrations/supabase/client";
-import { useQuery, useMutation } from "@tanstack/react-query";
 
 interface EventFormProps {
   eventId?: string;
-}
-
-interface EventFormData {
-  title: string;
-  date: string;
-  time: string;
-  location: string;
-  description: string;
-  maxParticipants: number;
-}
-
-interface EventData {
-  id: string;
-  title: string;
-  date: string;
-  location: string | null;
-  description: string | null;
-  max_participants: number | null;
 }
 
 const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
@@ -36,111 +17,38 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
   const { toast } = useToast();
   const isEditing = !!eventId;
   
-  const defaultFormData: EventFormData = {
-    title: "",
-    date: "",
-    time: "",
-    location: "",
-    description: "",
-    maxParticipants: 10,
-  };
-  
-  const [formData, setFormData] = useState<EventFormData>(defaultFormData);
-
-  // Fetch event data if editing
-  const { data: eventData, isLoading } = useQuery({
-    queryKey: ['event', eventId],
-    queryFn: async () => {
-      if (!eventId) return null;
-      
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .eq('id', castUUID(eventId))
-        .single();
-        
-      if (error) throw new Error(error.message);
-      return castData<EventData>(data);
-    },
-    enabled: !!eventId
-  });
-
-  // Update form data when event data is loaded
-  useEffect(() => {
-    if (eventData) {
-      const eventDate = new Date(eventData.date);
-      setFormData({
-        title: eventData.title,
-        date: eventDate.toISOString().split('T')[0],
-        time: eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
-        location: eventData.location || "",
-        description: eventData.description || "",
-        maxParticipants: eventData.max_participants || 10,
-      });
-    }
-  }, [eventData]);
-
-  // Create/update event mutation
-  const eventMutation = useMutation({
-    mutationFn: async (data: EventFormData) => {
-      // Combine date and time
-      const dateTime = new Date(`${data.date}T${data.time}`);
-      
-      if (isEditing && eventId) {
-        // For TypeScript safety, explicitly define the shape of the data we're sending
-        const eventData: DbEventUpdate = {
-          title: data.title,
-          date: dateTime.toISOString(),
-          location: data.location,
-          description: data.description,
-          max_participants: data.maxParticipants,
-        };
-        
-        const { error } = await supabase
-          .from('events')
-          .update(eventData)
-          .eq('id', castUUID(eventId));
-          
-        if (error) throw error;
-        return { id: eventId };
-      } else {
-        // For new events
-        const eventData: DbEventInsert = {
-          title: data.title,
-          date: dateTime.toISOString(),
-          location: data.location,
-          description: data.description,
-          max_participants: data.maxParticipants,
-        };
-        
-        const { data: newEvent, error } = await supabase
-          .from('events')
-          .insert(eventData)
-          .select();
-          
-        if (error) throw error;
-        return newEvent[0];
+  // Sample event data for editing (in a real app, would fetch from API)
+  const eventData = isEditing
+    ? {
+        title: "Mountain Hiking Weekend",
+        date: "2025-05-24",
+        time: "08:00",
+        location: "Blue Ridge Mountains",
+        description: "A weekend hiking trip through the beautiful Blue Ridge Mountains with camping overnight.",
+        maxParticipants: 12,
       }
-    },
-    onSuccess: () => {
+    : {
+        title: "",
+        date: "",
+        time: "",
+        location: "",
+        description: "",
+        maxParticipants: 10,
+      };
+
+  const [formData, setFormData] = React.useState(eventData);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Simulate API call
+    setTimeout(() => {
       toast({
         title: isEditing ? "Event Updated" : "Event Created",
         description: `Successfully ${isEditing ? "updated" : "created"} ${formData.title}`,
       });
       navigate("/events");
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: `Failed to ${isEditing ? "update" : "create"} event: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: "destructive"
-      });
-    }
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    eventMutation.mutate(formData);
+    }, 500);
   };
 
   const handleChange = (
@@ -153,14 +61,6 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
   const handleCancel = () => {
     navigate("/events");
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <p>Loading event data...</p>
-      </div>
-    );
-  }
 
   return (
     <Card>
@@ -176,7 +76,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
               name="title"
               value={formData.title}
               onChange={handleChange}
-              placeholder="Enter event name (e.g. Southern Ridges Hike)"
+              placeholder="Enter event name"
               required
             />
           </div>
@@ -213,7 +113,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
               name="location"
               value={formData.location}
               onChange={handleChange}
-              placeholder="Enter location (e.g. East Coast Park)"
+              placeholder="Enter event location"
               required
             />
           </div>
@@ -225,7 +125,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
               name="description"
               value={formData.description}
               onChange={handleChange}
-              placeholder="Describe your event including meeting points, difficulty level, and what participants should expect"
+              placeholder="Enter event description"
               rows={4}
               required
             />
@@ -249,10 +149,8 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
           <Button type="button" variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button type="submit" disabled={eventMutation.isPending}>
-            {eventMutation.isPending 
-              ? (isEditing ? "Updating..." : "Creating...") 
-              : (isEditing ? "Update Event" : "Create Event")}
+          <Button type="submit">
+            {isEditing ? "Update Event" : "Create Event"}
           </Button>
         </CardFooter>
       </form>

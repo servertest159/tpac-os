@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,159 +7,55 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase, castUUID, castData, DbGearInsert, DbGearUpdate } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface GearFormProps {
   gearId?: string;
 }
 
-interface GearFormData {
-  name: string;
-  type: string;
-  quantity: number;
-  available?: number;
-  condition: string;
-  notes: string;
-  last_maintenance: string;
-}
-
-interface GearData {
-  id: string;
-  name: string;
-  type: string;
-  quantity: number;
-  available: number;
-  condition: string;
-  last_maintenance: string | null;
-  notes: string | null;
-}
-
 const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const isEditing = !!gearId;
   
-  const initialFormData: GearFormData = {
-    name: "",
-    type: "",
-    quantity: 1,
-    available: 1,
-    condition: "Good",
-    notes: "",
-    last_maintenance: new Date().toISOString().split("T")[0],
-  };
-
-  const [formData, setFormData] = useState<GearFormData>(initialFormData);
-
-  // Fetch gear item data if editing an existing item
-  const { isLoading } = useQuery({
-    queryKey: ['gear', gearId],
-    queryFn: async () => {
-      if (!gearId) return null;
-      
-      const { data, error } = await supabase
-        .from('gear')
-        .select('*')
-        .eq('id', castUUID(gearId))
-        .single();
-        
-      if (error) {
-        throw new Error(error.message);
+  // Sample gear data for editing (in a real app, would fetch from API)
+  const gearData = isEditing
+    ? {
+        name: "Tents - 2 Person",
+        type: "Shelter",
+        quantity: 5,
+        condition: "Good",
+        notes: "These are our newest tents, purchased in January.",
+        lastMaintenance: "2025-03-15",
       }
-      
-      if (data) {
-        // Format date for input field and cast data to our type
-        const gearData = castData<GearData>(data);
-        const formattedData = {
-          ...gearData,
-          last_maintenance: gearData.last_maintenance ? 
-            new Date(gearData.last_maintenance).toISOString().split('T')[0] : 
-            new Date().toISOString().split('T')[0],
-          notes: gearData.notes || ""
-        };
-        setFormData(formattedData);
-      }
-      
-      return data;
-    },
-    enabled: !!gearId
-  });
+    : {
+        name: "",
+        type: "",
+        quantity: 1,
+        condition: "Good",
+        notes: "",
+        lastMaintenance: new Date().toISOString().split("T")[0],
+      };
 
-  // Create or update gear mutation
-  const mutation = useMutation({
-    mutationFn: async (data: GearFormData) => {
-      if (isEditing && gearId) {
-        // For type safety, explicitly create a DbGearUpdate object
-        const gearData: DbGearUpdate = {
-          name: data.name,
-          type: data.type,
-          quantity: data.quantity,
-          available: data.available,
-          condition: data.condition,
-          notes: data.notes,
-          last_maintenance: data.last_maintenance
-        };
-        
-        const { error } = await supabase
-          .from('gear')
-          .update(gearData)
-          .eq('id', castUUID(gearId));
-        
-        if (error) throw new Error(error.message);
-        return { message: "Gear Updated" };
-      } else {
-        // For new items, set available = quantity
-        const newData: DbGearInsert = { 
-          name: data.name,
-          type: data.type,
-          quantity: data.quantity,
-          available: data.quantity,
-          condition: data.condition,
-          notes: data.notes,
-          last_maintenance: data.last_maintenance
-        };
-        
-        const { error } = await supabase
-          .from('gear')
-          .insert(newData);
-          
-        if (error) throw new Error(error.message);
-        return { message: "Gear Added" };
-      }
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['gear'] });
-      toast({
-        title: isEditing ? "Gear Updated" : "Gear Added",
-        description: `Successfully ${isEditing ? "updated" : "added"} ${formData.name}`
-      });
-      navigate("/gear");
-    },
-    onError: (error) => {
-      console.error("Mutation error:", error);
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
+  const [formData, setFormData] = React.useState(gearData);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    mutation.mutate(formData);
+    
+    // Simulate API call
+    setTimeout(() => {
+      toast({
+        title: isEditing ? "Gear Updated" : "Gear Added",
+        description: `Successfully ${isEditing ? "updated" : "added"} ${formData.name}`,
+      });
+      navigate("/gear");
+    }, 500);
   };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ 
-      ...prev, 
-      [name]: name === 'quantity' || name === 'available' ? Number(value) : value 
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
   
   const handleSelectChange = (name: string, value: string) => {
@@ -182,16 +78,6 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
   ];
   
   const conditions = ["Excellent", "Good", "Fair", "Poor"];
-
-  if (isEditing && isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Loading...</CardTitle>
-        </CardHeader>
-      </Card>
-    );
-  }
 
   return (
     <Card>
@@ -263,10 +149,10 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
             <div className="space-y-2">
               <Label htmlFor="lastMaintenance">Last Maintenance</Label>
               <Input
-                id="last_maintenance"
-                name="last_maintenance"
+                id="lastMaintenance"
+                name="lastMaintenance"
                 type="date"
-                value={formData.last_maintenance}
+                value={formData.lastMaintenance}
                 onChange={handleChange}
                 required
               />
@@ -289,10 +175,8 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
           <Button type="button" variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button type="submit" disabled={mutation.isPending}>
-            {mutation.isPending ? 
-              (isEditing ? "Updating..." : "Adding...") : 
-              (isEditing ? "Update Item" : "Add Item")}
+          <Button type="submit">
+            {isEditing ? "Update Item" : "Add Item"}
           </Button>
         </CardFooter>
       </form>

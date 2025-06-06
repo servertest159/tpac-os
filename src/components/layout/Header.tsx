@@ -1,13 +1,30 @@
 
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Calendar, Users, Package, MessageSquare } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 
 const Header = () => {
+  const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    // Clear user data from local storage
+    localStorage.removeItem("user");
+    
+    // Show success message
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+    });
+    
+    // Redirect to login page
+    navigate("/auth");
+  };
 
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: <Users className="w-4 h-4" /> },
@@ -23,7 +40,7 @@ const Header = () => {
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
         <div className="flex items-center space-x-2">
           <Link to="/dashboard" className="flex items-center">
-            <span className="font-bold text-2xl text-forest-dark">TPAC OS</span>
+            <span className="font-bold text-2xl text-forest-dark">AdventurePlanner</span>
           </Link>
         </div>
 
@@ -45,6 +62,14 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center space-x-4">
+          <Button
+            variant="outline"
+            onClick={handleLogout}
+            className="hidden md:flex"
+          >
+            Logout
+          </Button>
+          
           {/* Mobile menu button */}
           <Button
             variant="ghost"
@@ -96,6 +121,13 @@ const Header = () => {
                 <span>{item.label}</span>
               </Link>
             ))}
+            <Button
+              variant="outline"
+              onClick={handleLogout}
+              className="w-full mt-2"
+            >
+              Logout
+            </Button>
           </div>
         </div>
       )}
