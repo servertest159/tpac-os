@@ -4,20 +4,10 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Calendar, Users, Package, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, signOut } = useAuth();
-
-  const handleLogout = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error("Error during logout:", error);
-    }
-  };
 
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: <Users className="w-4 h-4" /> },
@@ -55,19 +45,6 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center space-x-4">
-          {user && (
-            <div className="hidden md:block text-sm text-muted-foreground">
-              {user.email}
-            </div>
-          )}
-          <Button
-            variant="outline"
-            onClick={handleLogout}
-            className="hidden md:flex"
-          >
-            Logout
-          </Button>
-          
           {/* Mobile menu button */}
           <Button
             variant="ghost"
@@ -119,18 +96,6 @@ const Header = () => {
                 <span>{item.label}</span>
               </Link>
             ))}
-            {user && (
-              <div className="text-sm text-muted-foreground py-2">
-                {user.email}
-              </div>
-            )}
-            <Button
-              variant="outline"
-              onClick={handleLogout}
-              className="w-full mt-2"
-            >
-              Logout
-            </Button>
           </div>
         </div>
       )}

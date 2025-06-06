@@ -9,215 +9,74 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      contacts: {
+      Connection: {
         Row: {
-          created_at: string
-          email: string | null
+          city: string | null
+          country: string | null
+          createdAt: string
           id: string
-          last_contacted: string | null
-          latitude: number | null
+          latitude: number
           location: string | null
-          longitude: number | null
-          name: string
-          phone: string | null
-          relationship_strength: string | null
-          tags: string[] | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          email?: string | null
-          id?: string
-          last_contacted?: string | null
-          latitude?: number | null
-          location?: string | null
-          longitude?: number | null
-          name: string
-          phone?: string | null
-          relationship_strength?: string | null
-          tags?: string[] | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          email?: string | null
-          id?: string
-          last_contacted?: string | null
-          latitude?: number | null
-          location?: string | null
-          longitude?: number | null
-          name?: string
-          phone?: string | null
-          relationship_strength?: string | null
-          tags?: string[] | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      events: {
-        Row: {
-          created_at: string | null
-          current_participants: number | null
-          date: string
-          description: string | null
-          id: string
-          location: string | null
-          max_participants: number | null
-          title: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          current_participants?: number | null
-          date: string
-          description?: string | null
-          id?: string
-          location?: string | null
-          max_participants?: number | null
-          title: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          current_participants?: number | null
-          date?: string
-          description?: string | null
-          id?: string
-          location?: string | null
-          max_participants?: number | null
-          title?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      gear: {
-        Row: {
-          available: number
-          condition: string
-          created_at: string
-          id: string
-          last_maintenance: string | null
+          longitude: number
           name: string
           notes: string | null
-          quantity: number
-          type: string
-          updated_at: string
+          relationship: string | null
+          updatedAt: string
+          userId: string
         }
         Insert: {
-          available?: number
-          condition?: string
-          created_at?: string
-          id?: string
-          last_maintenance?: string | null
+          city?: string | null
+          country?: string | null
+          createdAt?: string
+          id: string
+          latitude: number
+          location?: string | null
+          longitude: number
           name: string
           notes?: string | null
-          quantity?: number
-          type: string
-          updated_at?: string
+          relationship?: string | null
+          updatedAt: string
+          userId: string
         }
         Update: {
-          available?: number
-          condition?: string
-          created_at?: string
+          city?: string | null
+          country?: string | null
+          createdAt?: string
           id?: string
-          last_maintenance?: string | null
+          latitude?: number
+          location?: string | null
+          longitude?: number
           name?: string
           notes?: string | null
-          quantity?: number
-          type?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      gear_events: {
-        Row: {
-          created_at: string
-          event_id: string
-          gear_id: string
-          id: string
-          quantity: number
-        }
-        Insert: {
-          created_at?: string
-          event_id: string
-          gear_id: string
-          id?: string
-          quantity?: number
-        }
-        Update: {
-          created_at?: string
-          event_id?: string
-          gear_id?: string
-          id?: string
-          quantity?: number
+          relationship?: string | null
+          updatedAt?: string
+          userId?: string
         }
         Relationships: [
           {
-            foreignKeyName: "gear_events_event_id_fkey"
-            columns: ["event_id"]
+            foreignKeyName: "Connection_userId_fkey"
+            columns: ["userId"]
             isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "gear_events_gear_id_fkey"
-            columns: ["gear_id"]
-            isOneToOne: false
-            referencedRelation: "gear"
+            referencedRelation: "User"
             referencedColumns: ["id"]
           },
         ]
       }
-      notes: {
+      User: {
         Row: {
-          contact_id: string
-          content: string
-          created_at: string
+          createdAt: string
+          email: string
           id: string
         }
         Insert: {
-          contact_id: string
-          content: string
-          created_at?: string
-          id?: string
+          createdAt?: string
+          email: string
+          id: string
         }
         Update: {
-          contact_id?: string
-          content?: string
-          created_at?: string
+          createdAt?: string
+          email?: string
           id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notes_contact_id_fkey"
-            columns: ["contact_id"]
-            isOneToOne: false
-            referencedRelation: "contacts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      profiles: {
-        Row: {
-          avatar_url: string | null
-          id: string
-          updated_at: string | null
-          username: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          id: string
-          updated_at?: string | null
-          username?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          id?: string
-          updated_at?: string | null
-          username?: string | null
         }
         Relationships: []
       }
