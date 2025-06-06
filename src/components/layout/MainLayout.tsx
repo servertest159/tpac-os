@@ -13,9 +13,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <main className="flex-grow container mx-auto px-4 py-6">
         {children}
       </main>
-      <footer className="bg-forest text-white py-4">
+      <footer className="bg-black text-white py-4">
         <div className="container mx-auto px-4 text-center text-sm">
-          <p>© {new Date().getFullYear()} Adventure Planner. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} TPAC OS. All rights reserved.</p>
         </div>
       </footer>
     </div>

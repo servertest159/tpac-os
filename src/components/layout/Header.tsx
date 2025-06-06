@@ -23,7 +23,7 @@ const Header = () => {
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
         <div className="flex items-center space-x-2">
           <Link to="/dashboard" className="flex items-center">
-            <span className="font-bold text-2xl text-forest-dark">AdventurePlanner</span>
+            <span className="font-bold text-2xl text-black">TPAC OS</span>
           </Link>
         </div>
 
