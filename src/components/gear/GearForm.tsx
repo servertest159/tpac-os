@@ -139,12 +139,16 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
     navigate("/gear");
   };
 
-  const handleCameraCapture = (imageDataUrl: string) => {
+  const handleCameraCapture = (imageBlob: Blob) => {
+    const imageDataUrl = URL.createObjectURL(imageBlob);
     setCapturedImage(imageDataUrl);
     setShowCamera(false);
   };
 
   const handleRemoveImage = () => {
+    if (capturedImage) {
+      URL.revokeObjectURL(capturedImage);
+    }
     setCapturedImage(null);
   };
 
@@ -152,7 +156,7 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
     return (
       <CameraCapture
         onCapture={handleCameraCapture}
-        onCancel={() => setShowCamera(false)}
+        onClose={() => setShowCamera(false)}
       />
     );
   }
@@ -290,7 +294,10 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
               )}
             </div>
             {capturedImage && (
-              <ImagePreview src={capturedImage} alt="Captured gear photo" />
+              <ImagePreview 
+                imageUrl={capturedImage} 
+                onRemove={handleRemoveImage} 
+              />
             )}
           </div>
         </CardContent>
