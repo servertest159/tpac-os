@@ -1,15 +1,17 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Camera } from "lucide-react";
 import CameraCapture from "./CameraCapture";
 import ImagePreview from "./ImagePreview";
+import { supabase } from "@/integrations/supabase/client";
 
 interface GearFormProps {
   gearId?: string;
@@ -20,49 +22,115 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
   const { toast } = useToast();
   const isEditing = !!gearId;
   
-  // Sample gear data for editing (in a real app, would fetch from API)
-  const gearData = isEditing
-    ? {
-        name: "Tents - 2 Person",
-        type: "Shelter",
-        quantity: 5,
-        condition: "Good",
-        notes: "These are our newest tents, purchased in January.",
-        lastMaintenance: "2025-03-15",
+  const [formData, setFormData] = useState({
+    name: "",
+    type: "",
+    quantity: 1,
+    available: 1,
+    condition: "Good",
+    last_maintenance: "",
+    notes: "",
+  });
+
+  const [showCamera, setShowCamera] = useState(false);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isEditing && gearId) {
+      fetchGear();
+    }
+  }, [isEditing, gearId]);
+
+  const fetchGear = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('gear')
+        .select('*')
+        .eq('id', gearId)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setFormData({
+          name: data.name,
+          type: data.type,
+          quantity: data.quantity,
+          available: data.available,
+          condition: data.condition,
+          last_maintenance: data.last_maintenance || "",
+          notes: data.notes || "",
+        });
       }
-    : {
-        name: "",
-        type: "",
-        quantity: 1,
-        condition: "Good",
-        notes: "",
-        lastMaintenance: new Date().toISOString().split("T")[0],
+    } catch (error) {
+      console.error('Error fetching gear:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load gear data",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const gearData = {
+        name: formData.name,
+        type: formData.type,
+        quantity: formData.quantity,
+        available: formData.available,
+        condition: formData.condition,
+        last_maintenance: formData.last_maintenance || null,
+        notes: formData.notes,
+        updated_at: new Date().toISOString(),
       };
 
-  const [formData, setFormData] = React.useState(gearData);
-  const [showCamera, setShowCamera] = React.useState(false);
-  const [capturedImages, setCapturedImages] = React.useState<string[]>([]);
+      if (isEditing && gearId) {
+        const { error } = await supabase
+          .from('gear')
+          .update(gearData)
+          .eq('id', gearId);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Simulate API call
-    setTimeout(() => {
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('gear')
+          .insert([gearData]);
+
+        if (error) throw error;
+      }
+
       toast({
         title: isEditing ? "Gear Updated" : "Gear Added",
         description: `Successfully ${isEditing ? "updated" : "added"} ${formData.name}`,
       });
       navigate("/gear");
-    }, 500);
+    } catch (error) {
+      console.error('Error saving gear:', error);
+      toast({
+        title: "Error",
+        description: `Failed to ${isEditing ? "update" : "add"} gear`,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ 
+      ...prev, 
+      [name]: name === 'quantity' || name === 'available' ? parseInt(value) || 0 : value 
+    }));
   };
-  
+
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -71,97 +139,68 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
     navigate("/gear");
   };
 
-  const handleCameraCapture = (imageBlob: Blob) => {
-    const imageUrl = URL.createObjectURL(imageBlob);
-    setCapturedImages(prev => [...prev, imageUrl]);
+  const handleCameraCapture = (imageDataUrl: string) => {
+    setCapturedImage(imageDataUrl);
     setShowCamera(false);
   };
 
-  const removeImage = (index: number) => {
-    setCapturedImages(prev => prev.filter((_, i) => i !== index));
+  const handleRemoveImage = () => {
+    setCapturedImage(null);
   };
-
-  const gearTypes = [
-    "Shelter",
-    "Sleep",
-    "Cooking",
-    "Equipment",
-    "Carry",
-    "Safety",
-    "Clothing",
-    "Other",
-  ];
-  
-  const conditions = ["Excellent", "Good", "Fair", "Poor"];
 
   if (showCamera) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <CameraCapture
-          onCapture={handleCameraCapture}
-          onClose={() => setShowCamera(false)}
-        />
-      </div>
+      <CameraCapture
+        onCapture={handleCameraCapture}
+        onCancel={() => setShowCamera(false)}
+      />
     );
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{isEditing ? "Edit Gear Item" : "Add Gear Item"}</CardTitle>
+        <CardTitle>{isEditing ? "Edit Gear" : "Add New Gear"}</CardTitle>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Item Name</Label>
+            <Label htmlFor="name">Gear Name</Label>
             <Input
               id="name"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              placeholder="Enter gear item name"
+              placeholder="Enter gear name"
               required
             />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="type">Type</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value) => handleSelectChange("type", value)}
-              >
-                <SelectTrigger id="type">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {gearTypes.map((type) => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="condition">Condition</Label>
-              <Select
-                value={formData.condition}
-                onValueChange={(value) => handleSelectChange("condition", value)}
-              >
-                <SelectTrigger id="condition">
-                  <SelectValue placeholder="Select condition" />
-                </SelectTrigger>
-                <SelectContent>
-                  {conditions.map((condition) => (
-                    <SelectItem key={condition} value={condition}>{condition}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="type">Type</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value) => handleSelectChange("type", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select gear type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tent">Tent</SelectItem>
+                <SelectItem value="backpack">Backpack</SelectItem>
+                <SelectItem value="sleeping-bag">Sleeping Bag</SelectItem>
+                <SelectItem value="cooking">Cooking Equipment</SelectItem>
+                <SelectItem value="navigation">Navigation</SelectItem>
+                <SelectItem value="safety">Safety Equipment</SelectItem>
+                <SelectItem value="clothing">Clothing</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="quantity">Quantity</Label>
+              <Label htmlFor="quantity">Total Quantity</Label>
               <Input
                 id="quantity"
                 name="quantity"
@@ -173,49 +212,86 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastMaintenance">Last Maintenance</Label>
+              <Label htmlFor="available">Available</Label>
               <Input
-                id="lastMaintenance"
-                name="lastMaintenance"
-                type="date"
-                value={formData.lastMaintenance}
+                id="available"
+                name="available"
+                type="number"
+                value={formData.available}
                 onChange={handleChange}
+                min={0}
+                max={formData.quantity}
                 required
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Photos</Label>
-            <div className="flex flex-wrap gap-4 items-center">
-              {capturedImages.map((imageUrl, index) => (
-                <ImagePreview
-                  key={index}
-                  imageUrl={imageUrl}
-                  onRemove={() => removeImage(index)}
-                />
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowCamera(true)}
-                className="flex items-center gap-2 h-32 w-32 border-dashed"
-              >
-                <Camera className="h-6 w-6" />
-                <span className="text-sm">Add Photo</span>
-              </Button>
-            </div>
+            <Label htmlFor="condition">Condition</Label>
+            <Select
+              value={formData.condition}
+              onValueChange={(value) => handleSelectChange("condition", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select condition" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Excellent">Excellent</SelectItem>
+                <SelectItem value="Good">Good</SelectItem>
+                <SelectItem value="Fair">Fair</SelectItem>
+                <SelectItem value="Poor">Poor</SelectItem>
+                <SelectItem value="Needs Repair">Needs Repair</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          
+
+          <div className="space-y-2">
+            <Label htmlFor="last_maintenance">Last Maintenance Date</Label>
+            <Input
+              id="last_maintenance"
+              name="last_maintenance"
+              type="date"
+              value={formData.last_maintenance}
+              onChange={handleChange}
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="notes">Notes</Label>
-            <Input
+            <Textarea
               id="notes"
               name="notes"
               value={formData.notes}
               onChange={handleChange}
-              placeholder="Any additional information about this gear"
+              placeholder="Additional notes about this gear"
+              rows={3}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Photo</Label>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowCamera(true)}
+              >
+                <Camera className="w-4 h-4 mr-2" />
+                Take Photo
+              </Button>
+              {capturedImage && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleRemoveImage}
+                >
+                  Remove Photo
+                </Button>
+              )}
+            </div>
+            {capturedImage && (
+              <ImagePreview src={capturedImage} alt="Captured gear photo" />
+            )}
           </div>
         </CardContent>
         
@@ -223,8 +299,8 @@ const GearForm: React.FC<GearFormProps> = ({ gearId }) => {
           <Button type="button" variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button type="submit">
-            {isEditing ? "Update Item" : "Add Item"}
+          <Button type="submit" disabled={loading}>
+            {loading ? "Saving..." : (isEditing ? "Update Gear" : "Add Gear")}
           </Button>
         </CardFooter>
       </form>

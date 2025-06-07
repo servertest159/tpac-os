@@ -62,6 +62,120 @@ export type Database = {
           },
         ]
       }
+      events: {
+        Row: {
+          created_at: string | null
+          current_participants: number | null
+          date: string
+          description: string | null
+          id: string
+          location: string | null
+          max_participants: number | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_participants?: number | null
+          date: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          max_participants?: number | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_participants?: number | null
+          date?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          max_participants?: number | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      gear: {
+        Row: {
+          available: number
+          condition: string
+          created_at: string | null
+          id: string
+          last_maintenance: string | null
+          name: string
+          notes: string | null
+          quantity: number
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          available?: number
+          condition?: string
+          created_at?: string | null
+          id?: string
+          last_maintenance?: string | null
+          name: string
+          notes?: string | null
+          quantity?: number
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          available?: number
+          condition?: string
+          created_at?: string | null
+          id?: string
+          last_maintenance?: string | null
+          name?: string
+          notes?: string | null
+          quantity?: number
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      gear_events: {
+        Row: {
+          created_at: string | null
+          event_id: string | null
+          gear_id: string | null
+          id: string
+          quantity: number
+        }
+        Insert: {
+          created_at?: string | null
+          event_id?: string | null
+          gear_id?: string | null
+          id?: string
+          quantity?: number
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string | null
+          gear_id?: string | null
+          id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gear_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gear_events_gear_id_fkey"
+            columns: ["gear_id"]
+            isOneToOne: false
+            referencedRelation: "gear"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       media: {
         Row: {
           content_id: string

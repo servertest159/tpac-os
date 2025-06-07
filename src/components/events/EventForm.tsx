@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EventFormProps {
   eventId?: string;
@@ -17,38 +18,103 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
   const { toast } = useToast();
   const isEditing = !!eventId;
   
-  // Sample event data for editing (in a real app, would fetch from API)
-  const eventData = isEditing
-    ? {
-        title: "Mountain Hiking Weekend",
-        date: "2025-05-24",
-        time: "08:00",
-        location: "Blue Ridge Mountains",
-        description: "A weekend hiking trip through the beautiful Blue Ridge Mountains with camping overnight.",
-        maxParticipants: 12,
+  const [formData, setFormData] = useState({
+    title: "",
+    date: "",
+    time: "",
+    location: "",
+    description: "",
+    max_participants: 10,
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isEditing && eventId) {
+      fetchEvent();
+    }
+  }, [isEditing, eventId]);
+
+  const fetchEvent = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('id', eventId)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        const eventDate = new Date(data.date);
+        const dateStr = eventDate.toISOString().split('T')[0];
+        const timeStr = eventDate.toTimeString().split(' ')[0].slice(0, 5);
+
+        setFormData({
+          title: data.title,
+          date: dateStr,
+          time: timeStr,
+          location: data.location || "",
+          description: data.description || "",
+          max_participants: data.max_participants || 10,
+        });
       }
-    : {
-        title: "",
-        date: "",
-        time: "",
-        location: "",
-        description: "",
-        maxParticipants: 10,
+    } catch (error) {
+      console.error('Error fetching event:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load event data",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const eventDateTime = new Date(`${formData.date}T${formData.time}`);
+      
+      const eventData = {
+        title: formData.title,
+        date: eventDateTime.toISOString(),
+        location: formData.location,
+        description: formData.description,
+        max_participants: formData.max_participants,
+        updated_at: new Date().toISOString(),
       };
 
-  const [formData, setFormData] = React.useState(eventData);
+      if (isEditing && eventId) {
+        const { error } = await supabase
+          .from('events')
+          .update(eventData)
+          .eq('id', eventId);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Simulate API call
-    setTimeout(() => {
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('events')
+          .insert([eventData]);
+
+        if (error) throw error;
+      }
+
       toast({
         title: isEditing ? "Event Updated" : "Event Created",
         description: `Successfully ${isEditing ? "updated" : "created"} ${formData.title}`,
       });
       navigate("/events");
-    }, 500);
+    } catch (error) {
+      console.error('Error saving event:', error);
+      toast({
+        title: "Error",
+        description: `Failed to ${isEditing ? "update" : "create"} event`,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (
@@ -132,12 +198,12 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="maxParticipants">Maximum Participants</Label>
+            <Label htmlFor="max_participants">Maximum Participants</Label>
             <Input
-              id="maxParticipants"
-              name="maxParticipants"
+              id="max_participants"
+              name="max_participants"
               type="number"
-              value={formData.maxParticipants}
+              value={formData.max_participants}
               onChange={handleChange}
               min={1}
               required
@@ -149,8 +215,8 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
           <Button type="button" variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button type="submit">
-            {isEditing ? "Update Event" : "Create Event"}
+          <Button type="submit" disabled={loading}>
+            {loading ? "Saving..." : (isEditing ? "Update Event" : "Create Event")}
           </Button>
         </CardFooter>
       </form>
