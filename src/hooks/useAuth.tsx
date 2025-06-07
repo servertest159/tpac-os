@@ -14,17 +14,31 @@ export const useAuth = () => {
 
   const grantAccess = () => {
     setIsAuthenticated(true);
+    localStorage.setItem("tpac_access_granted", "true");
+  };
+
+  const logout = () => {
+    // End the session by removing authentication status
+    localStorage.removeItem("tpac_access_granted");
+    setIsAuthenticated(false);
+    
+    // Note: We intentionally DO NOT clear user data like:
+    // - Event drafts
+    // - Gear entries
+    // - User preferences
+    // - Any other application data
+    // This preserves the user's work for when they return
   };
 
   const revokeAccess = () => {
-    localStorage.removeItem("tpac_access_granted");
-    setIsAuthenticated(false);
+    logout();
   };
 
   return {
     isAuthenticated,
     isLoading,
     grantAccess,
+    logout,
     revokeAccess
   };
 };

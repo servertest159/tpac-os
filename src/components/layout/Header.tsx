@@ -2,12 +2,16 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Calendar, Users, Package, MessageSquare } from "lucide-react";
+import { Calendar, Users, Package, MessageSquare, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 const Header = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { logout } = useAuth();
+  const { toast } = useToast();
 
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: <Users className="w-4 h-4" /> },
@@ -17,6 +21,15 @@ const Header = () => {
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "👋 You've been safely logged out",
+      description: "Your data is saved. Come back anytime to continue.",
+      duration: 3000,
+    });
+  };
 
   return (
     <header className="bg-white border-b sticky top-0 z-30">
@@ -45,6 +58,16 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center space-x-4">
+          {/* Desktop Logout Button */}
+          <Button
+            variant="ghost"
+            onClick={handleLogout}
+            className="hidden md:flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Log Out</span>
+          </Button>
+
           {/* Mobile menu button */}
           <Button
             variant="ghost"
@@ -96,6 +119,17 @@ const Header = () => {
                 <span>{item.label}</span>
               </Link>
             ))}
+            {/* Mobile Logout Button */}
+            <button
+              onClick={() => {
+                handleLogout();
+                setIsMenuOpen(false);
+              }}
+              className="flex items-center space-x-2 py-3 px-2 text-gray-700 w-full text-left"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Log Out</span>
+            </button>
           </div>
         </div>
       )}
