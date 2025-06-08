@@ -8,8 +8,9 @@ import { Package, Edit, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import GearPhotoPreview from "./GearPhotoPreview";
 
-// Sample data for gear items
+// Sample data for gear items with photo URLs
 const gearItems = [
   {
     id: "1",
@@ -19,6 +20,7 @@ const gearItems = [
     available: 3,
     condition: "Good",
     lastMaintenance: "2025-03-15",
+    photoUrl: "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=400&h=300&fit=crop",
   },
   {
     id: "2",
@@ -28,6 +30,7 @@ const gearItems = [
     available: 8,
     condition: "Excellent",
     lastMaintenance: "2025-04-02",
+    photoUrl: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop",
   },
   {
     id: "3",
@@ -47,6 +50,7 @@ const gearItems = [
     available: 0,
     condition: "Good",
     lastMaintenance: "2025-02-10",
+    photoUrl: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=400&h=300&fit=crop",
   },
   {
     id: "5",
@@ -56,6 +60,7 @@ const gearItems = [
     available: 4,
     condition: "Good",
     lastMaintenance: "2025-04-05",
+    photoUrl: "https://images.unsplash.com/photo-1603398938425-d3cd0ebb4f77?w=400&h=300&fit=crop",
   },
   {
     id: "6",
@@ -147,11 +152,22 @@ const GearList = () => {
           {filteredGear.map((item) => (
             <Card key={item.id} className="card-hover">
               <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg">{item.name}</CardTitle>
-                  {getConditionBadge(item.condition, item.needsMaintenance)}
+                <div className="flex gap-3 items-start">
+                  {/* Photo thumbnail */}
+                  <GearPhotoPreview 
+                    gearName={item.name} 
+                    photoUrl={item.photoUrl}
+                    className="w-16 h-16 flex-shrink-0"
+                  />
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start mb-1">
+                      <CardTitle className="text-lg truncate">{item.name}</CardTitle>
+                      {getConditionBadge(item.condition, item.needsMaintenance)}
+                    </div>
+                    <p className="text-sm text-muted-foreground">{item.type}</p>
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground">{item.type}</p>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
