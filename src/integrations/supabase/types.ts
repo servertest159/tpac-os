@@ -313,6 +313,7 @@ export type Database = {
         | "Training Head (General)"
         | "Training Head (Land)"
         | "Training Head (Water)"
+        | "Training Head (Welfare)"
         | "Quartermaster"
         | "Assistant Quarter Master"
         | "Publicity Head"
@@ -443,6 +444,7 @@ export const Constants = {
         "Training Head (General)",
         "Training Head (Land)",
         "Training Head (Water)",
+        "Training Head (Welfare)",
         "Quartermaster",
         "Assistant Quarter Master",
         "Publicity Head",

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,10 +14,23 @@ const AccessGate: React.FC<AccessGateProps> = ({ onAccessGranted }) => {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const validCodes = [
-    938271, 472839, 615204, 307198, 529746, 184302, 763910, 920458, 
-    381207, 640193, 859321, 712496, 530984, 298374, 476213
-  ];
+  const accessCodeRoles: { [key: number]: string } = {
+    938271: 'President',
+    472839: 'Vice-President',
+    615204: 'Honorary Secretary',
+    307198: 'Honorary Assistant Secretary',
+    529746: 'Honorary Treasurer',
+    184302: 'Honorary Assistant Treasurer',
+    763910: 'Training Head (General)',
+    920458: 'Training Head (Land)',
+    381207: 'Training Head (Water)',
+    640193: 'Training Head (Welfare)',
+    859321: 'Quartermaster',
+    712496: 'Assistant Quarter Master',
+    530984: 'Publicity Head',
+    298374: 'Assistant Publicity Head',
+    476213: 'Member',
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,10 +39,12 @@ const AccessGate: React.FC<AccessGateProps> = ({ onAccessGranted }) => {
     // Simulate a brief loading state for security appearance
     setTimeout(() => {
       const numericCode = parseInt(code.trim());
+      const role = accessCodeRoles[numericCode];
       
-      if (validCodes.includes(numericCode)) {
-        setMessage("✅ Access granted. Welcome to the TPAC OS.");
+      if (role) {
+        setMessage(`✅ Access granted. Welcome, ${role}.`);
         localStorage.setItem("tpac_access_granted", "true");
+        localStorage.setItem("tpac_user_role", role);
         setTimeout(() => {
           onAccessGranted();
         }, 1000);
