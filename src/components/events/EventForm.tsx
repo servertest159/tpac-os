@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -101,15 +100,15 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
       }
 
       toast({
-        title: isEditing ? "Mission Updated" : "Mission Planned",
-        description: `The mission details for '${formData.title}' have been logged.`,
+        title: isEditing ? "Programme Updated" : "Programme Planned",
+        description: `The programme details for '${formData.title}' have been logged.`,
       });
       navigate("/events");
     } catch (error) {
       console.error('Error saving event:', error);
       toast({
         title: "Error",
-        description: `Failed to ${isEditing ? "update" : "plan"} mission`,
+        description: `Failed to ${isEditing ? "update" : "plan"} programme`,
         variant: "destructive",
       });
     } finally {
@@ -131,12 +130,12 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{isEditing ? "Edit Mission" : "Plan New Mission"}</CardTitle>
+        <CardTitle>{isEditing ? "Edit Programme" : "Plan New Programme"}</CardTitle>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Mission Title</Label>
+            <Label htmlFor="title">Programme Title</Label>
             <Input
               id="title"
               name="title"
@@ -185,13 +184,13 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="description">Mission Brief</Label>
+            <Label htmlFor="description">Programme Brief</Label>
             <Textarea
               id="description"
               name="description"
               value={formData.description}
               onChange={handleChange}
-              placeholder="Provide a detailed mission brief: objectives, route, and special considerations..."
+              placeholder="Provide a detailed programme brief: objectives, route, and special considerations..."
               rows={4}
               required
             />
@@ -216,7 +215,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
             Cancel
           </Button>
           <Button type="submit" disabled={loading}>
-            {loading ? "Saving..." : (isEditing ? "Update Mission" : "Plan Mission")}
+            {loading ? "Saving..." : (isEditing ? "Update Programme" : "Plan Programme")}
           </Button>
         </CardFooter>
       </form>

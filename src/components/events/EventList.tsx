@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -87,11 +88,11 @@ const EventList = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1>Missions</h1>
+          <h1>Programmes</h1>
           <p className="text-muted-foreground">Coordinate your field operations.</p>
         </div>
         <Button asChild>
-          <Link to="/events/new">Plan Mission</Link>
+          <Link to="/events/new">Plan Programme</Link>
         </Button>
       </div>
 
@@ -101,7 +102,7 @@ const EventList = () => {
           variant={filter === "all" ? "default" : "outline"}
           onClick={() => setFilter("all")}
         >
-          All Missions
+          All Programmes
         </Button>
         <Button
           variant={filter === "upcoming" ? "default" : "outline"}
@@ -119,10 +120,10 @@ const EventList = () => {
 
       {filteredEvents.length === 0 ? (
         <div className="text-center py-12">
-          <h3 className="mb-2">No Missions Found</h3>
-          <p className="text-muted-foreground mb-4">There are no missions matching your filters. Time to plan one?</p>
+          <h3 className="mb-2">No Programmes Found</h3>
+          <p className="text-muted-foreground mb-4">There are no programmes matching your filters. Time to plan one?</p>
           <Button asChild>
-            <Link to="/events/new">Plan a Mission</Link>
+            <Link to="/events/new">Plan a Programme</Link>
           </Button>
         </div>
       ) : (

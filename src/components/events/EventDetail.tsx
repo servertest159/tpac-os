@@ -50,8 +50,8 @@ const EventDetail = () => {
     // Simulate API call to delete
     setTimeout(() => {
       toast({
-        title: "Mission Aborted",
-        description: "The mission has been removed from the logs.",
+        title: "Programme Aborted",
+        description: "The programme has been removed from the logs.",
       });
       navigate("/events");
     }, 500);
@@ -67,7 +67,7 @@ const EventDetail = () => {
               {eventData.status === "upcoming" ? "Upcoming" : "Completed"}
             </Badge>
           </div>
-          <p className="text-muted-foreground">Mission Debrief & Coordination</p>
+          <p className="text-muted-foreground">Programme Debrief & Coordination</p>
         </div>
         <div className="flex gap-2">
           <Button asChild variant="outline">
@@ -80,14 +80,14 @@ const EventDetail = () => {
             <DialogTrigger asChild>
               <Button variant="destructive">
                 <Trash2 className="mr-2 h-4 w-4" />
-                Abort Mission
+                Abort Programme
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Abort Mission</DialogTitle>
+                <DialogTitle>Abort Programme</DialogTitle>
                 <DialogDescription>
-                  Are you sure you want to abort this mission? This action cannot be undone and will be logged.
+                  Are you sure you want to abort this programme? This action cannot be undone and will be logged.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
@@ -117,7 +117,7 @@ const EventDetail = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="font-medium text-lg">Mission Intel</h3>
+                    <h3 className="font-medium text-lg">Programme Intel</h3>
                     <div className="space-y-2 mt-2">
                       <div className="flex items-center">
                         <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
@@ -168,7 +168,7 @@ const EventDetail = () => {
                       </Button>
                       <Button asChild variant="secondary">
                         <Link to={`/events/${id}/gear`}>
-                          Check Armoury Loadout
+                          Check Inventory Loadout
                         </Link>
                       </Button>
                     </div>
@@ -272,7 +272,7 @@ const EventDetail = () => {
           </div>
           <Button asChild>
             <Link to={`/events/${id}/gear`}>
-              Manage Mission Loadout
+              Manage Programme Loadout
             </Link>
           </Button>
         </TabsContent>
@@ -280,7 +280,7 @@ const EventDetail = () => {
         <TabsContent value="itinerary" className="space-y-4 pt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Mission Itinerary</CardTitle>
+              <CardTitle>Programme Itinerary</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
