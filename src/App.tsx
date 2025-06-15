@@ -13,14 +13,14 @@ import GearNew from "./pages/GearNew";
 import GearEdit from "./pages/GearEdit";
 import Feedback from "./pages/Feedback";
 import NotFound from "./pages/NotFound";
-import AccessGate from "./components/auth/AccessGate";
-import { useAuth } from "./hooks/useAuth";
+import { AuthProvider, useAuth } from "./hooks/useAuth";
 import Crew from "./pages/Crew";
+import AuthPage from "./pages/Auth";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const { isAuthenticated, isLoading, grantAccess } = useAuth();
+  const { session, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -33,25 +33,31 @@ const AppContent = () => {
     );
   }
 
-  if (!isAuthenticated) {
-    return <AccessGate onAccessGranted={grantAccess} />;
-  }
-
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/events" element={<Events />} />
-        <Route path="/events/new" element={<EventNew />} />
-        <Route path="/events/:id" element={<EventDetail />} />
-        <Route path="/events/:id/:action" element={<EventDetail />} />
-        <Route path="/crew" element={<Crew />} />
-        <Route path="/gear" element={<Gear />} />
-        <Route path="/gear/new" element={<GearNew />} />
-        <Route path="/gear/:id/edit" element={<GearEdit />} />
-        <Route path="/feedback" element={<Feedback />} />
-        <Route path="*" element={<NotFound />} />
+        {session ? (
+          <>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/events/new" element={<EventNew />} />
+            <Route path="/events/:id" element={<EventDetail />} />
+            <Route path="/events/:id/:action" element={<EventDetail />} />
+            <Route path="/crew" element={<Crew />} />
+            <Route path="/gear" element={<Gear />} />
+            <Route path="/gear/new" element={<GearNew />} />
+            <Route path="/gear/:id/edit" element={<GearEdit />} />
+            <Route path="/feedback" element={<Feedback />} />
+            <Route path="/auth" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<NotFound />} />
+          </>
+        ) : (
+          <>
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="*" element={<Navigate to="/auth" replace />} />
+          </>
+        )}
       </Routes>
     </BrowserRouter>
   );
@@ -60,9 +66,11 @@ const AppContent = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <AppContent />
+      <AuthProvider>
+        <Toaster />
+        <Sonner />
+        <AppContent />
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 const Header = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { logout } = useAuth();
+  const { signOut } = useAuth();
   const { toast } = useToast();
 
   const navItems = [
@@ -23,8 +23,8 @@ const Header = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await signOut();
     toast({
       title: "👋 Stand easy, you're logged out!",
       description: "Your mission data is secure. See you on the trails!",
