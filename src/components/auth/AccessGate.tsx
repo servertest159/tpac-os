@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,8 +27,8 @@ const AccessGate: React.FC<AccessGateProps> = ({ onAccessGranted }) => {
     859321: 'Quartermaster',
     712496: 'Assistant Quarter Master',
     530984: 'Publicity Head',
-    298374: 'Assistant Publicity Head',
-    476213: 'Member',
+    298374: 'First Assistant Publicity Head',
+    476213: 'Second Assistant Publicity Head',
   };
 
   const handleSubmit = (e: React.FormEvent) => {
