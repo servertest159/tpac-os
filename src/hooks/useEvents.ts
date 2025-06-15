@@ -4,10 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Tables } from '@/integrations/supabase/types';
 
-export type EventItem = Tables<'events'>;
+export type EventWithRequirements = Tables<'events'> & {
+  event_role_requirements: {
+    quantity: number;
+  }[];
+};
 
 export const useEvents = () => {
-  const [events, setEvents] = useState<EventItem[]>([]);
+  const [events, setEvents] = useState<EventWithRequirements[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -19,7 +23,7 @@ export const useEvents = () => {
 
       const { data, error: fetchError } = await supabase
         .from('events')
-        .select('*')
+        .select('*, event_role_requirements(quantity)')
         .order('date', { ascending: true });
 
       if (fetchError) throw fetchError;
@@ -43,16 +47,28 @@ export const useEvents = () => {
     fetchEvents();
 
     const channel = supabase
-      .channel('events-changes')
+      .channel('events-and-requirements-changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'events'
+          table: 'events',
         },
         () => {
           toast({ title: "🗓️ Programmes updated", description: "The list of programmes has been updated." });
+          fetchEvents();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'event_role_requirements',
+        },
+        () => {
+          toast({ title: "🗓️ Programme requirements updated", description: "The list of programmes has been updated." });
           fetchEvents();
         }
       )

@@ -62,9 +62,42 @@ export type Database = {
           },
         ]
       }
+      event_role_requirements: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          quantity: number
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          quantity?: number
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          quantity?: number
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_role_requirements_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           created_at: string | null
+          creator_id: string | null
           current_participants: number | null
           date: string
           description: string | null
@@ -77,6 +110,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          creator_id?: string | null
           current_participants?: number | null
           date: string
           description?: string | null
@@ -89,6 +123,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          creator_id?: string | null
           current_participants?: number | null
           date?: string
           description?: string | null

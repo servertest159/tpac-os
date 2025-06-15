@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, MapPin, Users, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useEvents } from "@/hooks/useEvents";
+import { useEvents, type EventWithRequirements } from "@/hooks/useEvents";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const EventList = () => {
@@ -23,6 +23,7 @@ const EventList = () => {
     .map((event) => ({
       ...event,
       status: getEventStatus(event.date),
+      total_roles: (event.event_role_requirements || []).reduce((sum, req) => sum + req.quantity, 0),
     }))
     .filter((event) => {
       if (filter === "all") return true;
@@ -157,6 +158,14 @@ const EventList = () => {
                   <div className="flex items-center text-sm">
                     <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
                     <span>{event.location}</span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <span>
+                      {event.total_roles > 0
+                        ? `${event.total_roles} roles required`
+                        : "No roles specified"}
+                    </span>
                   </div>
                   <div className="flex items-center text-sm">
                     <Users className="mr-2 h-4 w-4 text-muted-foreground" />
