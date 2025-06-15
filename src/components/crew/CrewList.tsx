@@ -12,9 +12,32 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Users } from "lucide-react";
+import { AlertCircle, Users, FileText, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Enums } from "@/integrations/supabase/types";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+
+type Role = Enums<'app_role'>;
+
+const ROLES_ORDER: Role[] = [
+  'President',
+  'Vice-President',
+  'Honorary Secretary',
+  'Honorary Assistant Secretary',
+  'Honorary Treasurer',
+  'Honorary Assistant Treasurer',
+  'Training Head (General)',
+  'Training Head (Land)',
+  'Training Head (Water)',
+  'Training Head (Welfare)',
+  'Quartermaster',
+  'Assistant Quarter Master',
+  'Publicity Head',
+  'First Assistant Publicity Head',
+  'Second Assistant Publicity Head'
+];
 
 const CrewList = () => {
   const { data: crew, isLoading, isError, error } = useCrew();
@@ -62,7 +85,7 @@ const CrewList = () => {
     return (
       <div className="space-y-6">
         <div>
-          <h1>Crew</h1>
+          <h1 className="text-2xl font-bold">Crew</h1>
           <p className="text-muted-foreground">Manage your crew members.</p>
         </div>
         <div className="rounded-md border">
@@ -113,10 +136,42 @@ const CrewList = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1>Crew</h1>
-        <p className="text-muted-foreground">Manage your crew members.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Crew</h1>
+          <p className="text-muted-foreground">Manage crew members, roles, and related assets.</p>
+        </div>
+        <div className="flex gap-2">
+          <Button asChild variant="outline">
+            <Link to="/feedback">
+              <FileText className="mr-2 h-4 w-4" />
+              File AAR
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/gear">
+              <Package className="mr-2 h-4 w-4" />
+              Inventory
+            </Link>
+          </Button>
+        </div>
       </div>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Organizational Roles</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {ROLES_ORDER.map((role) => (
+              <Badge key={role} className={roleColor(role)}>
+                {role}
+              </Badge>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
