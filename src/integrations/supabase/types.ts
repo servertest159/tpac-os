@@ -107,9 +107,11 @@ export type Database = {
           last_maintenance: string | null
           name: string
           notes: string | null
+          photo_url: string | null
           quantity: number
           type: string
           updated_at: string | null
+          uploaded_at: string | null
         }
         Insert: {
           available?: number
@@ -119,9 +121,11 @@ export type Database = {
           last_maintenance?: string | null
           name: string
           notes?: string | null
+          photo_url?: string | null
           quantity?: number
           type: string
           updated_at?: string | null
+          uploaded_at?: string | null
         }
         Update: {
           available?: number
@@ -131,9 +135,11 @@ export type Database = {
           last_maintenance?: string | null
           name?: string
           notes?: string | null
+          photo_url?: string | null
           quantity?: number
           type?: string
           updated_at?: string | null
+          uploaded_at?: string | null
         }
         Relationships: []
       }

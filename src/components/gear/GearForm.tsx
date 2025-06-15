@@ -125,16 +125,20 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
         if (isNewItem) {
             const { data: newGear, error: insertError } = await supabase
                 .from('gear')
-                .insert([{ ...formData, photo_url: null }])
-                .select()
+                .insert([{ ...formData, photo_url: null, uploaded_at: null }])
+                .select('id')
                 .single();
 
             if (insertError) throw insertError;
             gearIdToUpdate = newGear.id;
         }
 
-        let finalPhotoUrl = isEditing ? formData.photo_url : null;
+        let finalPhotoUrl = formData.photo_url;
+        let uploadedTimestamp: string | null = null;
+        let photoChanged = false;
+
         if (imageFile && gearIdToUpdate) {
+            photoChanged = true;
             setIsUploading(true);
             const filePath = `${gearIdToUpdate}/${Date.now()}-${imageFile.name}`;
             
@@ -149,16 +153,24 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
                 .getPublicUrl(filePath);
             
             finalPhotoUrl = urlData.publicUrl;
+            uploadedTimestamp = new Date().toISOString();
             setIsUploading(false);
         } else if (!imagePreview && isEditing) {
+            photoChanged = true;
             finalPhotoUrl = null;
+            uploadedTimestamp = null;
         }
         
-        const gearData = { ...formData, photo_url: finalPhotoUrl };
+        const gearDataToUpdate: { [key: string]: any } = { ...formData };
+        
+        if (photoChanged) {
+            gearDataToUpdate.photo_url = finalPhotoUrl;
+            gearDataToUpdate.uploaded_at = uploadedTimestamp;
+        }
         
         const { error: updateError } = await supabase
             .from('gear')
-            .update(gearData)
+            .update(gearDataToUpdate)
             .eq('id', gearIdToUpdate!);
         
         if (updateError) throw updateError;
