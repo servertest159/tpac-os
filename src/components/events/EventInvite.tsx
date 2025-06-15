@@ -1,22 +1,20 @@
-
 import React from 'react';
 import { useCrew, ProfileWithRoles } from '@/hooks/useCrew';
 import { Enums } from '@/integrations/supabase/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Check, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Check } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Accordion,
   AccordionContent,
@@ -45,11 +43,11 @@ const ROLES_ORDER: Role[] = [
 ];
 
 const EventInvite = () => {
-  const { id: eventId } = useParams<{ id:string }>();
+  const { id: eventId } = useParams<{ id: string }>();
   const { data: crew, isLoading, error, refetch } = useCrew();
   const { toast } = useToast();
   const [invited, setInvited] = React.useState<string[]>([]);
-  const [selectedRoles, setSelectedRoles] = React.useState<Role[]>([]);
+  const [selectedRole, setSelectedRole] = React.useState<Role | null>(null);
 
   const handleInvite = (memberName: string, memberId: string) => {
     // This would be an API call in a real app
@@ -74,22 +72,6 @@ const EventInvite = () => {
     });
     return grouped;
   }, [crew]);
-
-  const filteredMembers = React.useMemo(() => {
-    if (selectedRoles.length === 0 || !crew) return [];
-
-    const uniqueMembers = new Map<string, ProfileWithRoles>();
-
-    selectedRoles.forEach(role => {
-        (membersByRole[role] || []).forEach(member => {
-            if (!uniqueMembers.has(member.id)) {
-                uniqueMembers.set(member.id, member);
-            }
-        });
-    });
-
-    return Array.from(uniqueMembers.values());
-  }, [selectedRoles, crew, membersByRole]);
 
   if (isLoading) {
     return (
@@ -143,55 +125,41 @@ const EventInvite = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Select Roles</CardTitle>
-          <p className="text-muted-foreground">Choose one or more roles to see available operators.</p>
+          <CardTitle>Select a Role</CardTitle>
+          <p className="text-muted-foreground">Choose a role from the dropdown to see available operators.</p>
         </CardHeader>
         <CardContent>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full md:w-[280px] justify-between">
-                    <span>
-                        {selectedRoles.length === 0
-                        ? "Select roles"
-                        : `${selectedRoles.length} role(s) selected`}
-                    </span>
-                    <ChevronDown className="h-4 w-4 opacity-50" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-full md:w-[280px]">
-                <DropdownMenuLabel>Available Roles</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {ROLES_ORDER.map(role => (
-                    <DropdownMenuCheckboxItem
-                        key={role}
-                        checked={selectedRoles.includes(role)}
-                        onCheckedChange={(checked) => {
-                            setSelectedRoles(prevRoles => 
-                                checked 
-                                ? [...prevRoles, role] 
-                                : prevRoles.filter(r => r !== role)
-                            );
-                        }}
-                    >
-                        {role}
-                    </DropdownMenuCheckboxItem>
-                ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Select
+            value={selectedRole || ''}
+            onValueChange={(value) => {
+              setSelectedRole(value ? value as Role : null);
+            }}
+          >
+            <SelectTrigger className="w-full md:w-[280px]">
+              <SelectValue placeholder="Select a role" />
+            </SelectTrigger>
+            <SelectContent>
+              {ROLES_ORDER.map(role => (
+                <SelectItem key={role} value={role}>
+                  {role}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </CardContent>
       </Card>
       
-      {selectedRoles.length > 0 && (
+      {selectedRole && (
         <Card>
           <Accordion type="single" collapsible defaultValue="item-1" className="w-full">
             <AccordionItem value="item-1" className="border-b-0">
               <AccordionTrigger className="p-6 hover:no-underline">
-                <CardTitle>Operators for {selectedRoles.length} selected role(s)</CardTitle>
+                <CardTitle>Operators for {selectedRole}</CardTitle>
               </AccordionTrigger>
               <AccordionContent>
                 <CardContent className="pt-0">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredMembers.map(member => (
+                    {(membersByRole[selectedRole] || []).map(member => (
                       <div key={member.id} className="p-4 border rounded-lg flex items-center justify-between">
                           <div className="flex items-center gap-4">
                           <Avatar>
@@ -213,8 +181,8 @@ const EventInvite = () => {
                           </Button>
                       </div>
                     ))}
-                    {filteredMembers.length === 0 && (
-                      <p className="text-muted-foreground col-span-full text-center">No operators found for the selected roles.</p>
+                    {(membersByRole[selectedRole] || []).length === 0 && (
+                      <p className="text-muted-foreground col-span-full text-center">No operators found for this role.</p>
                     )}
                   </div>
                 </CardContent>
