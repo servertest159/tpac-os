@@ -2,12 +2,18 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Calendar, Users, Package, MessageSquare } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, Package, MessageSquare, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Header = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem("tpac_access_granted");
+    localStorage.removeItem("tpac_user_role");
+    window.location.href = "/"; // Redirect to root to re-evaluate access
+  };
 
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -45,7 +51,13 @@ const Header = () => {
           ))}
         </nav>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
+          {/* Logout Button for Desktop */}
+          <Button variant="ghost" onClick={handleLogout} className="hidden md:inline-flex items-center">
+            <LogOut className="w-4 h-4 mr-2" />
+            Log Out
+          </Button>
+
           {/* Mobile menu button */}
           <Button
             variant="ghost"
@@ -97,6 +109,17 @@ const Header = () => {
                 <span>{item.label}</span>
               </Link>
             ))}
+            <div className="border-t -mx-4 my-2"></div>
+            <button
+              onClick={() => {
+                handleLogout();
+                setIsMenuOpen(false);
+              }}
+              className="flex items-center space-x-2 py-3 px-2 w-full text-left text-red-600 hover:bg-red-50 rounded"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Log Out</span>
+            </button>
           </div>
         </div>
       )}
