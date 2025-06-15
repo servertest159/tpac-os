@@ -5,13 +5,69 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, MapPin, User, Users, Clock, Edit, Trash2, Plus, AlertCircle } from "lucide-react";
+import { Calendar, MapPin, User, Users, Clock, Edit, Trash2, Plus, AlertCircle, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useEventDetail } from "@/hooks/useEventDetail";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { format } from 'date-fns';
+
+// --- Copied from EventInvite ---
+import { Enums } from "@/integrations/supabase/types";
+type Role = Enums<'app_role'>;
+
+const ROLES_ORDER: Role[] = [
+  'President',
+  'Vice-President',
+  'Honorary Secretary',
+  'Honorary Assistant Secretary',
+  'Honorary Treasurer',
+  'Honorary Assistant Treasurer',
+  'Training Head (General)',
+  'Training Head (Land)',
+  'Training Head (Water)',
+  'Training Head (Welfare)',
+  'Quartermaster',
+  'Assistant Quarter Master',
+  'Publicity Head',
+  'First Assistant Publicity Head',
+  'Second Assistant Publicity Head'
+];
+
+// -- Minimal internal version of useCrew for role lookup --
+type ProfileWithRoles = {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  avatar_url: string | null;
+  user_roles: {
+    role: Role;
+  }[];
+};
+
+function useCrew() {
+  const [crew, setCrew] = React.useState<ProfileWithRoles[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      // Get crew (profile + user_roles)
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, avatar_url, user_roles(role)')
+        .returns<ProfileWithRoles[]>();
+      if (!cancelled) {
+        setCrew(profiles || []);
+        setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+  return { crew, loading };
+}
 
 const EventDetailSkeleton = () => (
   <div className="space-y-6">
@@ -41,18 +97,84 @@ const EventDetail = () => {
   const { event, loading, error, refetch } = useEventDetail(id);
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
 
-  const handleDelete = async () => {
-    if (!id) return;
-    const { error } = await supabase.from('events').delete().eq('id', id);
-    if (error) {
-        toast({ title: "Error aborting programme", description: error.message, variant: "destructive" });
-    } else {
-        toast({
-            title: "Programme Aborted",
-            description: "The programme has been removed from the logs.",
+  // Invite Crew dialog state
+  const [showInviteDialog, setShowInviteDialog] = React.useState(false);
+  const [selectedRoles, setSelectedRoles] = React.useState<Set<Role>>(new Set());
+  const [isInviting, setIsInviting] = React.useState(false);
+  const { crew, loading: loadingCrew } = useCrew();
+
+  // See which users are already invited (from event)
+  const invitedIds = React.useMemo(() =>
+    event?.event_invitations.map(inv => inv.profiles?.id).filter(Boolean) as string[] ?? []
+  , [event]);
+
+  // Build roles -> members mapping
+  const membersByRole = React.useMemo(() => {
+    const grouped: Record<Role, ProfileWithRoles[]> = {} as Record<Role, ProfileWithRoles[]>;
+    ROLES_ORDER.forEach(r => grouped[r] = []);
+    if (crew) {
+      crew.forEach(member => {
+        member.user_roles.forEach(roleInfo => {
+          if (grouped[roleInfo.role]) {
+            // No duplicates
+            if (!grouped[roleInfo.role].some(m => m.id === member.id)) {
+              grouped[roleInfo.role].push(member);
+            }
+          }
         });
-        navigate("/events");
+      });
     }
+    return grouped;
+  }, [crew]);
+
+  const handleInviteCrew = async () => {
+    if (!id) return;
+    setIsInviting(true);
+    // Gather all member ids from selected roles and not already invited
+    const memberIdsToInvite = new Set<string>();
+    selectedRoles.forEach(role => {
+      const members = membersByRole[role] || [];
+      members.forEach(member => {
+        if (!invitedIds.includes(member.id)) {
+          memberIdsToInvite.add(member.id);
+        }
+      });
+    });
+
+    if (memberIdsToInvite.size === 0) {
+      toast({
+        title: "No new operators to invite",
+        description: "All operators for the selected roles are already invited or there are none.",
+      });
+      setIsInviting(false);
+      return;
+    }
+
+    const invites = Array.from(memberIdsToInvite).map(userId => ({
+      event_id: id,
+      user_id: userId,
+      status: 'pending' as const
+    }));
+
+    const { error: insertError } = await supabase.from('event_invitations').insert(invites);
+
+    if (insertError) {
+      toast({
+        title: "❌ Invitation Failed",
+        description: "An error occurred during bulk invitation. Some users may already have been invited.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: `✅ ${invites.length} Operator(s) Invited`,
+        description: "Successfully sent invitations.",
+      });
+      setShowInviteDialog(false);
+      setSelectedRoles(new Set());
+      refetch();
+    }
+
+    setIsInviting(false);
   };
 
   if (loading) {
@@ -195,7 +317,18 @@ const EventDetail = () => {
                   
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base">Crew Status</CardTitle>
+                      <CardTitle className="text-base flex items-center gap-2">
+                        Crew Status
+                        <Button 
+                          size="icon"
+                          variant="outline"
+                          className="ml-2"
+                          onClick={() => setShowInviteDialog(true)}
+                          aria-label="Invite Crew"
+                        >
+                          <UserPlus className="h-4 w-4" />
+                        </Button>
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center justify-between">
@@ -281,3 +414,5 @@ const EventDetail = () => {
 };
 
 export default EventDetail;
+
+// NOTE: This file is >300 LOC. Please consider asking me to refactor it into smaller focused components for better maintainability.
