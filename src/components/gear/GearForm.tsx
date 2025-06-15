@@ -7,8 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, Loader2 } from "lucide-react";
-import CameraCapture from "./CameraCapture";
+import { Loader2, UploadCloud, X } from "lucide-react";
 import ImagePreview from "./ImagePreview";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -31,10 +30,12 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
     condition: "Good",
     last_maintenance: "",
     notes: "",
+    photo_url: null as string | null,
   });
 
-  const [showCamera, setShowCamera] = useState(false);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
   const [retryAttempt, setRetryAttempt] = useState(0);
@@ -43,13 +44,17 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
     if (isEditing && gearId) {
       fetchGear();
     }
+    return () => {
+      if (imagePreview && imagePreview.startsWith("blob:")) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
   }, [isEditing, gearId]);
 
   const fetchGear = async (attempt = 0) => {
     try {
       setFetchLoading(true);
       
-      // Validate UUID format
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(gearId!)) {
         throw new Error('Invalid gear ID format');
@@ -81,14 +86,17 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
         condition: data.condition,
         last_maintenance: data.last_maintenance || "",
         notes: data.notes || "",
+        photo_url: data.photo_url || null,
       });
+      if (data.photo_url) {
+        setImagePreview(data.photo_url);
+      }
       setRetryAttempt(0);
     } catch (error) {
       console.error('Error fetching gear:', error);
       setRetryAttempt(attempt + 1);
       
       if (attempt < 2) {
-        // Retry up to 3 times
         setTimeout(() => fetchGear(attempt + 1), 1000 * (attempt + 1));
       } else {
         toast({
@@ -107,73 +115,108 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
     e.preventDefault();
     setLoading(true);
     
-    let saveAttempt = 0;
-    const maxRetries = 3;
-    
-    const attemptSave = async (): Promise<boolean> => {
-      try {
-        const gearData = {
-          name: formData.name,
-          type: formData.type,
-          quantity: formData.quantity,
-          available: formData.available,
-          condition: formData.condition,
-          last_maintenance: formData.last_maintenance || null,
-          notes: formData.notes,
-          updated_at: new Date().toISOString(),
-        };
+    try {
+        let gearIdToUpdate = gearId;
+        const isNewItem = !isEditing;
 
-        if (isEditing && gearId) {
-          const { error } = await supabase
+        if (isNewItem) {
+            const { data: newGear, error: insertError } = await supabase
+                .from('gear')
+                .insert([{ ...formData, photo_url: null }])
+                .select()
+                .single();
+
+            if (insertError) throw insertError;
+            gearIdToUpdate = newGear.id;
+        }
+
+        let finalPhotoUrl = isEditing ? formData.photo_url : null;
+        if (imageFile && gearIdToUpdate) {
+            setIsUploading(true);
+            const filePath = `${gearIdToUpdate}/${Date.now()}-${imageFile.name}`;
+            
+            const { error: uploadError } = await supabase.storage
+                .from('gear-uploads')
+                .upload(filePath, imageFile, { upsert: true });
+
+            if (uploadError) throw uploadError;
+
+            const { data: urlData } = supabase.storage
+                .from('gear-uploads')
+                .getPublicUrl(filePath);
+            
+            finalPhotoUrl = urlData.publicUrl;
+            setIsUploading(false);
+        } else if (!imagePreview && isEditing) {
+            finalPhotoUrl = null;
+        }
+        
+        const gearData = { ...formData, photo_url: finalPhotoUrl };
+        
+        const { error: updateError } = await supabase
             .from('gear')
             .update(gearData)
-            .eq('id', gearId);
-
-          if (error) throw error;
-        } else {
-          const { error } = await supabase
-            .from('gear')
-            .insert([gearData]);
-
-          if (error) throw error;
-        }
-
+            .eq('id', gearIdToUpdate!);
+        
+        if (updateError) throw updateError;
+        
         toast({
-          title: "✅ Gear saved",
-          description: `Successfully ${isEditing ? "updated" : "added"} ${formData.name}`,
+            title: "✅ Gear saved",
+            description: `Successfully ${isEditing ? "updated" : "added"} ${formData.name}.`,
         });
         navigate("/gear");
-        return true;
-      } catch (error) {
-        console.error('Error saving gear:', error);
-        saveAttempt++;
-        
-        if (saveAttempt < maxRetries) {
-          toast({
-            title: "⚠️ Retrying save",
-            description: `Attempt ${saveAttempt + 1} of ${maxRetries}...`,
-          });
-          // Wait before retrying with exponential backoff
-          await new Promise(resolve => setTimeout(resolve, 1000 * saveAttempt));
-          return attemptSave();
-        } else {
-          throw error;
-        }
-      }
-    };
 
-    try {
-      await attemptSave();
     } catch (error) {
-      console.error('Final save error:', error);
+        console.error('Error saving gear:', error);
+        setIsUploading(false);
+        toast({
+            title: "❌ Failed to save gear",
+            description: "An error occurred. Please try again.",
+            variant: "destructive",
+        });
+    } finally {
+        setLoading(false);
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/heic", "image/jpg"];
+    if (!allowedTypes.includes(file.type)) {
       toast({
-        title: "❌ Failed to save gear item",
-        description: "Please check your connection and try again.",
+        title: "❌ Invalid file type",
+        description: "Please select a JPG, PNG, or HEIC image.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
+      return;
     }
+
+    const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSizeInBytes) {
+      toast({
+        title: "❌ File too large",
+        description: "Please choose a photo smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (imagePreview && imagePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleRemoveImage = () => {
+    if (imagePreview && imagePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setImageFile(null);
+    setImagePreview(null);
+    setFormData(prev => ({ ...prev, photo_url: null }));
   };
 
   const handleChange = (
@@ -193,28 +236,6 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
   const handleCancel = () => {
     navigate("/gear");
   };
-
-  const handleCameraCapture = (imageBlob: Blob) => {
-    const imageDataUrl = URL.createObjectURL(imageBlob);
-    setCapturedImage(imageDataUrl);
-    setShowCamera(false);
-  };
-
-  const handleRemoveImage = () => {
-    if (capturedImage) {
-      URL.revokeObjectURL(capturedImage);
-    }
-    setCapturedImage(null);
-  };
-
-  if (showCamera) {
-    return (
-      <CameraCapture
-        onCapture={handleCameraCapture}
-        onClose={() => setShowCamera(false)}
-      />
-    );
-  }
 
   if (fetchLoading) {
     return (
@@ -346,31 +367,37 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
           </div>
 
           <div className="space-y-2">
-            <Label>Photo</Label>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowCamera(true)}
-              >
-                <Camera className="w-4 h-4 mr-2" />
-                Take Photo
-              </Button>
-              {capturedImage && (
+            <Label htmlFor="photo">Photo</Label>
+            {imagePreview ? (
+              <div className="relative">
+                <ImagePreview imageUrl={imagePreview} />
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2 h-7 w-7"
                   onClick={handleRemoveImage}
                 >
-                  Remove Photo
+                  <X className="h-4 w-4" />
                 </Button>
-              )}
-            </div>
-            {capturedImage && (
-              <ImagePreview 
-                imageUrl={capturedImage} 
-                onRemove={handleRemoveImage} 
-              />
+              </div>
+            ) : (
+              <div className="flex items-center justify-center w-full">
+                <Label htmlFor="photo-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
+                    <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                    <p className="text-xs text-muted-foreground">PNG, JPG, or HEIC (MAX. 5MB)</p>
+                  </div>
+                  <Input id="photo-upload" type="file" className="hidden" onChange={handleImageChange} accept="image/png, image/jpeg, image/jpg, image/heic" />
+                </Label>
+              </div>
+            )}
+            {isUploading && (
+              <div className="flex items-center space-x-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm text-muted-foreground">Uploading photo...</span>
+              </div>
             )}
           </div>
         </CardContent>
@@ -379,7 +406,7 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
           <Button type="button" variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading || isUploading}>
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

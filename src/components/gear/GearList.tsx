@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -173,7 +172,8 @@ const GearList = () => {
                 <div className="flex gap-3 items-start">
                   <GearPhotoPreview 
                     gearName={item.name} 
-                    photoUrl={undefined}
+                    photoUrl={item.photo_url}
+                    uploadedAt={item.uploaded_at}
                     className="w-16 h-16 flex-shrink-0"
                   />
                   

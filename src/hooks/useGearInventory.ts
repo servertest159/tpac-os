@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -14,6 +13,8 @@ interface GearItem {
   notes?: string;
   created_at?: string;
   updated_at?: string;
+  photo_url?: string | null;
+  uploaded_at?: string;
 }
 
 export const useGearInventory = () => {
