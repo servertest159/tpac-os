@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useCrew, ProfileWithRoles } from '@/hooks/useCrew';
 import { Enums } from '@/integrations/supabase/types';
@@ -9,7 +8,13 @@ import { ArrowLeft, Check } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Role = Enums<'app_role'>;
 
@@ -116,26 +121,28 @@ const EventInvite = () => {
       <Card>
         <CardHeader>
           <CardTitle>Select a Role</CardTitle>
-          <p className="text-muted-foreground">Click a role to see available operators.</p>
+          <p className="text-muted-foreground">Choose a role from the dropdown to see available operators.</p>
         </CardHeader>
         <CardContent>
-          <ToggleGroup
-            type="single"
-            variant="outline"
+          <Select
             value={selectedRole || ''}
             onValueChange={(value) => {
               setSelectedRole(value ? value as Role : null);
             }}
-            className="flex flex-wrap justify-center gap-2"
           >
-            {ROLES_ORDER.map(role =>
-              (membersByRole[role] && membersByRole[role].length > 0) ? (
-                <ToggleGroupItem key={role} value={role} aria-label={`Select ${role}`}>
-                  {role}
-                </ToggleGroupItem>
-              ) : null
-            )}
-          </ToggleGroup>
+            <SelectTrigger className="w-full md:w-[280px]">
+              <SelectValue placeholder="Select a role" />
+            </SelectTrigger>
+            <SelectContent>
+              {ROLES_ORDER.map(role =>
+                (membersByRole[role] && membersByRole[role].length > 0) ? (
+                  <SelectItem key={role} value={role}>
+                    {role}
+                  </SelectItem>
+                ) : null
+              )}
+            </SelectContent>
+          </Select>
         </CardContent>
       </Card>
       
