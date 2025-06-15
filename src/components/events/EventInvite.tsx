@@ -33,8 +33,7 @@ const ROLES_ORDER: Role[] = [
   'Assistant Quarter Master',
   'Publicity Head',
   'First Assistant Publicity Head',
-  'Second Assistant Publicity Head',
-  'Member'
+  'Second Assistant Publicity Head'
 ];
 
 const EventInvite = () => {
@@ -134,13 +133,11 @@ const EventInvite = () => {
               <SelectValue placeholder="Select a role" />
             </SelectTrigger>
             <SelectContent>
-              {ROLES_ORDER.map(role =>
-                (membersByRole[role] && membersByRole[role].length > 0) ? (
-                  <SelectItem key={role} value={role}>
-                    {role}
-                  </SelectItem>
-                ) : null
-              )}
+              {ROLES_ORDER.map(role => (
+                <SelectItem key={role} value={role}>
+                  {role}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </CardContent>
