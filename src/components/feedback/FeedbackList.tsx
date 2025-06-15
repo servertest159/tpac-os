@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20,45 +19,8 @@ interface FeedbackItem {
   url?: string; // Add optional URL for MS Forms
 }
 
-// Sample data for feedback responses
-const initialFeedbackData: FeedbackItem[] = [
-  {
-    id: "1",
-    eventTitle: "Mountain Hiking Weekend",
-    eventDate: "2025-04-10",
-    responseCount: 6,
-    participantCount: 8,
-    averageRating: 4.5,
-    status: "completed",
-  },
-  {
-    id: "2",
-    eventTitle: "Kayaking Trip",
-    eventDate: "2025-05-05",
-    responseCount: 4,
-    participantCount: 6,
-    averageRating: 4.2,
-    status: "completed",
-  },
-  {
-    id: "3",
-    eventTitle: "Rock Climbing Workshop",
-    eventDate: "2025-05-15",
-    responseCount: 10,
-    participantCount: 12,
-    averageRating: 4.8,
-    status: "completed",
-  },
-  {
-    id: "4",
-    eventTitle: "Mountain Biking Adventure",
-    eventDate: "2025-07-12",
-    responseCount: 0,
-    participantCount: 0,
-    averageRating: 0,
-    status: "pending",
-  },
-];
+// Sample data for feedback responses is now empty
+const initialFeedbackData: FeedbackItem[] = [];
 
 const FeedbackList = () => {
   const [feedbackData, setFeedbackData] = React.useState<FeedbackItem[]>(initialFeedbackData);
