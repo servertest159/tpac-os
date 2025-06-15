@@ -15,6 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 type Role = Enums<'app_role'>;
 
@@ -43,7 +49,7 @@ const EventInvite = () => {
   const [invited, setInvited] = React.useState<string[]>([]);
   const [selectedRole, setSelectedRole] = React.useState<Role | null>(null);
 
-  const handleInvite = (memberId: string, memberName: string) => {
+  const handleInvite = (memberName: string, memberId: string) => {
     // This would be an API call in a real app
     setInvited(prev => [...prev, memberId]);
     toast({
@@ -145,38 +151,44 @@ const EventInvite = () => {
       
       {selectedRole && (
         <Card>
-          <CardHeader>
-            <CardTitle>Operators for {selectedRole}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {(membersByRole[selectedRole] || []).map(member => (
-                <div key={member.id} className="p-4 border rounded-lg flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                    <Avatar>
-                      <AvatarImage src={member.avatar_url || undefined} alt={member.full_name || 'User'} />
-                      <AvatarFallback>{member.full_name?.slice(0, 2).toUpperCase() || 'U'}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-semibold">{member.full_name}</p>
-                      <p className="text-sm text-muted-foreground">{member.email}</p>
-                    </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={() => handleInvite(member.id, member.full_name || 'Operator')}
-                      disabled={invited.includes(member.id)}
-                    >
-                      {invited.includes(member.id) && <Check />}
-                      {invited.includes(member.id) ? 'Invited' : 'Invite'}
-                    </Button>
-                </div>
-              ))}
-              {(membersByRole[selectedRole] || []).length === 0 && (
-                <p className="text-muted-foreground col-span-full text-center">No operators found for this role.</p>
-              )}
-            </div>
-          </CardContent>
+          <Accordion type="single" collapsible defaultValue="item-1" className="w-full">
+            <AccordionItem value="item-1" className="border-b-0">
+              <AccordionTrigger className="p-6 hover:no-underline">
+                <CardTitle>Operators for {selectedRole}</CardTitle>
+              </AccordionTrigger>
+              <AccordionContent>
+                <CardContent className="pt-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {(membersByRole[selectedRole] || []).map(member => (
+                      <div key={member.id} className="p-4 border rounded-lg flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                          <Avatar>
+                            <AvatarImage src={member.avatar_url || undefined} alt={member.full_name || 'User'} />
+                            <AvatarFallback>{member.full_name?.slice(0, 2).toUpperCase() || 'U'}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-semibold">{member.full_name}</p>
+                            <p className="text-sm text-muted-foreground">{member.email}</p>
+                          </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => handleInvite(member.full_name || 'Operator', member.id)}
+                            disabled={invited.includes(member.id)}
+                          >
+                            {invited.includes(member.id) && <Check />}
+                            {invited.includes(member.id) ? 'Invited' : 'Invite'}
+                          </Button>
+                      </div>
+                    ))}
+                    {(membersByRole[selectedRole] || []).length === 0 && (
+                      <p className="text-muted-foreground col-span-full text-center">No operators found for this role.</p>
+                    )}
+                  </div>
+                </CardContent>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </Card>
       )}
     </div>
