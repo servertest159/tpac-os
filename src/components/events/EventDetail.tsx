@@ -177,6 +177,25 @@ const EventDetail = () => {
     setIsInviting(false);
   };
 
+  const handleDelete = async () => {
+    if (!id) return;
+    const { error } = await supabase.from("events").delete().eq("id", id);
+    if (error) {
+      toast({
+        title: "Failed to abort programme",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Programme Aborted",
+        description: "This programme has been deleted.",
+      });
+      setShowDeleteDialog(false);
+      navigate("/events");
+    }
+  };
+
   if (loading) {
     return <EventDetailSkeleton />;
   }
