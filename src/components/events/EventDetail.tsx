@@ -12,10 +12,10 @@ import { useToast } from "@/components/ui/use-toast";
 // Sample event data (in a real app this would come from an API)
 const eventData = {
   id: "1",
-  title: "Mountain Hiking Weekend",
+  title: "MacRitchie Reservoir Trek",
   date: "2025-05-24",
   time: "08:00 AM",
-  location: "Blue Ridge Mountains, Appalachian Trail Entrance",
+  location: "MacRitchie Reservoir Park, Main Entrance",
   participants: [
     { id: "1", name: "John Doe", email: "john@example.com" },
     { id: "2", name: "Jane Smith", email: "jane@example.com" },
@@ -27,17 +27,16 @@ const eventData = {
     { id: "8", name: "Emma Miller", email: "emma@example.com" },
   ],
   maxParticipants: 12,
-  description: "A weekend hiking trip through the beautiful Blue Ridge Mountains with camping overnight. We'll be hiking approximately 10 miles per day with moderate elevation gain. Suitable for intermediate hikers with some experience. We'll camp at designated sites along the Appalachian Trail and enjoy stunning sunset views from the ridge.",
+  description: "A classic trek through the scenic trails of MacRitchie, Singapore's largest reservoir. This route will take us through lush secondary rainforest, across the famous Treetop Walk for a bird's-eye view of the canopy, and along the water's edge. Expect to encounter long-tailed macaques and monitor lizards. Suitable for all fitness levels, but be prepared for humidity.",
   status: "upcoming",
   itinerary: [
-    { day: "Day 1", activities: "Meet at trailhead (8:00 AM), Hike to Bear Mountain (5 miles), Lunch at vista point, Continue to campsite (3 miles), Setup camp, Dinner around campfire" },
-    { day: "Day 2", activities: "Sunrise hike to ridge (1 mile), Breakfast at camp, Pack up, Hike to Blue Lake (4 miles), Lunch at lake, Return to trailhead (7 miles), Departure (approx 5:00 PM)" },
+    { day: "Trek Plan", activities: "Meet at Mushroom Cafe (8:00 AM), Safety briefing and warm-up, Begin trek via Petai Trail, Cross the Treetop Walk, Lunch break at Jelutong Tower, Continue along MacRitchie Nature Trail, Return to main entrance (approx 1:00 PM), Cool-down and debrief." },
   ],
   gearRequired: [
-    "Tent", "Sleeping bag", "Hiking boots", "Water bottles (2L minimum)", "Backpack (40L+)", "Headlamp", "Weather-appropriate clothing"
+    "Comfortable trail shoes", "Lightweight, breathable attire", "Water bottles (1.5L minimum)", "Small backpack (10-20L)", "Poncho or raincoat", "Sunscreen and insect repellent", "Personal first-aid kit"
   ],
   gearProvided: [
-    "Cooking equipment", "First aid kit", "Emergency satellite phone", "Maps and compass"
+    "Route maps", "Group first aid kit", "Emergency comms (walkie-talkie)", "Water purification tablets"
   ],
 };
 
@@ -51,8 +50,8 @@ const EventDetail = () => {
     // Simulate API call to delete
     setTimeout(() => {
       toast({
-        title: "Event Deleted",
-        description: "The event has been successfully deleted.",
+        title: "Mission Aborted",
+        description: "The mission has been removed from the logs.",
       });
       navigate("/events");
     }, 500);
@@ -65,10 +64,10 @@ const EventDetail = () => {
           <div className="flex items-center gap-2">
             <h1>{eventData.title}</h1>
             <Badge variant={eventData.status === "upcoming" ? "default" : "secondary"}>
-              {eventData.status === "upcoming" ? "Upcoming" : "Past"}
+              {eventData.status === "upcoming" ? "Upcoming" : "Completed"}
             </Badge>
           </div>
-          <p className="text-muted-foreground">Event details and management</p>
+          <p className="text-muted-foreground">Mission Debrief & Coordination</p>
         </div>
         <div className="flex gap-2">
           <Button asChild variant="outline">
@@ -81,14 +80,14 @@ const EventDetail = () => {
             <DialogTrigger asChild>
               <Button variant="destructive">
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                Abort Mission
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Delete Event</DialogTitle>
+                <DialogTitle>Abort Mission</DialogTitle>
                 <DialogDescription>
-                  Are you sure you want to delete this event? This action cannot be undone.
+                  Are you sure you want to abort this mission? This action cannot be undone and will be logged.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
@@ -96,7 +95,7 @@ const EventDetail = () => {
                   Cancel
                 </Button>
                 <Button variant="destructive" onClick={handleDelete}>
-                  Delete Event
+                  Confirm Abort
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -107,8 +106,8 @@ const EventDetail = () => {
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="participants">Participants</TabsTrigger>
-          <TabsTrigger value="gear">Gear</TabsTrigger>
+          <TabsTrigger value="participants">Crew Roster</TabsTrigger>
+          <TabsTrigger value="gear">Loadout</TabsTrigger>
           <TabsTrigger value="itinerary">Itinerary</TabsTrigger>
         </TabsList>
         
@@ -118,7 +117,7 @@ const EventDetail = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="font-medium text-lg">Event Details</h3>
+                    <h3 className="font-medium text-lg">Mission Intel</h3>
                     <div className="space-y-2 mt-2">
                       <div className="flex items-center">
                         <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
@@ -135,7 +134,7 @@ const EventDetail = () => {
                       <div className="flex items-center">
                         <Users className="mr-2 h-4 w-4 text-muted-foreground" />
                         <span>
-                          {eventData.participants.length} / {eventData.maxParticipants} participants
+                          {eventData.participants.length} / {eventData.maxParticipants} operators
                         </span>
                       </div>
                     </div>
@@ -152,24 +151,24 @@ const EventDetail = () => {
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-center justify-between">
-                      <h3 className="font-medium text-lg">Quick Actions</h3>
+                      <h3 className="font-medium text-lg">Field Actions</h3>
                     </div>
                     
                     <div className="grid grid-cols-1 gap-2 mt-2">
                       <Button asChild>
                         <Link to={`/events/${id}/invite`}>
                           <Plus className="mr-2 h-4 w-4" />
-                          Invite Participants
+                          Invite Operators
                         </Link>
                       </Button>
                       <Button asChild variant="outline">
                         <Link to={`/feedback/new?eventId=${id}`}>
-                          Create Feedback Form
+                          File After-Action Report (AAR)
                         </Link>
                       </Button>
                       <Button asChild variant="secondary">
                         <Link to={`/events/${id}/gear`}>
-                          Manage Event Gear
+                          Check Armoury Loadout
                         </Link>
                       </Button>
                     </div>
@@ -177,13 +176,13 @@ const EventDetail = () => {
                   
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base">Participant Status</CardTitle>
+                      <CardTitle className="text-base">Crew Status</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center justify-between">
                         <div className="text-2xl font-bold">{eventData.participants.length}/{eventData.maxParticipants}</div>
                         <div className="text-xs text-muted-foreground">
-                          {eventData.maxParticipants - eventData.participants.length} spots remaining
+                          {eventData.maxParticipants - eventData.participants.length} slots open
                         </div>
                       </div>
                       <div className="w-full bg-secondary h-2 rounded-full mt-2">
@@ -204,7 +203,7 @@ const EventDetail = () => {
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle>Participants ({eventData.participants.length})</CardTitle>
+                <CardTitle>Crew Roster ({eventData.participants.length})</CardTitle>
                 <Button asChild size="sm">
                   <Link to={`/events/${id}/invite`}>
                     <Plus className="mr-2 h-4 w-4" />
@@ -241,7 +240,7 @@ const EventDetail = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Required Gear</CardTitle>
+                <CardTitle>Required Loadout</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-1">
@@ -257,7 +256,7 @@ const EventDetail = () => {
             
             <Card>
               <CardHeader>
-                <CardTitle>Provided Gear</CardTitle>
+                <CardTitle>Provided Equipment</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-1">
@@ -273,7 +272,7 @@ const EventDetail = () => {
           </div>
           <Button asChild>
             <Link to={`/events/${id}/gear`}>
-              Manage Event Gear
+              Manage Mission Loadout
             </Link>
           </Button>
         </TabsContent>
@@ -281,7 +280,7 @@ const EventDetail = () => {
         <TabsContent value="itinerary" className="space-y-4 pt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Event Itinerary</CardTitle>
+              <CardTitle>Mission Itinerary</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">

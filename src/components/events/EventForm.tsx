@@ -101,15 +101,15 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
       }
 
       toast({
-        title: isEditing ? "Event Updated" : "Event Created",
-        description: `Successfully ${isEditing ? "updated" : "created"} ${formData.title}`,
+        title: isEditing ? "Mission Updated" : "Mission Planned",
+        description: `The mission details for '${formData.title}' have been logged.`,
       });
       navigate("/events");
     } catch (error) {
       console.error('Error saving event:', error);
       toast({
         title: "Error",
-        description: `Failed to ${isEditing ? "update" : "create"} event`,
+        description: `Failed to ${isEditing ? "update" : "plan"} mission`,
         variant: "destructive",
       });
     } finally {
@@ -131,18 +131,18 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{isEditing ? "Edit Event" : "Create New Event"}</CardTitle>
+        <CardTitle>{isEditing ? "Edit Mission" : "Plan New Mission"}</CardTitle>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Event Title</Label>
+            <Label htmlFor="title">Mission Title</Label>
             <Input
               id="title"
               name="title"
               value={formData.title}
               onChange={handleChange}
-              placeholder="Enter event name"
+              placeholder="E.g., 'Ubin Kayak Patrol'"
               required
             />
           </div>
@@ -173,32 +173,32 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
+            <Label htmlFor="location">Location / Waypoint</Label>
             <Input
               id="location"
               name="location"
               value={formData.location}
               onChange={handleChange}
-              placeholder="Enter event location"
+              placeholder="E.g., 'Changi Point Ferry Terminal'"
               required
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Mission Brief</Label>
             <Textarea
               id="description"
               name="description"
               value={formData.description}
               onChange={handleChange}
-              placeholder="Enter event description"
+              placeholder="Provide a detailed mission brief: objectives, route, and special considerations..."
               rows={4}
               required
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="max_participants">Maximum Participants</Label>
+            <Label htmlFor="max_participants">Max Crew Size</Label>
             <Input
               id="max_participants"
               name="max_participants"
@@ -216,7 +216,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
             Cancel
           </Button>
           <Button type="submit" disabled={loading}>
-            {loading ? "Saving..." : (isEditing ? "Update Event" : "Create Event")}
+            {loading ? "Saving..." : (isEditing ? "Update Mission" : "Plan Mission")}
           </Button>
         </CardFooter>
       </form>
