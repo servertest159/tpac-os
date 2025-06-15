@@ -13,14 +13,21 @@ import GearNew from "./pages/GearNew";
 import GearEdit from "./pages/GearEdit";
 import Feedback from "./pages/Feedback";
 import NotFound from "./pages/NotFound";
-import { AuthProvider, useAuth } from "./hooks/useAuth";
 import Crew from "./pages/Crew";
-import AuthPage from "./pages/Auth";
+import AccessGate from "@/components/auth/AccessGate";
+import React, { useState, useEffect } from "react";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const { session, isLoading } = useAuth();
+  const [accessGranted, setAccessGranted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const hasAccess = localStorage.getItem("tpac_access_granted") === "true";
+    setAccessGranted(hasAccess);
+    setIsLoading(false);
+  }, []);
 
   if (isLoading) {
     return (
@@ -33,10 +40,13 @@ const AppContent = () => {
     );
   }
 
+  if (!accessGranted) {
+    return <AccessGate onAccessGranted={() => setAccessGranted(true)} />;
+  }
+
   return (
     <BrowserRouter>
       <Routes>
-        {session ? (
           <>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
@@ -49,15 +59,8 @@ const AppContent = () => {
             <Route path="/gear/new" element={<GearNew />} />
             <Route path="/gear/:id/edit" element={<GearEdit />} />
             <Route path="/feedback" element={<Feedback />} />
-            <Route path="/auth" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<NotFound />} />
           </>
-        ) : (
-          <>
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="*" element={<Navigate to="/auth" replace />} />
-          </>
-        )}
       </Routes>
     </BrowserRouter>
   );
@@ -66,11 +69,9 @@ const AppContent = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AuthProvider>
         <Toaster />
         <Sonner />
         <AppContent />
-      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

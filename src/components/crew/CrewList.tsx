@@ -30,7 +30,7 @@ const CrewList = () => {
     switch (role) {
       case 'President':
         return 'default';
-      case 'Vice President':
+      case 'Vice-President':
         return 'secondary';
       default:
         return 'outline';

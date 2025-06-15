@@ -303,7 +303,21 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "President" | "Vice President" | "Member"
+      app_role:
+        | "President"
+        | "Vice-President"
+        | "Honorary Secretary"
+        | "Honorary Assistant Secretary"
+        | "Honorary Treasurer"
+        | "Honorary Assistant Treasurer"
+        | "Training Head (General)"
+        | "Training Head (Land)"
+        | "Training Head (Water)"
+        | "Quartermaster"
+        | "Assistant Quarter Master"
+        | "Publicity Head"
+        | "Assistant Publicity Head"
+        | "Member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -419,7 +433,22 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["President", "Vice President", "Member"],
+      app_role: [
+        "President",
+        "Vice-President",
+        "Honorary Secretary",
+        "Honorary Assistant Secretary",
+        "Honorary Treasurer",
+        "Honorary Assistant Treasurer",
+        "Training Head (General)",
+        "Training Head (Land)",
+        "Training Head (Water)",
+        "Quartermaster",
+        "Assistant Quarter Master",
+        "Publicity Head",
+        "Assistant Publicity Head",
+        "Member",
+      ],
     },
   },
 } as const
