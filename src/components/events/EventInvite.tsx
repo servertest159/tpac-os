@@ -210,44 +210,38 @@ const EventInvite = () => {
       
       {selectedRoles.length > 0 && (
         <Card>
-          <Accordion type="single" collapsible defaultValue="item-1" className="w-full">
-            <AccordionItem value="item-1" className="border-b-0">
-              <AccordionTrigger className="p-6 hover:no-underline">
-                <CardTitle>Operators ({selectedMembers.length})</CardTitle>
-              </AccordionTrigger>
-              <AccordionContent>
-                <CardContent className="pt-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {selectedMembers.map(member => (
-                      <div key={member.id} className="p-4 border rounded-lg flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                          <Avatar>
-                            <AvatarImage src={member.avatar_url || undefined} alt={member.full_name || 'User'} />
-                            <AvatarFallback>{member.full_name?.slice(0, 2).toUpperCase() || 'U'}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-semibold">{member.full_name}</p>
-                            <p className="text-sm text-muted-foreground">{member.email}</p>
-                          </div>
-                          </div>
-                          <Button
-                            size="sm"
-                            onClick={() => handleInvite(member.full_name || 'Operator', member.id)}
-                            disabled={invited.includes(member.id)}
-                          >
-                            {invited.includes(member.id) && <Check />}
-                            {invited.includes(member.id) ? 'Invited' : 'Invite'}
-                          </Button>
-                      </div>
-                    ))}
-                    {selectedMembers.length === 0 && (
-                      <p className="text-muted-foreground col-span-full text-center">No operators found for the selected roles.</p>
-                    )}
-                  </div>
-                </CardContent>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+          <CardHeader>
+            <CardTitle>Operators ({selectedMembers.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {selectedMembers.map(member => (
+                <div key={member.id} className="p-4 border rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                    <Avatar>
+                      <AvatarImage src={member.avatar_url || undefined} alt={member.full_name || 'User'} />
+                      <AvatarFallback>{member.full_name?.slice(0, 2).toUpperCase() || 'U'}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold">{member.full_name}</p>
+                      <p className="text-sm text-muted-foreground">{member.email}</p>
+                    </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => handleInvite(member.full_name || 'Operator', member.id)}
+                      disabled={invited.includes(member.id)}
+                    >
+                      {invited.includes(member.id) && <Check />}
+                      {invited.includes(member.id) ? 'Invited' : 'Invite'}
+                    </Button>
+                </div>
+              ))}
+              {selectedMembers.length === 0 && (
+                <p className="text-muted-foreground col-span-full text-center">No operators found for the selected roles.</p>
+              )}
+            </div>
+          </CardContent>
         </Card>
       )}
     </div>
