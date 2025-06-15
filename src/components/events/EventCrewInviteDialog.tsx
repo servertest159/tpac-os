@@ -37,50 +37,65 @@ const EventCrewInviteDialog: React.FC<Props> = ({
   refetch
 }) => {
   const { toast } = useToast();
-  const [selectedRoles, setSelectedRoles] = React.useState<Set<Role>>(new Set());
+
+  // State: How many operators to invite per role
+  const [roleCounts, setRoleCounts] = React.useState<Record<Role, number>>({} as Record<Role, number>);
   const [isInviting, setIsInviting] = React.useState(false);
 
-  const handleRoleToggle = (role: Role) => {
-    setSelectedRoles(prev => {
-      const next = new Set(prev);
-      if (next.has(role)) {
-        next.delete(role)
-      } else {
-        next.add(role)
-      }
-      return next;
+  React.useEffect(() => {
+    // Reset counts on dialog open
+    if (open) {
+      const initial: Record<Role, number> = {} as Record<Role, number>;
+      rolesOrder.forEach(role => initial[role] = 0);
+      setRoleCounts(initial);
+    }
+  }, [open, rolesOrder]);
+
+  // Available per role = not yet invited
+  const availablePerRole: Record<Role, ProfileWithRoles[]> = React.useMemo(() => {
+    const result: Record<Role, ProfileWithRoles[]> = {} as Record<Role, ProfileWithRoles[]>;
+    rolesOrder.forEach(role => {
+      result[role] = (membersByRole[role] || []).filter((m) => !invitedIds.includes(m.id));
     });
+    return result;
+  }, [rolesOrder, membersByRole, invitedIds]);
+
+  // Helper to adjust count safely
+  const setRoleCount = (role: Role, count: number) => {
+    setRoleCounts(prev => ({
+      ...prev,
+      [role]: Math.max(0, Math.min(count, availablePerRole[role]?.length ?? 0))
+    }));
   };
 
   const handleInviteCrew = async () => {
     if (!eventId) return;
     setIsInviting(true);
 
-    // Gather all member ids from selected roles and not already invited
-    const memberIdsToInvite = new Set<string>();
-    selectedRoles.forEach(role => {
-      const members = membersByRole[role] || [];
-      members.forEach(member => {
-        if (!invitedIds.includes(member.id)) {
-          memberIdsToInvite.add(member.id);
+    // Collect all desired invites per role in one array
+    const invites: {event_id: string, user_id: string, status: "pending"}[] = [];
+    rolesOrder.forEach(role => {
+      const selected = roleCounts[role] || 0;
+      const available = availablePerRole[role] || [];
+      for (let i = 0; i < selected; i++) {
+        if (available[i]) {
+          invites.push({
+            event_id: eventId,
+            user_id: available[i].id,
+            status: "pending"
+          });
         }
-      });
+      }
     });
 
-    if (memberIdsToInvite.size === 0) {
+    if (!invites.length) {
       toast({
         title: "No new operators to invite",
-        description: "All operators for the selected roles are already invited or there are none.",
+        description: "You have not selected any roles/operators.",
       });
       setIsInviting(false);
       return;
     }
-
-    const invites = Array.from(memberIdsToInvite).map(userId => ({
-      event_id: eventId,
-      user_id: userId,
-      status: 'pending' as const
-    }));
 
     const { error: insertError } = await supabase.from('event_invitations').insert(invites);
 
@@ -96,10 +111,8 @@ const EventCrewInviteDialog: React.FC<Props> = ({
         description: "Successfully sent invitations.",
       });
       onOpenChange(false);
-      setSelectedRoles(new Set());
       refetch();
     }
-
     setIsInviting(false);
   };
 
@@ -109,36 +122,48 @@ const EventCrewInviteDialog: React.FC<Props> = ({
         <DialogHeader>
           <DialogTitle>Invite Crew by Role</DialogTitle>
           <DialogDescription>
-            Select roles to bulk-invite all operators of those roles that haven't already been invited to this programme.
+            For each role, select the number of available operators to invite to this programme.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3 max-h-72 overflow-y-auto">
           {rolesOrder.map(role => {
-            const availableCount = (membersByRole[role] || []).filter(m => !invitedIds.includes(m.id)).length;
-            const displayCount = availableCount === 0 ? 1 : availableCount;
+            const available = availablePerRole[role] || [];
+            const selected = roleCounts[role] || 0;
             return (
-              <label
-                key={role}
-                className="flex items-center gap-2 text-sm font-medium cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedRoles.has(role)}
-                  onChange={() => handleRoleToggle(role)}
-                  className="h-4 w-4"
-                />
-                {role}
-                <span className="text-muted-foreground ml-1 text-xs">
-                  ({displayCount} available to invite)
+              <div key={role} className="flex items-center gap-3 text-sm">
+                <span className="w-48">{role}</span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    className="px-2 py-0.5 bg-secondary rounded border border-input text-lg font-bold disabled:opacity-50"
+                    disabled={selected <= 0}
+                    onClick={() => setRoleCount(role, selected - 1)}
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    min={0}
+                    max={available.length}
+                    value={selected}
+                    onChange={e => setRoleCount(role, Number(e.target.value))}
+                    className="w-12 text-center border rounded bg-background"
+                  />
+                  <button
+                    type="button"
+                    className="px-2 py-0.5 bg-secondary rounded border border-input text-lg font-bold disabled:opacity-50"
+                    disabled={selected >= available.length}
+                    onClick={() => setRoleCount(role, selected + 1)}
+                  >
+                    +
+                  </button>
+                </div>
+                <span className="text-muted-foreground text-xs ml-2">
+                  ({available.length} available)
                 </span>
-              </label>
+              </div>
             );
           })}
-          {Array.from(selectedRoles).length > 0 && (
-            <div className="text-xs text-muted-foreground mt-1">
-              {Array.from(selectedRoles).length} role(s) selected.
-            </div>
-          )}
         </div>
         <DialogFooter>
           <Button
@@ -150,7 +175,10 @@ const EventCrewInviteDialog: React.FC<Props> = ({
           </Button>
           <Button
             onClick={handleInviteCrew}
-            disabled={selectedRoles.size === 0 || isInviting}
+            disabled={
+              isInviting ||
+              Object.values(roleCounts).every((v) => !v)
+            }
           >
             {isInviting ? "Inviting..." : "Invite Selected"}
           </Button>
