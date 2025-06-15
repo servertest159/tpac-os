@@ -119,13 +119,18 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
     setLoading(true);
     
     try {
+        const sanitizedFormData = {
+          ...formData,
+          last_maintenance: formData.last_maintenance || null,
+        };
+
         let gearIdToUpdate = gearId;
         const isNewItem = !isEditing;
 
         if (isNewItem) {
             const { data: newGear, error: insertError } = await supabase
                 .from('gear')
-                .insert([{ ...formData, photo_url: null, uploaded_at: null }])
+                .insert([{ ...sanitizedFormData, photo_url: null, uploaded_at: null }])
                 .select('id')
                 .single();
 
@@ -133,7 +138,7 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
             gearIdToUpdate = newGear.id;
         }
 
-        let finalPhotoUrl = formData.photo_url;
+        let finalPhotoUrl = sanitizedFormData.photo_url;
         let uploadedTimestamp: string | null = null;
         let photoChanged = false;
 
@@ -161,19 +166,21 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
             uploadedTimestamp = null;
         }
         
-        const gearDataToUpdate: { [key: string]: any } = { ...formData };
+        const gearDataToUpdate: { [key: string]: any } = { ...sanitizedFormData };
         
         if (photoChanged) {
             gearDataToUpdate.photo_url = finalPhotoUrl;
             gearDataToUpdate.uploaded_at = uploadedTimestamp;
         }
         
-        const { error: updateError } = await supabase
-            .from('gear')
-            .update(gearDataToUpdate)
-            .eq('id', gearIdToUpdate!);
-        
-        if (updateError) throw updateError;
+        if (isEditing || photoChanged) {
+            const { error: updateError } = await supabase
+                .from('gear')
+                .update(gearDataToUpdate)
+                .eq('id', gearIdToUpdate!);
+            
+            if (updateError) throw updateError;
+        }
         
         toast({
             title: "✅ Gear saved",
