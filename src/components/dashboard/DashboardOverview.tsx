@@ -5,33 +5,33 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Calendar, Package, Users, MessageSquare } from "lucide-react";
 
-// Sample data for demo purposes
+// Sample data with a Singaporean twist
 const stats = [
   {
-    title: "Upcoming Events",
+    title: "Upcoming Missions",
     value: 3,
-    description: "Events in the next 30 days",
+    description: "Missions in the next month",
     icon: <Calendar className="h-8 w-8 text-forest" />,
     link: "/events",
   },
   {
-    title: "Gear Items",
+    title: "Gear in Armoury",
     value: 24,
-    description: "Items in your inventory",
+    description: "Items ready for deployment",
     icon: <Package className="h-8 w-8 text-forest" />,
     link: "/gear",
   },
   {
-    title: "Participants",
+    title: "Active Crew",
     value: 18,
-    description: "People attending your events",
+    description: "Members on upcoming missions",
     icon: <Users className="h-8 w-8 text-forest" />,
     link: "/events",
   },
   {
-    title: "Feedback Responses",
+    title: "AARs Submitted",
     value: 12,
-    description: "Responses collected",
+    description: "After Action Reviews logged",
     icon: <MessageSquare className="h-8 w-8 text-forest" />,
     link: "/feedback",
   },
@@ -40,24 +40,24 @@ const stats = [
 const upcomingEvents = [
   {
     id: "1",
-    title: "Mountain Hiking Weekend",
+    title: "MacRitchie Reservoir Trek",
     date: "2025-05-24",
     participants: 8,
-    location: "Blue Ridge Mountains",
+    location: "MacRitchie Treetop Walk",
   },
   {
     id: "2",
-    title: "Kayaking Trip",
+    title: "Ubin Kayak Mangrove Tour",
     date: "2025-06-05",
     participants: 6,
-    location: "Lake Superior",
+    location: "Pulau Ubin",
   },
   {
     id: "3",
-    title: "Camping Under Stars",
+    title: "St. John's Island Camp",
     date: "2025-06-15",
     participants: 4,
-    location: "Yellowstone National Park",
+    location: "St. John's Island",
   },
 ];
 
@@ -65,9 +65,9 @@ const DashboardOverview = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="mb-2">Welcome to Adventure Planner</h1>
+        <h1 className="mb-2">Welcome to your Dashboard</h1>
         <p className="text-muted-foreground">
-          Manage your outdoor adventures from one place
+          Your digital basecamp for all TPAC missions and operations.
         </p>
       </div>
 
@@ -95,9 +95,9 @@ const DashboardOverview = () => {
       {/* Upcoming Events Section */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Upcoming Events</h2>
+          <h2 className="text-xl font-semibold">Upcoming Missions</h2>
           <Button asChild variant="outline" size="sm">
-            <Link to="/events">View All Events</Link>
+            <Link to="/events">View All Missions</Link>
           </Button>
         </div>
         
@@ -120,14 +120,14 @@ const DashboardOverview = () => {
                 <div className="flex justify-between text-sm">
                   <span className="flex items-center gap-1">
                     <Users className="h-3 w-3" />
-                    {event.participants} participants
+                    {event.participants} crew
                   </span>
                   <span>{event.location}</span>
                 </div>
               </CardContent>
               <CardFooter>
                 <Button asChild variant="default" size="sm" className="w-full">
-                  <Link to={`/events/${event.id}`}>View Details</Link>
+                  <Link to={`/events/${event.id}`}>View Debrief</Link>
                 </Button>
               </CardFooter>
             </Card>
@@ -138,17 +138,17 @@ const DashboardOverview = () => {
       {/* Quick Actions */}
       <Card>
         <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
+          <CardTitle>Mission Control</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Button asChild className="w-full">
-            <Link to="/events/new">Create New Event</Link>
+            <Link to="/events/new">Plan New Mission</Link>
           </Button>
           <Button asChild variant="outline" className="w-full">
-            <Link to="/gear/new">Add Gear Item</Link>
+            <Link to="/gear/new">Log New Gear</Link>
           </Button>
           <Button asChild variant="secondary" className="w-full">
-            <Link to="/feedback/new">Create Feedback Form</Link>
+            <Link to="/feedback/new">Start an AAR</Link>
           </Button>
         </CardContent>
       </Card>

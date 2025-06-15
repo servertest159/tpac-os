@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -99,17 +100,17 @@ const GearList = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1>Gear Inventory</h1>
-            <p className="text-muted-foreground">Manage your equipment</p>
+            <h1>Armoury</h1>
+            <p className="text-muted-foreground">Track and maintain your kit.</p>
           </div>
           <Button asChild>
-            <Link to="/gear/new">Add Gear</Link>
+            <Link to="/gear/new">Log New Gear</Link>
           </Button>
         </div>
 
         <div className="text-center py-12">
           <Package className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 mb-2">Failed to load gear inventory</h3>
+          <h3 className="mt-4 mb-2">Failed to load armoury</h3>
           <p className="text-muted-foreground mb-4">
             Unable to connect to the database after multiple attempts.
           </p>
@@ -126,17 +127,17 @@ const GearList = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1>Gear Inventory</h1>
-          <p className="text-muted-foreground">Manage your equipment</p>
+          <h1>Armoury</h1>
+          <p className="text-muted-foreground">Track and maintain your kit.</p>
         </div>
         <Button asChild>
-          <Link to="/gear/new">Add Gear</Link>
+          <Link to="/gear/new">Log New Gear</Link>
         </Button>
       </div>
 
       <div className="flex items-center gap-2">
         <Input
-          placeholder="Search gear..."
+          placeholder="Search armoury..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-sm"
@@ -154,14 +155,14 @@ const GearList = () => {
       ) : filteredGear.length === 0 ? (
         <div className="text-center py-12">
           <Package className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 mb-2">No gear items found</h3>
+          <h3 className="mt-4 mb-2">Armoury is Empty</h3>
           <p className="text-muted-foreground mb-4">
             {searchTerm
-              ? "There are no gear items matching your search."
-              : "You haven't added any gear items yet."}
+              ? "No gear matches your search."
+              : "Log your first piece of gear to get started."}
           </p>
           <Button asChild>
-            <Link to="/gear/new">Add Gear Item</Link>
+            <Link to="/gear/new">Log Gear Item</Link>
           </Button>
         </div>
       ) : (

@@ -15,9 +15,9 @@ const Header = () => {
 
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: <Users className="w-4 h-4" /> },
-    { path: "/events", label: "Events", icon: <Calendar className="w-4 h-4" /> },
-    { path: "/gear", label: "Gear", icon: <Package className="w-4 h-4" /> },
-    { path: "/feedback", label: "Feedback", icon: <MessageSquare className="w-4 h-4" /> },
+    { path: "/events", label: "Missions", icon: <Calendar className="w-4 h-4" /> },
+    { path: "/gear", label: "Armoury", icon: <Package className="w-4 h-4" /> },
+    { path: "/feedback", label: "AARs", icon: <MessageSquare className="w-4 h-4" /> },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -25,8 +25,8 @@ const Header = () => {
   const handleLogout = () => {
     logout();
     toast({
-      title: "👋 You've been safely logged out",
-      description: "Your data is saved. Come back anytime to continue.",
+      title: "👋 Stand easy, you're logged out!",
+      description: "Your mission data is secure. See you on the trails!",
       duration: 3000,
     });
   };
