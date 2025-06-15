@@ -1,6 +1,5 @@
-
-import React from "react";
-import { useCrew } from "@/hooks/useCrew";
+import React, { useState } from "react";
+import { useCrew, type ProfileWithRoles } from "@/hooks/useCrew";
 import {
   Table,
   TableBody,
@@ -12,12 +11,14 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Users, FileText, Package } from "lucide-react";
+import { AlertCircle, Users, FileText, Package, Edit } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Enums } from "@/integrations/supabase/types";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { useQueryClient } from "@tanstack/react-query";
+import AssignRoleDialog from "./AssignRoleDialog";
 
 type Role = Enums<'app_role'>;
 
@@ -41,6 +42,8 @@ const ROLES_ORDER: Role[] = [
 
 const CrewList = () => {
   const { data: crew, isLoading, isError, error } = useCrew();
+  const queryClient = useQueryClient();
+  const [editingRole, setEditingRole] = useState<Role | null>(null);
 
   const getInitials = (name: string | null) => {
     if (!name) return "??";
@@ -134,6 +137,17 @@ const CrewList = () => {
     );
   }
 
+  const assignedRoles = new Map<Role, ProfileWithRoles>();
+  if (crew) {
+    for (const member of crew) {
+      for (const userRole of member.user_roles) {
+        if (ROLES_ORDER.includes(userRole.role)) {
+          assignedRoles.set(userRole.role, member);
+        }
+      }
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -162,12 +176,34 @@ const CrewList = () => {
           <CardTitle>Organizational Roles</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {ROLES_ORDER.map((role) => (
-              <Badge key={role} className={roleColor(role)}>
-                {role}
-              </Badge>
-            ))}
+          <div className="space-y-2">
+            {ROLES_ORDER.map((role) => {
+              const assignee = assignedRoles.get(role);
+              return (
+                <div key={role} className="flex items-center justify-between gap-4 rounded-md border p-3">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <Badge className={roleColor(role)}>{role}</Badge>
+                    <div className="flex items-center gap-2">
+                      {assignee ? (
+                        <>
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={assignee.avatar_url ?? undefined} alt={assignee.full_name ?? ''} />
+                            <AvatarFallback>{getInitials(assignee.full_name)}</AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium text-sm">{assignee.full_name}</span>
+                        </>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">Unassigned</span>
+                      )}
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setEditingRole(role)}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </Button>
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
@@ -225,6 +261,15 @@ const CrewList = () => {
              Sign up new users to see them appear here. You can then assign them roles.
            </p>
          </div>
+       )}
+       {editingRole && crew && (
+        <AssignRoleDialog
+          isOpen={!!editingRole}
+          onOpenChange={(isOpen) => !isOpen && setEditingRole(null)}
+          role={editingRole}
+          crew={crew}
+          onAssignSuccess={() => setEditingRole(null)}
+        />
        )}
     </div>
   );
