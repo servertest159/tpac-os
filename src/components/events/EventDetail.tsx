@@ -180,12 +180,6 @@ const EventDetail = () => {
                     </div>
                     
                     <div className="grid grid-cols-1 gap-2 mt-2">
-                      <Button asChild>
-                        <Link to={`/events/${id}/invite`}>
-                          <Plus className="mr-2 h-4 w-4" />
-                          Invite Operators
-                        </Link>
-                      </Button>
                       <Button asChild variant="outline">
                         <Link to={`/feedback/new?eventId=${id}`}>
                           File After-Action Report (AAR)
@@ -229,12 +223,6 @@ const EventDetail = () => {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle>Crew Roster ({allInvited.length})</CardTitle>
-                <Button asChild size="sm">
-                  <Link to={`/events/${id}/invite`}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Invite
-                  </Link>
-                </Button>
               </div>
                <p className="text-sm text-muted-foreground pt-1">
                 Showing all invited operators. {participants.length} have accepted.
