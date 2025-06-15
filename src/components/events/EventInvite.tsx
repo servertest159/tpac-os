@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useCrew, ProfileWithRoles } from '@/hooks/useCrew';
 import { Enums } from '@/integrations/supabase/types';
@@ -266,7 +265,7 @@ const EventInvite = () => {
                 <DropdownMenuContent className="w-56" align="end">
                   <DropdownMenuLabel>Available Roles</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {ROLES_ORDER.filter(role => (membersByRole[role] || []).length > 0).map(role => (
+                  {ROLES_ORDER.map(role => (
                     <DropdownMenuCheckboxItem
                       key={role}
                       checked={selectedRoles.has(role)}
