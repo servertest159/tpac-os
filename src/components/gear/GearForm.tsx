@@ -10,6 +10,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Loader2, UploadCloud, X } from "lucide-react";
 import ImagePreview from "./ImagePreview";
 import { supabase } from "@/integrations/supabase/client";
+import type { GearItem } from "@/hooks/useGearInventory";
 
 interface GearFormProps {
   gearId?: string;
@@ -68,7 +69,9 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
 
       if (error) throw error;
 
-      if (!data) {
+      const gearData = data as GearItem | null;
+
+      if (!gearData) {
         toast({
           title: "❌ Gear not found",
           description: "The requested gear item could not be found.",
@@ -79,17 +82,17 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
       }
 
       setFormData({
-        name: data.name,
-        type: data.type,
-        quantity: data.quantity,
-        available: data.available,
-        condition: data.condition,
-        last_maintenance: data.last_maintenance || "",
-        notes: data.notes || "",
-        photo_url: data.photo_url || null,
+        name: gearData.name,
+        type: gearData.type,
+        quantity: gearData.quantity,
+        available: gearData.available,
+        condition: gearData.condition,
+        last_maintenance: gearData.last_maintenance || "",
+        notes: gearData.notes || "",
+        photo_url: gearData.photo_url || null,
       });
-      if (data.photo_url) {
-        setImagePreview(data.photo_url);
+      if (gearData.photo_url) {
+        setImagePreview(gearData.photo_url);
       }
       setRetryAttempt(0);
     } catch (error) {
@@ -369,18 +372,7 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
           <div className="space-y-2">
             <Label htmlFor="photo">Photo</Label>
             {imagePreview ? (
-              <div className="relative">
-                <ImagePreview imageUrl={imagePreview} />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-2 right-2 h-7 w-7"
-                  onClick={handleRemoveImage}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+              <ImagePreview imageUrl={imagePreview} onRemove={handleRemoveImage} />
             ) : (
               <div className="flex items-center justify-center w-full">
                 <Label htmlFor="photo-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80">

@@ -1,8 +1,9 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface GearItem {
+export interface GearItem {
   id: string;
   name: string;
   type: string;
