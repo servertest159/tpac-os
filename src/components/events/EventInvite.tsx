@@ -15,6 +15,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from '@/integrations/supabase/client';
 
 type Role = Enums<'app_role'>;
@@ -43,6 +51,8 @@ const EventInvite = () => {
   const { toast } = useToast();
   const [invited, setInvited] = React.useState<string[]>([]);
   const [inviting, setInviting] = React.useState<string | null>(null);
+  const [selectedRoles, setSelectedRoles] = React.useState<Set<Role>>(new Set());
+  const [isBulkInviting, setIsBulkInviting] = React.useState(false);
 
   React.useEffect(() => {
     if (!eventId) return;
@@ -65,6 +75,24 @@ const EventInvite = () => {
     };
 
     fetchInvites();
+
+    const channel = supabase.channel(`event-invites-realtime-${eventId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'event_invitations',
+        filter: `event_id=eq.${eventId}`
+      }, (payload) => {
+        if (payload.new.user_id) {
+          setInvited(prev => prev.includes(payload.new.user_id) ? prev : [...prev, payload.new.user_id]);
+        }
+      })
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
+
   }, [eventId, toast]);
 
   const handleInvite = async (memberName: string, memberId: string) => {
@@ -100,12 +128,77 @@ const EventInvite = () => {
     crew.forEach(member => {
       member.user_roles.forEach(roleInfo => {
         if (grouped[roleInfo.role]) {
-          grouped[roleInfo.role].push(member);
+          // Avoid duplicates in the same role list
+          if (!grouped[roleInfo.role].some(m => m.id === member.id)) {
+            grouped[roleInfo.role].push(member);
+          }
         }
       });
     });
     return grouped;
   }, [crew]);
+  
+  const onRoleSelect = (role: Role, isSelected: boolean) => {
+    setSelectedRoles(prev => {
+        const newSet = new Set(prev);
+        if (isSelected) {
+            newSet.add(role);
+        } else {
+            newSet.delete(role);
+        }
+        return newSet;
+    });
+  };
+
+  const handleInviteSelectedRoles = async () => {
+    if (!crew || !eventId) return;
+    setIsBulkInviting(true);
+
+    const memberIdsToInvite = new Set<string>();
+    selectedRoles.forEach(role => {
+        const membersInRole = membersByRole[role] || [];
+        membersInRole.forEach(member => {
+            if (!invited.includes(member.id)) {
+                memberIdsToInvite.add(member.id);
+            }
+        });
+    });
+
+    const membersToInvite = Array.from(memberIdsToInvite).map(userId => ({
+      event_id: eventId,
+      user_id: userId,
+      status: 'pending' as const,
+    }));
+
+    if (membersToInvite.length === 0) {
+        toast({
+            title: "No new operators to invite",
+            description: "All operators from the selected roles have already been invited or there are no operators in these roles.",
+        });
+        setIsBulkInviting(false);
+        return;
+    }
+    
+    const { error: insertError } = await supabase.from('event_invitations').insert(membersToInvite);
+
+    if (insertError) {
+      console.error("Error bulk inviting users", insertError);
+      toast({
+        title: `❌ Invitation Failed`,
+        description: "An error occurred during bulk invitation. Some operators might have already been invited. Please refresh and try again.",
+        variant: "destructive",
+      });
+    } else {
+      setInvited(prev => [...prev, ...Array.from(memberIdsToInvite)]);
+      toast({
+        title: `✅ ${membersToInvite.length} Operator(s) Invited`,
+        description: `Successfully sent ${membersToInvite.length} invitations.`,
+      });
+    }
+    
+    setIsBulkInviting(false);
+    setSelectedRoles(new Set());
+  };
 
 
   if (isLoading) {
@@ -160,8 +253,35 @@ const EventInvite = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Invite by Role</CardTitle>
-          <p className="text-muted-foreground">Expand a role to view and invite available operators.</p>
+          <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4">
+            <div>
+              <CardTitle>Invite by Role</CardTitle>
+              <p className="text-muted-foreground mt-1 text-sm">Select roles to bulk invite, or expand a role to invite individually.</p>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">Select Roles ({selectedRoles.size})</Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end">
+                  <DropdownMenuLabel>Available Roles</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {ROLES_ORDER.filter(role => (membersByRole[role] || []).length > 0).map(role => (
+                    <DropdownMenuCheckboxItem
+                      key={role}
+                      checked={selectedRoles.has(role)}
+                      onCheckedChange={(checked) => onRoleSelect(role, !!checked)}
+                    >
+                      {role}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button onClick={handleInviteSelectedRoles} disabled={selectedRoles.size === 0 || isBulkInviting || isLoading}>
+                {isBulkInviting ? 'Inviting...' : 'Invite Selected'}
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Accordion type="multiple" className="w-full">
