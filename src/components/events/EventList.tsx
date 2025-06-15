@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -145,7 +144,7 @@ const EventList = () => {
                 <div className="space-y-2">
                   <div className="flex items-center text-sm">
                     <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>{new Date(event.date).toLocaleDateDateString()}</span>
+                    <span>{new Date(event.date).toLocaleDateString()}</span>
                   </div>
                   <div className="flex items-center text-sm">
                     <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
