@@ -1,10 +1,11 @@
+
 import React from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, MapPin, User, Users, Clock, Edit, Trash2, Plus, AlertCircle, UserPlus } from "lucide-react";
+import { Calendar, MapPin, Users, Clock, Edit, Trash2, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useEventDetail } from "@/hooks/useEventDetail";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +17,7 @@ import EventCrewStatusCard from "./EventCrewStatusCard";
 import EventParticipantsPanel from "./EventParticipantsPanel";
 import EventLoadoutPanel from "./EventLoadoutPanel";
 import EventItineraryPanel from "./EventItineraryPanel";
-
+import { Card, CardContent } from "@/components/ui/card";
 import { Enums } from "@/integrations/supabase/types";
 type Role = Enums<'app_role'>;
 
@@ -74,17 +75,14 @@ const EventDetail = () => {
   const { toast } = useToast();
   const { event, loading, error, refetch } = useEventDetail(id);
 
-  // useCrew moved to using the hook
   const { data: crew = [], isLoading: loadingCrew } = useCrew();
 
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
 
-  // See which users are already invited (from event)
   const invitedIds = React.useMemo(() =>
     event?.event_invitations.map(inv => inv.profiles?.id).filter(Boolean) as string[] ?? []
   , [event]);
 
-  // Build roles -> members mapping
   const membersByRole = React.useMemo(() => {
     const grouped: Record<Role, ProfileWithRoles[]> = {} as Record<Role, ProfileWithRoles[]>;
     ROLES_ORDER.forEach(r => grouped[r] = []);
@@ -92,7 +90,6 @@ const EventDetail = () => {
       crew.forEach(member => {
         member.user_roles.forEach(roleInfo => {
           if (grouped[roleInfo.role]) {
-            // No duplicates
             if (!grouped[roleInfo.role].some(m => m.id === member.id)) {
               grouped[roleInfo.role].push(member);
             }
@@ -143,10 +140,6 @@ const EventDetail = () => {
     .map(inv => inv.profiles)
     .filter((p): p is NonNullable<typeof p> => p !== null);
   
-  const allInvited = event.event_invitations
-    .map(inv => inv.profiles)
-    .filter((p): p is NonNullable<typeof p> => p !== null);
-
   const maxParticipants = event.max_participants || 0;
 
   return (
@@ -294,4 +287,5 @@ const EventDetail = () => {
 
 export default EventDetail;
 
-// NOTE: The tab panel content has been extracted into smaller components for maintainability.
+// NOTE: This file now imports Card and CardContent and is cleaned of dead code.
+
