@@ -9,6 +9,7 @@ import { ArrowLeft, Check } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 type Role = Enums<'app_role'>;
 
@@ -36,6 +37,7 @@ const EventInvite = () => {
   const { data: crew, isLoading, error, refetch } = useCrew();
   const { toast } = useToast();
   const [invited, setInvited] = React.useState<string[]>([]);
+  const [selectedRole, setSelectedRole] = React.useState<Role | null>(null);
 
   const handleInvite = (memberId: string, memberName: string) => {
     // This would be an API call in a real app
@@ -71,29 +73,17 @@ const EventInvite = () => {
           </div>
           <Skeleton className="h-10 w-40" />
         </div>
-        <div className="space-y-4">
-          {[...Array(5)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-6 w-32" />
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[...Array(3)].map((_, j) => (
-                  <div key={j} className="p-4 border rounded-lg flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <Skeleton className="h-12 w-12 rounded-full" />
-                      <div>
-                        <Skeleton className="h-5 w-24" />
-                        <Skeleton className="h-4 w-32 mt-1" />
-                      </div>
-                    </div>
-                    <Skeleton className="h-9 w-20" />
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-4 w-64 mt-2" />
+          </CardHeader>
+          <CardContent className="flex flex-wrap justify-center gap-2">
+            {[...Array(15)].map((_, i) => (
+              <Skeleton key={i} className="h-9 w-28 rounded-md" />
+            ))}
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -123,46 +113,68 @@ const EventInvite = () => {
         </Button>
       </div>
 
-      <div className="space-y-4">
-        {ROLES_ORDER.map(role => {
-          const members = membersByRole[role] || [];
-          if (members.length === 0) return null;
-
-          return (
-            <Card key={role}>
-              <CardHeader>
-                <CardTitle>{role}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {members.map(member => (
-                    <div key={member.id} className="p-4 border rounded-lg flex items-center justify-between">
-                       <div className="flex items-center gap-4">
-                        <Avatar>
-                          <AvatarImage src={member.avatar_url || undefined} alt={member.full_name || 'User'} />
-                          <AvatarFallback>{member.full_name?.slice(0, 2).toUpperCase() || 'U'}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-semibold">{member.full_name}</p>
-                          <p className="text-sm text-muted-foreground">{member.email}</p>
-                        </div>
-                       </div>
-                       <Button
-                         size="sm"
-                         onClick={() => handleInvite(member.id, member.full_name || 'Operator')}
-                         disabled={invited.includes(member.id)}
-                       >
-                         {invited.includes(member.id) && <Check />}
-                         {invited.includes(member.id) ? 'Invited' : 'Invite'}
-                       </Button>
+      <Card>
+        <CardHeader>
+          <CardTitle>Select a Role</CardTitle>
+          <p className="text-muted-foreground">Click a role to see available operators.</p>
+        </CardHeader>
+        <CardContent>
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            value={selectedRole || ''}
+            onValueChange={(value) => {
+              setSelectedRole(value ? value as Role : null);
+            }}
+            className="flex flex-wrap justify-center gap-2"
+          >
+            {ROLES_ORDER.map(role =>
+              (membersByRole[role] && membersByRole[role].length > 0) ? (
+                <ToggleGroupItem key={role} value={role} aria-label={`Select ${role}`}>
+                  {role}
+                </ToggleGroupItem>
+              ) : null
+            )}
+          </ToggleGroup>
+        </CardContent>
+      </Card>
+      
+      {selectedRole && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Operators for {selectedRole}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {(membersByRole[selectedRole] || []).map(member => (
+                <div key={member.id} className="p-4 border rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                    <Avatar>
+                      <AvatarImage src={member.avatar_url || undefined} alt={member.full_name || 'User'} />
+                      <AvatarFallback>{member.full_name?.slice(0, 2).toUpperCase() || 'U'}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold">{member.full_name}</p>
+                      <p className="text-sm text-muted-foreground">{member.email}</p>
                     </div>
-                  ))}
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => handleInvite(member.id, member.full_name || 'Operator')}
+                      disabled={invited.includes(member.id)}
+                    >
+                      {invited.includes(member.id) && <Check />}
+                      {invited.includes(member.id) ? 'Invited' : 'Invite'}
+                    </Button>
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+              ))}
+              {(membersByRole[selectedRole] || []).length === 0 && (
+                <p className="text-muted-foreground col-span-full text-center">No operators found for this role.</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
