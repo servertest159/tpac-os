@@ -1,7 +1,6 @@
 import React from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,6 +13,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { format } from 'date-fns';
 import { useCrew } from "@/hooks/useCrew";
 import EventCrewStatusCard from "./EventCrewStatusCard";
+import EventParticipantsPanel from "./EventParticipantsPanel";
+import EventLoadoutPanel from "./EventLoadoutPanel";
+import EventItineraryPanel from "./EventItineraryPanel";
 
 import { Enums } from "@/integrations/supabase/types";
 type Role = Enums<'app_role'>;
@@ -272,61 +274,18 @@ const EventDetail = () => {
         </TabsContent>
         
         <TabsContent value="participants" className="space-y-4 pt-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle>Crew Roster ({allInvited.length})</CardTitle>
-              </div>
-               <p className="text-sm text-muted-foreground pt-1">
-                Showing all invited operators. {participants.length} have accepted.
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <div className="grid grid-cols-4 p-3 font-medium border-b">
-                  <div>Name</div>
-                  <div>Email</div>
-                  <div>Status</div>
-                  <div className="text-right">Actions</div>
-                </div>
-                {event.event_invitations.map((invitation) => (
-                  <div key={invitation.profiles?.id} className="grid grid-cols-4 p-3 border-b last:border-0 items-center">
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      {invitation.profiles?.full_name}
-                    </div>
-                    <div>{invitation.profiles?.email}</div>
-                    <div><Badge variant={invitation.status === 'accepted' ? 'default' : 'secondary'}>{invitation.status}</Badge></div>
-                    <div className="text-right">
-                      <Button variant="ghost" size="sm" disabled>Remove</Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <EventParticipantsPanel
+            invitations={event.event_invitations}
+            participantsCount={participants.length}
+          />
         </TabsContent>
         
         <TabsContent value="gear" className="space-y-4 pt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Loadout Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Gear and loadout management for this programme is not yet implemented.</p>
-            </CardContent>
-          </Card>
+          <EventLoadoutPanel />
         </TabsContent>
         
         <TabsContent value="itinerary" className="space-y-4 pt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Programme Itinerary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">A detailed itinerary for this programme has not been set up yet.</p>
-            </CardContent>
-          </Card>
+          <EventItineraryPanel />
         </TabsContent>
       </Tabs>
     </div>
@@ -335,4 +294,4 @@ const EventDetail = () => {
 
 export default EventDetail;
 
-// NOTE: This file was refactored into smaller components for maintainability.
+// NOTE: The tab panel content has been extracted into smaller components for maintainability.
