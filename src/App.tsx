@@ -14,6 +14,7 @@ import GearEdit from "./pages/GearEdit";
 import Feedback from "./pages/Feedback";
 import NotFound from "./pages/NotFound";
 import Crew from "./pages/Crew";
+import Profile from "./pages/Profile";
 import AccessGate from "@/components/auth/AccessGate";
 import React, { useState, useEffect } from "react";
 
@@ -55,6 +56,7 @@ const AppContent = () => {
             <Route path="/events/:id" element={<EventDetail />} />
             <Route path="/events/:id/:action" element={<EventDetail />} />
             <Route path="/crew" element={<Crew />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/gear" element={<Gear />} />
             <Route path="/gear/new" element={<GearNew />} />
             <Route path="/gear/:id/edit" element={<GearEdit />} />
