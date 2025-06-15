@@ -12,8 +12,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { format } from 'date-fns';
+import { useCrew } from "@/hooks/useCrew";
+import EventCrewStatusCard from "./EventCrewStatusCard";
 
-// --- Copied from EventInvite ---
 import { Enums } from "@/integrations/supabase/types";
 type Role = Enums<'app_role'>;
 
@@ -34,8 +35,6 @@ const ROLES_ORDER: Role[] = [
   'First Assistant Publicity Head',
   'Second Assistant Publicity Head'
 ];
-
-// -- Minimal internal version of useCrew for role lookup --
 type ProfileWithRoles = {
   id: string;
   full_name: string | null;
@@ -45,29 +44,6 @@ type ProfileWithRoles = {
     role: Role;
   }[];
 };
-
-function useCrew() {
-  const [crew, setCrew] = React.useState<ProfileWithRoles[]>([]);
-  const [loading, setLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      // Get crew (profile + user_roles)
-      const { data: profiles, error } = await supabase
-        .from('profiles')
-        .select('id, full_name, email, avatar_url, user_roles(role)')
-        .returns<ProfileWithRoles[]>();
-      if (!cancelled) {
-        setCrew(profiles || []);
-        setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, []);
-  return { crew, loading };
-}
 
 const EventDetailSkeleton = () => (
   <div className="space-y-6">
@@ -95,13 +71,11 @@ const EventDetail = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { event, loading, error, refetch } = useEventDetail(id);
-  const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
 
-  // Invite Crew dialog state
-  const [showInviteDialog, setShowInviteDialog] = React.useState(false);
-  const [selectedRoles, setSelectedRoles] = React.useState<Set<Role>>(new Set());
-  const [isInviting, setIsInviting] = React.useState(false);
-  const { crew, loading: loadingCrew } = useCrew();
+  // useCrew moved to using the hook
+  const { data: crew = [], isLoading: loadingCrew } = useCrew();
+
+  const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
 
   // See which users are already invited (from event)
   const invitedIds = React.useMemo(() =>
@@ -126,70 +100,6 @@ const EventDetail = () => {
     }
     return grouped;
   }, [crew]);
-
-  // --- New UI for Invite Crew Dialog ---
-  const handleRoleToggle = (role: Role) => {
-    setSelectedRoles(prev => {
-      const next = new Set(prev);
-      if (next.has(role)) {
-        next.delete(role)
-      } else {
-        next.add(role)
-      }
-      return next;
-    });
-  };
-
-  const handleInviteCrew = async () => {
-    if (!id) return;
-    setIsInviting(true);
-
-    // Gather all member ids from selected roles and not already invited
-    const memberIdsToInvite = new Set<string>();
-    selectedRoles.forEach(role => {
-      const members = membersByRole[role] || [];
-      members.forEach(member => {
-        if (!invitedIds.includes(member.id)) {
-          memberIdsToInvite.add(member.id);
-        }
-      });
-    });
-
-    if (memberIdsToInvite.size === 0) {
-      toast({
-        title: "No new operators to invite",
-        description: "All operators for the selected roles are already invited or there are none.",
-      });
-      setIsInviting(false);
-      return;
-    }
-
-    const invites = Array.from(memberIdsToInvite).map(userId => ({
-      event_id: id,
-      user_id: userId,
-      status: 'pending' as const
-    }));
-
-    const { error: insertError } = await supabase.from('event_invitations').insert(invites);
-
-    if (insertError) {
-      toast({
-        title: "❌ Invitation Failed",
-        description: "An error occurred during bulk invitation. Some users may already have been invited.",
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: `✅ ${invites.length} Operator(s) Invited`,
-        description: "Successfully sent invitations.",
-      });
-      setShowInviteDialog(false);
-      setSelectedRoles(new Set());
-      refetch();
-    }
-
-    setIsInviting(false);
-  };
 
   const handleDelete = async () => {
     if (!id) return;
@@ -327,13 +237,11 @@ const EventDetail = () => {
                     </p>
                   </div>
                 </div>
-                
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-center justify-between">
                       <h3 className="font-medium text-lg">Field Actions</h3>
                     </div>
-                    
                     <div className="grid grid-cols-1 gap-2 mt-2">
                       <Button asChild variant="outline">
                         <Link to={`/feedback/new?eventId=${id}`}>
@@ -347,92 +255,16 @@ const EventDetail = () => {
                       </Button>
                     </div>
                   </div>
-                  
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base flex items-center gap-2">
-                        Crew Status
-                        {/* Invite Crew Button */}
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          className="ml-2"
-                          onClick={() => setShowInviteDialog(true)}
-                          aria-label="Invite Crew"
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                        {/* Dialog for bulk invite */}
-                        <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Invite Crew by Role</DialogTitle>
-                              <DialogDescription>
-                                Select roles to bulk-invite all operators of those roles that haven't already been invited to this programme.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="flex flex-col gap-2">
-                              {ROLES_ORDER.map(role => {
-                                const availableCount = (membersByRole[role] || []).filter(m => !invitedIds.includes(m.id)).length;
-                                const displayCount = availableCount === 0 ? 1 : availableCount;
-                                return (
-                                  <label
-                                    key={role}
-                                    className="flex items-center gap-2 text-sm font-medium cursor-pointer"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedRoles.has(role)}
-                                      onChange={() => handleRoleToggle(role)}
-                                      className="h-4 w-4"
-                                    />
-                                    {role}
-                                    <span className="text-muted-foreground ml-1 text-xs">
-                                      ({displayCount} available to invite)
-                                    </span>
-                                  </label>
-                                );
-                              })}
-                              {Array.from(selectedRoles).length > 0 && (
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  {Array.from(selectedRoles).length} role(s) selected.
-                                </div>
-                              )}
-                            </div>
-                            <DialogFooter>
-                              <Button
-                                variant="secondary"
-                                onClick={() => setShowInviteDialog(false)}
-                                type="button"
-                              >
-                                Cancel
-                              </Button>
-                              <Button
-                                onClick={handleInviteCrew}
-                                disabled={selectedRoles.size === 0 || isInviting}
-                              >
-                                {isInviting ? "Inviting..." : "Invite Selected"}
-                              </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between">
-                        <div className="text-2xl font-bold">{participants.length}/{maxParticipants}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {maxParticipants - participants.length} slots open
-                        </div>
-                      </div>
-                      <div className="w-full bg-secondary h-2 rounded-full mt-2">
-                        <div 
-                          className="bg-primary h-2 rounded-full" 
-                          style={{ width: `${(participants.length / maxParticipants) * 100}%` }}
-                        ></div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <EventCrewStatusCard
+                    eventId={id!}
+                    participantsCount={participants.length}
+                    maxParticipants={maxParticipants}
+                    membersByRole={membersByRole}
+                    crew={crew}
+                    invitedIds={invitedIds}
+                    refetch={refetch}
+                    rolesOrder={ROLES_ORDER}
+                  />
                 </div>
               </div>
             </CardContent>
@@ -503,4 +335,4 @@ const EventDetail = () => {
 
 export default EventDetail;
 
-// NOTE: This file is >300 LOC. Please consider asking me to refactor it into smaller focused components for better maintainability.
+// NOTE: This file was refactored into smaller components for maintainability.
