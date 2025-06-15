@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Calendar, Users, Package, MessageSquare, LogOut } from "lucide-react";
+import { LayoutGrid, Map, Backpack, ClipboardList, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -14,13 +14,13 @@ const Header = () => {
   const { toast } = useToast();
 
   const navItems = [
-    { path: "/dashboard", label: "Dashboard", icon: <Users className="w-4 h-4" /> },
-    { path: "/events", label: "Events", icon: <Calendar className="w-4 h-4" /> },
-    { path: "/gear", label: "Gear", icon: <Package className="w-4 h-4" /> },
-    { path: "/feedback", label: "Feedback", icon: <MessageSquare className="w-4 h-4" /> },
+    { path: "/dashboard", label: "Dashboard", icon: <LayoutGrid className="w-4 h-4" /> },
+    { path: "/events", label: "Events", icon: <Map className="w-4 h-4" /> },
+    { path: "/gear", label: "Gear", icon: <Backpack className="w-4 h-4" /> },
+    { path: "/feedback", label: "Feedback", icon: <ClipboardList className="w-4 h-4" /> },
   ];
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => location.pathname.startsWith(path);
 
   const handleLogout = () => {
     logout();
@@ -32,11 +32,11 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white border-b sticky top-0 z-30">
+    <header className="bg-background border-b sticky top-0 z-30">
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
         <div className="flex items-center space-x-2">
           <Link to="/dashboard" className="flex items-center">
-            <span className="font-bold text-2xl text-black">TPAC OS</span>
+            <span className="font-bold text-2xl text-foreground">TPAC OS</span>
           </Link>
         </div>
 
@@ -62,7 +62,7 @@ const Header = () => {
           <Button
             variant="ghost"
             onClick={handleLogout}
-            className="hidden md:flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+            className="hidden md:flex items-center space-x-2 text-muted-foreground hover:text-foreground"
           >
             <LogOut className="w-4 h-4" />
             <span>Log Out</span>
@@ -103,7 +103,7 @@ const Header = () => {
 
       {/* Mobile Navigation Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t">
+        <div className="md:hidden bg-background border-t">
           <div className="container mx-auto px-4 py-2">
             {navItems.map((item) => (
               <Link
@@ -111,7 +111,7 @@ const Header = () => {
                 to={item.path}
                 className={cn(
                   "flex items-center space-x-2 py-3 px-2",
-                  isActive(item.path) ? "text-primary font-medium" : "text-gray-700"
+                  isActive(item.path) ? "text-primary font-medium" : "text-muted-foreground"
                 )}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -125,7 +125,7 @@ const Header = () => {
                 handleLogout();
                 setIsMenuOpen(false);
               }}
-              className="flex items-center space-x-2 py-3 px-2 text-gray-700 w-full text-left"
+              className="flex items-center space-x-2 py-3 px-2 text-muted-foreground w-full text-left"
             >
               <LogOut className="w-4 h-4" />
               <span>Log Out</span>
