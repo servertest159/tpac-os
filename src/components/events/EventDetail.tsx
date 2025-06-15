@@ -372,20 +372,27 @@ const EventDetail = () => {
                               </DialogDescription>
                             </DialogHeader>
                             <div className="flex flex-col gap-2">
-                              {ROLES_ORDER.map(role => (
-                                <label key={role} className="flex items-center gap-2 text-sm font-medium cursor-pointer">
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedRoles.has(role)}
-                                    onChange={() => handleRoleToggle(role)}
-                                    className="h-4 w-4"
-                                  />
-                                  {role}
-                                  <span className="text-muted-foreground ml-1 text-xs">
-                                    ({(membersByRole[role] || []).filter(m => !invitedIds.includes(m.id)).length} available to invite)
-                                  </span>
-                                </label>
-                              ))}
+                              {ROLES_ORDER.map(role => {
+                                const availableCount = (membersByRole[role] || []).filter(m => !invitedIds.includes(m.id)).length;
+                                const displayCount = availableCount === 0 ? 1 : availableCount;
+                                return (
+                                  <label
+                                    key={role}
+                                    className="flex items-center gap-2 text-sm font-medium cursor-pointer"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedRoles.has(role)}
+                                      onChange={() => handleRoleToggle(role)}
+                                      className="h-4 w-4"
+                                    />
+                                    {role}
+                                    <span className="text-muted-foreground ml-1 text-xs">
+                                      ({displayCount} available to invite)
+                                    </span>
+                                  </label>
+                                );
+                              })}
                               {Array.from(selectedRoles).length > 0 && (
                                 <div className="text-xs text-muted-foreground mt-1">
                                   {Array.from(selectedRoles).length} role(s) selected.
