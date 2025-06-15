@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import type { Enums } from "@/integrations/supabase/types";
 
 const CrewList = () => {
   const { data: crew, isLoading, isError, error } = useCrew();
@@ -26,16 +27,36 @@ const CrewList = () => {
       .join("");
   };
 
-  const roleColor = (role: string) => {
+  const roleColor = (role: Enums<'app_role'>) => {
     switch (role) {
       case 'President':
-        return 'default';
+        return 'bg-red-500 text-white hover:bg-red-600 border-transparent';
       case 'Vice-President':
-        return 'secondary';
+        return 'bg-orange-500 text-white hover:bg-orange-600 border-transparent';
+      case 'Honorary Secretary':
+      case 'Honorary Assistant Secretary':
+        return 'bg-yellow-500 text-black hover:bg-yellow-600 border-transparent';
+      case 'Honorary Treasurer':
+      case 'Honorary Assistant Treasurer':
+        return 'bg-green-500 text-white hover:bg-green-600 border-transparent';
+      case 'Training Head (General)':
+      case 'Training Head (Land)':
+      case 'Training Head (Water)':
+      case 'Training Head (Welfare)':
+        return 'bg-blue-500 text-white hover:bg-blue-600 border-transparent';
+      case 'Quartermaster':
+      case 'Assistant Quarter Master':
+        return 'bg-indigo-500 text-white hover:bg-indigo-600 border-transparent';
+      case 'Publicity Head':
+      case 'First Assistant Publicity Head':
+      case 'Second Assistant Publicity Head':
+        return 'bg-purple-500 text-white hover:bg-purple-600 border-transparent';
+      case 'Member':
+        return 'bg-gray-400 text-white hover:bg-gray-500 border-transparent';
       default:
-        return 'outline';
+        return 'bg-gray-400 text-white hover:bg-gray-500 border-transparent';
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -123,10 +144,10 @@ const CrewList = () => {
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {member.user_roles.length > 0 ? member.user_roles.map((roleItem, index) => (
-                        <Badge key={index} variant={roleColor(roleItem.role)}>
+                        <Badge key={index} className={roleColor(roleItem.role)}>
                           {roleItem.role}
                         </Badge>
-                      )) : <Badge variant="outline">Member</Badge>}
+                      )) : <Badge className={roleColor('Member')}>Member</Badge>}
                     </div>
                   </TableCell>
                 </TableRow>

@@ -317,7 +317,8 @@ export type Database = {
         | "Quartermaster"
         | "Assistant Quarter Master"
         | "Publicity Head"
-        | "Assistant Publicity Head"
+        | "First Assistant Publicity Head"
+        | "Second Assistant Publicity Head"
         | "Member"
     }
     CompositeTypes: {
@@ -448,7 +449,8 @@ export const Constants = {
         "Quartermaster",
         "Assistant Quarter Master",
         "Publicity Head",
-        "Assistant Publicity Head",
+        "First Assistant Publicity Head",
+        "Second Assistant Publicity Head",
         "Member",
       ],
     },
