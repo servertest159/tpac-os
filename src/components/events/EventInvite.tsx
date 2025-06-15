@@ -18,6 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { supabase } from '@/integrations/supabase/client';
 
 type Role = Enums<'app_role'>;
 
@@ -44,16 +45,56 @@ const EventInvite = () => {
   const { data: crew, isLoading, error, refetch } = useCrew();
   const { toast } = useToast();
   const [invited, setInvited] = React.useState<string[]>([]);
+  const [inviting, setInviting] = React.useState<string | null>(null);
   const [selectedRoles, setSelectedRoles] = React.useState<Role[]>([]);
   const [open, setOpen] = React.useState(false);
 
-  const handleInvite = (memberName: string, memberId: string) => {
-    // This would be an API call in a real app
-    setInvited(prev => [...prev, memberId]);
-    toast({
-      title: "✅ Operator Invited",
-      description: `${memberName} has been invited to the programme.`,
-    });
+  React.useEffect(() => {
+    if (!eventId) return;
+
+    const fetchInvites = async () => {
+      const { data, error } = await supabase
+        .from('event_invitations')
+        .select('user_id')
+        .eq('event_id', eventId);
+      
+      if (error) {
+        console.error("Error fetching invites", error);
+        toast({
+          title: "❌ Failed to load existing invitations",
+          variant: "destructive"
+        });
+      } else {
+        setInvited(data.map(invite => invite.user_id));
+      }
+    };
+
+    fetchInvites();
+  }, [eventId, toast]);
+
+  const handleInvite = async (memberName: string, memberId: string) => {
+    if (!eventId) return;
+    setInviting(memberId);
+
+    const { error } = await supabase
+      .from('event_invitations')
+      .insert({ event_id: eventId, user_id: memberId, status: 'pending' });
+
+    if (error) {
+      console.error("Error inviting user", error);
+      toast({
+        title: "❌ Invitation Failed",
+        description: error.code === '23505' ? 'This operator has already been invited.' : error.message,
+        variant: "destructive",
+      });
+    } else {
+      setInvited(prev => [...prev, memberId]);
+      toast({
+        title: "✅ Operator Invited",
+        description: `${memberName} has been invited to the programme.`,
+      });
+    }
+    setInviting(null);
   };
 
   const membersByRole = React.useMemo(() => {
@@ -230,10 +271,18 @@ const EventInvite = () => {
                     <Button
                       size="sm"
                       onClick={() => handleInvite(member.full_name || 'Operator', member.id)}
-                      disabled={invited.includes(member.id)}
+                      disabled={invited.includes(member.id) || inviting === member.id}
                     >
-                      {invited.includes(member.id) && <Check />}
-                      {invited.includes(member.id) ? 'Invited' : 'Invite'}
+                      {inviting === member.id ? (
+                        'Inviting...'
+                      ) : invited.includes(member.id) ? (
+                        <>
+                          <Check />
+                          Invited
+                        </>
+                      ) : (
+                        'Invite'
+                      )}
                     </Button>
                 </div>
               ))}

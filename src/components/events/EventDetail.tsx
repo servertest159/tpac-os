@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,65 +5,91 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, MapPin, User, Users, Clock, Edit, Trash2, Plus } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { Calendar, MapPin, User, Users, Clock, Edit, Trash2, Plus, AlertCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useEventDetail } from "@/hooks/useEventDetail";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { format } from 'date-fns';
 
-// Sample event data (in a real app this would come from an API)
-const eventData = {
-  id: "1",
-  title: "MacRitchie Reservoir Trek",
-  date: "2025-05-24",
-  time: "08:00 AM",
-  location: "MacRitchie Reservoir Park, Main Entrance",
-  participants: [
-    { id: "1", name: "John Doe", email: "john@example.com" },
-    { id: "2", name: "Jane Smith", email: "jane@example.com" },
-    { id: "3", name: "Mike Johnson", email: "mike@example.com" },
-    { id: "4", name: "Sarah Williams", email: "sarah@example.com" },
-    { id: "5", name: "Tom Brown", email: "tom@example.com" },
-    { id: "6", name: "Lisa Davis", email: "lisa@example.com" },
-    { id: "7", name: "David Wilson", email: "david@example.com" },
-    { id: "8", name: "Emma Miller", email: "emma@example.com" },
-  ],
-  maxParticipants: 12,
-  description: "A classic trek through the scenic trails of MacRitchie, Singapore's largest reservoir. This route will take us through lush secondary rainforest, across the famous Treetop Walk for a bird's-eye view of the canopy, and along the water's edge. Expect to encounter long-tailed macaques and monitor lizards. Suitable for all fitness levels, but be prepared for humidity.",
-  status: "upcoming",
-  itinerary: [
-    { day: "Trek Plan", activities: "Meet at Mushroom Cafe (8:00 AM), Safety briefing and warm-up, Begin trek via Petai Trail, Cross the Treetop Walk, Lunch break at Jelutong Tower, Continue along MacRitchie Nature Trail, Return to main entrance (approx 1:00 PM), Cool-down and debrief." },
-  ],
-  gearRequired: [
-    "Comfortable trail shoes", "Lightweight, breathable attire", "Water bottles (1.5L minimum)", "Small backpack (10-20L)", "Poncho or raincoat", "Sunscreen and insect repellent", "Personal first-aid kit"
-  ],
-  gearProvided: [
-    "Route maps", "Group first aid kit", "Emergency comms (walkie-talkie)", "Water purification tablets"
-  ],
-};
+const EventDetailSkeleton = () => (
+  <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <Skeleton className="h-8 w-72" />
+          <Skeleton className="h-4 w-96 mt-2" />
+        </div>
+        <div className="flex gap-2">
+          <Skeleton className="h-10 w-24" />
+          <Skeleton className="h-10 w-40" />
+        </div>
+      </div>
+      <Skeleton className="h-10 w-full max-w-sm" />
+      <Card>
+        <CardContent className="pt-6">
+            <Skeleton className="h-96 w-full" />
+        </CardContent>
+      </Card>
+  </div>
+);
 
 const EventDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { event, loading, error, refetch } = useEventDetail(id);
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
 
-  const handleDelete = () => {
-    // Simulate API call to delete
-    setTimeout(() => {
-      toast({
-        title: "Programme Aborted",
-        description: "The programme has been removed from the logs.",
-      });
-      navigate("/events");
-    }, 500);
+  const handleDelete = async () => {
+    if (!id) return;
+    const { error } = await supabase.from('events').delete().eq('id', id);
+    if (error) {
+        toast({ title: "Error aborting programme", description: error.message, variant: "destructive" });
+    } else {
+        toast({
+            title: "Programme Aborted",
+            description: "The programme has been removed from the logs.",
+        });
+        navigate("/events");
+    }
   };
+
+  if (loading) {
+    return <EventDetailSkeleton />;
+  }
+
+  if (error || !event) {
+    return (
+      <Alert variant="destructive" className="mt-4">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{error || "Could not load event details."}</AlertDescription>
+        <Button onClick={() => refetch()} className="mt-4">Try Again</Button>
+      </Alert>
+    );
+  }
+
+  const status = new Date(event.date) > new Date() ? 'upcoming' : 'completed';
+  const participants = event.event_invitations
+    .filter(inv => inv.status === 'accepted')
+    .map(inv => inv.profiles)
+    .filter((p): p is NonNullable<typeof p> => p !== null);
+  
+  const allInvited = event.event_invitations
+    .map(inv => inv.profiles)
+    .filter((p): p is NonNullable<typeof p> => p !== null);
+
+  const maxParticipants = event.max_participants || 0;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1>{eventData.title}</h1>
-            <Badge variant={eventData.status === "upcoming" ? "default" : "secondary"}>
-              {eventData.status === "upcoming" ? "Upcoming" : "Completed"}
+            <h1>{event.title}</h1>
+            <Badge variant={status === "upcoming" ? "default" : "secondary"}>
+              {status}
             </Badge>
           </div>
           <p className="text-muted-foreground">Programme Debrief & Coordination</p>
@@ -121,20 +146,20 @@ const EventDetail = () => {
                     <div className="space-y-2 mt-2">
                       <div className="flex items-center">
                         <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                        <span>{new Date(eventData.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                        <span>{format(new Date(event.date), "EEEE, MMMM d, yyyy")}</span>
                       </div>
                       <div className="flex items-center">
                         <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                        <span>{eventData.time}</span>
+                        <span>{format(new Date(event.date), "p")}</span>
                       </div>
                       <div className="flex items-center">
                         <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
-                        <span>{eventData.location}</span>
+                        <span>{event.location}</span>
                       </div>
                       <div className="flex items-center">
                         <Users className="mr-2 h-4 w-4 text-muted-foreground" />
                         <span>
-                          {eventData.participants.length} / {eventData.maxParticipants} operators
+                          {participants.length} / {maxParticipants} operators confirmed
                         </span>
                       </div>
                     </div>
@@ -143,7 +168,7 @@ const EventDetail = () => {
                   <div>
                     <h3 className="font-medium text-lg">Description</h3>
                     <p className="mt-2 text-muted-foreground whitespace-pre-line">
-                      {eventData.description}
+                      {event.description}
                     </p>
                   </div>
                 </div>
@@ -180,15 +205,15 @@ const EventDetail = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center justify-between">
-                        <div className="text-2xl font-bold">{eventData.participants.length}/{eventData.maxParticipants}</div>
+                        <div className="text-2xl font-bold">{participants.length}/{maxParticipants}</div>
                         <div className="text-xs text-muted-foreground">
-                          {eventData.maxParticipants - eventData.participants.length} slots open
+                          {maxParticipants - participants.length} slots open
                         </div>
                       </div>
                       <div className="w-full bg-secondary h-2 rounded-full mt-2">
                         <div 
                           className="bg-primary h-2 rounded-full" 
-                          style={{ width: `${(eventData.participants.length / eventData.maxParticipants) * 100}%` }}
+                          style={{ width: `${(participants.length / maxParticipants) * 100}%` }}
                         ></div>
                       </div>
                     </CardContent>
@@ -203,7 +228,7 @@ const EventDetail = () => {
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle>Crew Roster ({eventData.participants.length})</CardTitle>
+                <CardTitle>Crew Roster ({allInvited.length})</CardTitle>
                 <Button asChild size="sm">
                   <Link to={`/events/${id}/invite`}>
                     <Plus className="mr-2 h-4 w-4" />
@@ -211,23 +236,28 @@ const EventDetail = () => {
                   </Link>
                 </Button>
               </div>
+               <p className="text-sm text-muted-foreground pt-1">
+                Showing all invited operators. {participants.length} have accepted.
+              </p>
             </CardHeader>
             <CardContent>
               <div className="rounded-md border">
-                <div className="grid grid-cols-3 p-3 font-medium border-b">
+                <div className="grid grid-cols-4 p-3 font-medium border-b">
                   <div>Name</div>
                   <div>Email</div>
+                  <div>Status</div>
                   <div className="text-right">Actions</div>
                 </div>
-                {eventData.participants.map((participant) => (
-                  <div key={participant.id} className="grid grid-cols-3 p-3 border-b last:border-0 items-center">
+                {event.event_invitations.map((invitation) => (
+                  <div key={invitation.profiles?.id} className="grid grid-cols-4 p-3 border-b last:border-0 items-center">
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4 text-muted-foreground" />
-                      {participant.name}
+                      {invitation.profiles?.full_name}
                     </div>
-                    <div>{participant.email}</div>
+                    <div>{invitation.profiles?.email}</div>
+                    <div><Badge variant={invitation.status === 'accepted' ? 'default' : 'secondary'}>{invitation.status}</Badge></div>
                     <div className="text-right">
-                      <Button variant="ghost" size="sm">Remove</Button>
+                      <Button variant="ghost" size="sm" disabled>Remove</Button>
                     </div>
                   </div>
                 ))}
@@ -237,44 +267,14 @@ const EventDetail = () => {
         </TabsContent>
         
         <TabsContent value="gear" className="space-y-4 pt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Required Loadout</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-1">
-                  {eventData.gearRequired.map((item, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Provided Equipment</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-1">
-                  {eventData.gearProvided.map((item, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <div className="h-1.5 w-1.5 rounded-full bg-secondary"></div>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-          <Button asChild>
-            <Link to={`/events/${id}/gear`}>
-              Manage Programme Loadout
-            </Link>
-          </Button>
+          <Card>
+            <CardHeader>
+              <CardTitle>Loadout Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Gear and loadout management for this programme is not yet implemented.</p>
+            </CardContent>
+          </Card>
         </TabsContent>
         
         <TabsContent value="itinerary" className="space-y-4 pt-4">
@@ -283,14 +283,7 @@ const EventDetail = () => {
               <CardTitle>Programme Itinerary</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
-                {eventData.itinerary.map((item, index) => (
-                  <div key={index}>
-                    <h3 className="font-medium text-lg mb-2">{item.day}</h3>
-                    <p className="whitespace-pre-line text-muted-foreground">{item.activities}</p>
-                  </div>
-                ))}
-              </div>
+              <p className="text-muted-foreground">A detailed itinerary for this programme has not been set up yet.</p>
             </CardContent>
           </Card>
         </TabsContent>

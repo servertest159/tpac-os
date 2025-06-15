@@ -62,6 +62,48 @@ export type Database = {
           },
         ]
       }
+      event_invitations: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          status: Database["public"]["Enums"]["invitation_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          status?: Database["public"]["Enums"]["invitation_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          status?: Database["public"]["Enums"]["invitation_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_invitations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_invitations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_role_requirements: {
         Row: {
           created_at: string
@@ -355,6 +397,7 @@ export type Database = {
         | "First Assistant Publicity Head"
         | "Second Assistant Publicity Head"
         | "Member"
+      invitation_status: "pending" | "accepted" | "declined"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -488,6 +531,7 @@ export const Constants = {
         "Second Assistant Publicity Head",
         "Member",
       ],
+      invitation_status: ["pending", "accepted", "declined"],
     },
   },
 } as const
