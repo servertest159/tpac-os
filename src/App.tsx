@@ -15,6 +15,7 @@ import Feedback from "./pages/Feedback";
 import NotFound from "./pages/NotFound";
 import AccessGate from "./components/auth/AccessGate";
 import { useAuth } from "./hooks/useAuth";
+import Crew from "./pages/Crew";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const AppContent = () => {
         <Route path="/events/new" element={<EventNew />} />
         <Route path="/events/:id" element={<EventDetail />} />
         <Route path="/events/:id/:action" element={<EventDetail />} />
+        <Route path="/crew" element={<Crew />} />
         <Route path="/gear" element={<Gear />} />
         <Route path="/gear/new" element={<GearNew />} />
         <Route path="/gear/:id/edit" element={<GearEdit />} />

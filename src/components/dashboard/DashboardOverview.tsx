@@ -3,65 +3,57 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Package, Users, MessageSquare } from "lucide-react";
-
-// Sample data with a Singaporean twist
-const stats = [
-  {
-    title: "Upcoming Missions",
-    value: 3,
-    description: "Missions in the next month",
-    icon: <Calendar className="h-8 w-8 text-forest" />,
-    link: "/events",
-  },
-  {
-    title: "Gear in Armoury",
-    value: 24,
-    description: "Items ready for deployment",
-    icon: <Package className="h-8 w-8 text-forest" />,
-    link: "/gear",
-  },
-  {
-    title: "Active Crew",
-    value: 18,
-    description: "Members on upcoming missions",
-    icon: <Users className="h-8 w-8 text-forest" />,
-    link: "/events",
-  },
-  {
-    title: "AARs Submitted",
-    value: 12,
-    description: "After Action Reviews logged",
-    icon: <MessageSquare className="h-8 w-8 text-forest" />,
-    link: "/feedback",
-  },
-];
-
-const upcomingEvents = [
-  {
-    id: "1",
-    title: "MacRitchie Reservoir Trek",
-    date: "2025-05-24",
-    participants: 8,
-    location: "MacRitchie Treetop Walk",
-  },
-  {
-    id: "2",
-    title: "Ubin Kayak Mangrove Tour",
-    date: "2025-06-05",
-    participants: 6,
-    location: "Pulau Ubin",
-  },
-  {
-    id: "3",
-    title: "St. John's Island Camp",
-    date: "2025-06-15",
-    participants: 4,
-    location: "St. John's Island",
-  },
-];
+import { Calendar, Package, Users, MessageSquare, LayoutDashboard } from "lucide-react";
+import { useGearInventory } from "@/hooks/useGearInventory";
+import { useEvents } from "@/hooks/useEvents";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const DashboardOverview = () => {
+  const { gear, loading: gearLoading } = useGearInventory();
+  const { events, loading: eventsLoading } = useEvents();
+
+  const loading = gearLoading || eventsLoading;
+
+  const totalGear = gear.reduce((sum, item) => sum + item.quantity, 0);
+
+  const upcomingEventsData = events.filter(e => new Date(e.date) > new Date());
+  const upcomingEventsCount = upcomingEventsData.length;
+  
+  const activeCrewCount = upcomingEventsData.reduce((sum, event) => sum + (event.current_participants || 0), 0);
+  
+  const stats = [
+    {
+      title: "Upcoming Programmes",
+      value: loading ? <Skeleton className="h-6 w-10" /> : upcomingEventsCount,
+      description: "Programmes in the near future",
+      icon: <Calendar className="h-8 w-8 text-forest" />,
+      link: "/events",
+    },
+    {
+      title: "Gear in Inventory",
+      value: loading ? <Skeleton className="h-6 w-10" /> : totalGear,
+      description: "Items ready for deployment",
+      icon: <Package className="h-8 w-8 text-forest" />,
+      link: "/gear",
+    },
+    {
+      title: "Active Crew",
+      value: loading ? <Skeleton className="h-6 w-10" /> : activeCrewCount,
+      description: "Members on upcoming programmes",
+      icon: <Users className="h-8 w-8 text-forest" />,
+      link: "/crew",
+    },
+    {
+      title: "AARs Submitted",
+      value: 12, // Stays static for now
+      description: "After Action Reviews logged",
+      icon: <MessageSquare className="h-8 w-8 text-forest" />,
+      link: "/feedback",
+    },
+  ];
+  
+  const recentUpcomingEvents = upcomingEventsData.slice(0, 3);
+
   return (
     <div className="space-y-8">
       <div>
@@ -95,14 +87,29 @@ const DashboardOverview = () => {
       {/* Upcoming Events Section */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Upcoming Missions</h2>
+          <h2 className="text-xl font-semibold">Upcoming Programmes</h2>
           <Button asChild variant="outline" size="sm">
-            <Link to="/events">View All Missions</Link>
+            <Link to="/events">View All Programmes</Link>
           </Button>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {upcomingEvents.map((event) => (
+          {loading ? (
+            [...Array(3)].map((_, i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <Skeleton className="h-5 w-4/5 mb-2" />
+                  <Skeleton className="h-4 w-1/2" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-4 w-full" />
+                </CardContent>
+                <CardFooter>
+                  <Skeleton className="h-9 w-full" />
+                </CardFooter>
+              </Card>
+            ))
+          ) : recentUpcomingEvents.map((event) => (
             <Card key={event.id} className="card-hover">
               <CardHeader>
                 <CardTitle className="text-lg">{event.title}</CardTitle>
@@ -120,7 +127,7 @@ const DashboardOverview = () => {
                 <div className="flex justify-between text-sm">
                   <span className="flex items-center gap-1">
                     <Users className="h-3 w-3" />
-                    {event.participants} crew
+                    {event.current_participants || 0} crew
                   </span>
                   <span>{event.location}</span>
                 </div>
@@ -142,7 +149,7 @@ const DashboardOverview = () => {
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Button asChild className="w-full">
-            <Link to="/events/new">Plan New Mission</Link>
+            <Link to="/events/new">Plan New Programme</Link>
           </Button>
           <Button asChild variant="outline" className="w-full">
             <Link to="/gear/new">Log New Gear</Link>

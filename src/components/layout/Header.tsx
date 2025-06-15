@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Calendar, Users, Package, MessageSquare, LogOut } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, Package, MessageSquare, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -14,8 +14,9 @@ const Header = () => {
   const { toast } = useToast();
 
   const navItems = [
-    { path: "/dashboard", label: "Dashboard", icon: <Users className="w-4 h-4" /> },
+    { path: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
     { path: "/events", label: "Programmes", icon: <Calendar className="w-4 h-4" /> },
+    { path: "/crew", label: "Crew", icon: <Users className="w-4 h-4" /> },
     { path: "/gear", label: "Inventory", icon: <Package className="w-4 h-4" /> },
     { path: "/feedback", label: "AARs", icon: <MessageSquare className="w-4 h-4" /> },
   ];
