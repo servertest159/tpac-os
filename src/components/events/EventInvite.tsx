@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { useCrew, ProfileWithRoles } from '@/hooks/useCrew';
 import { Enums } from '@/integrations/supabase/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Check, ChevronsUpDown, X } from 'lucide-react';
+import { ArrowLeft, Check } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
@@ -14,10 +15,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { supabase } from '@/integrations/supabase/client';
 
 type Role = Enums<'app_role'>;
@@ -46,8 +43,6 @@ const EventInvite = () => {
   const { toast } = useToast();
   const [invited, setInvited] = React.useState<string[]>([]);
   const [inviting, setInviting] = React.useState<string | null>(null);
-  const [selectedRoles, setSelectedRoles] = React.useState<Role[]>([]);
-  const [open, setOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (!eventId) return;
@@ -112,22 +107,6 @@ const EventInvite = () => {
     return grouped;
   }, [crew]);
 
-  const selectedMembers = React.useMemo(() => {
-    if (!crew || selectedRoles.length === 0) return [];
-
-    const members = new Map<string, ProfileWithRoles>();
-    
-    selectedRoles.forEach(role => {
-      (membersByRole[role] || []).forEach(member => {
-        if (!members.has(member.id)) {
-          members.set(member.id, member);
-        }
-      });
-    });
-
-    return Array.from(members.values());
-  }, [crew, selectedRoles, membersByRole]);
-
 
   if (isLoading) {
     return (
@@ -144,9 +123,9 @@ const EventInvite = () => {
             <Skeleton className="h-6 w-32" />
             <Skeleton className="h-4 w-64 mt-2" />
           </CardHeader>
-          <CardContent className="flex flex-wrap justify-center gap-2">
-            {[...Array(15)].map((_, i) => (
-              <Skeleton key={i} className="h-9 w-28 rounded-md" />
+          <CardContent className="space-y-2">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full rounded-md" />
             ))}
           </CardContent>
         </Card>
@@ -181,118 +160,61 @@ const EventInvite = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Select Roles</CardTitle>
-          <p className="text-muted-foreground">Choose one or more roles to see available operators.</p>
+          <CardTitle>Invite by Role</CardTitle>
+          <p className="text-muted-foreground">Expand a role to view and invite available operators.</p>
         </CardHeader>
         <CardContent>
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={open}
-                className="w-full md:w-[280px] justify-between"
-              >
-                <span className="truncate">
-                  {selectedRoles.length === 0 && "Select roles..."}
-                  {selectedRoles.length === 1 && selectedRoles[0]}
-                  {selectedRoles.length > 1 && `${selectedRoles.length} roles selected`}
-                </span>
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-full md:w-[280px] p-0">
-              <Command>
-                <CommandInput placeholder="Search roles..." />
-                <CommandList>
-                  <CommandEmpty>No role found.</CommandEmpty>
-                  <CommandGroup>
-                    {ROLES_ORDER.map((role) => (
-                      <CommandItem
-                        key={role}
-                        value={role}
-                        onSelect={() => {
-                          if (selectedRoles.includes(role)) {
-                            setSelectedRoles(selectedRoles.filter((r) => r !== role));
-                          } else {
-                            setSelectedRoles([...selectedRoles, role]);
-                          }
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            selectedRoles.includes(role) ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        {role}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-          <div className="flex flex-wrap gap-1 pt-2">
-            {selectedRoles.map(role => (
-              <Badge key={role} variant="secondary" className="gap-1">
-                {role}
-                <button
-                  className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                  onClick={() => setSelectedRoles(selectedRoles.filter((r) => r !== role))}
-                >
-                  <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                </button>
-              </Badge>
-            ))}
-          </div>
+          <Accordion type="multiple" className="w-full">
+            {ROLES_ORDER.map(role => {
+              const members = membersByRole[role];
+              if (!members || members.length === 0) {
+                return null;
+              }
+              return (
+                <AccordionItem value={role} key={role}>
+                  <AccordionTrigger>{role} ({members.length})</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2">
+                      {members.map(member => (
+                        <div key={member.id} className="p-3 border rounded-lg flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <Avatar>
+                              <AvatarImage src={member.avatar_url || undefined} alt={member.full_name || 'User'} />
+                              <AvatarFallback>{member.full_name?.slice(0, 2).toUpperCase() || 'U'}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-semibold">{member.full_name}</p>
+                              <p className="text-sm text-muted-foreground">{member.email}</p>
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => handleInvite(member.full_name || 'Operator', member.id)}
+                            disabled={invited.includes(member.id) || inviting === member.id}
+                          >
+                            {inviting === member.id ? 'Inviting...' : invited.includes(member.id) ? (
+                              <>
+                                <Check />
+                                Invited
+                              </>
+                            ) : (
+                              'Invite'
+                            )}
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+             {Object.values(membersByRole).every(members => members.length === 0) && (
+                <p className="text-muted-foreground text-center pt-4">No operators available to invite.</p>
+              )}
+          </Accordion>
         </CardContent>
       </Card>
       
-      {selectedRoles.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Operators ({selectedMembers.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {selectedMembers.map(member => (
-                <div key={member.id} className="p-4 border rounded-lg flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                    <Avatar>
-                      <AvatarImage src={member.avatar_url || undefined} alt={member.full_name || 'User'} />
-                      <AvatarFallback>{member.full_name?.slice(0, 2).toUpperCase() || 'U'}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-semibold">{member.full_name}</p>
-                      <p className="text-sm text-muted-foreground">{member.email}</p>
-                    </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={() => handleInvite(member.full_name || 'Operator', member.id)}
-                      disabled={invited.includes(member.id) || inviting === member.id}
-                    >
-                      {inviting === member.id ? (
-                        'Inviting...'
-                      ) : invited.includes(member.id) ? (
-                        <>
-                          <Check />
-                          Invited
-                        </>
-                      ) : (
-                        'Invite'
-                      )}
-                    </Button>
-                </div>
-              ))}
-              {selectedMembers.length === 0 && (
-                <p className="text-muted-foreground col-span-full text-center">No operators found for the selected roles.</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };
