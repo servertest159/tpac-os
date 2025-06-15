@@ -16,7 +16,7 @@ const Header = () => {
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: <Users className="w-4 h-4" /> },
     { path: "/events", label: "Missions", icon: <Calendar className="w-4 h-4" /> },
-    { path: "/gear", label: "Armoury", icon: <Package className="w-4 h-4" /> },
+    { path: "/gear", label: "Inventory", icon: <Package className="w-4 h-4" /> },
     { path: "/feedback", label: "AARs", icon: <MessageSquare className="w-4 h-4" /> },
   ];
 

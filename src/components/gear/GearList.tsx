@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -100,7 +99,7 @@ const GearList = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1>Armoury</h1>
+            <h1>Inventory</h1>
             <p className="text-muted-foreground">Track and maintain your kit.</p>
           </div>
           <Button asChild>
@@ -110,7 +109,7 @@ const GearList = () => {
 
         <div className="text-center py-12">
           <Package className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 mb-2">Failed to load armoury</h3>
+          <h3 className="mt-4 mb-2">Failed to load inventory</h3>
           <p className="text-muted-foreground mb-4">
             Unable to connect to the database after multiple attempts.
           </p>
@@ -127,7 +126,7 @@ const GearList = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1>Armoury</h1>
+          <h1>Inventory</h1>
           <p className="text-muted-foreground">Track and maintain your kit.</p>
         </div>
         <Button asChild>
@@ -137,7 +136,7 @@ const GearList = () => {
 
       <div className="flex items-center gap-2">
         <Input
-          placeholder="Search armoury..."
+          placeholder="Search inventory..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-sm"
@@ -155,7 +154,7 @@ const GearList = () => {
       ) : filteredGear.length === 0 ? (
         <div className="text-center py-12">
           <Package className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 mb-2">Armoury is Empty</h3>
+          <h3 className="mt-4 mb-2">Inventory is Empty</h3>
           <p className="text-muted-foreground mb-4">
             {searchTerm
               ? "No gear matches your search."
