@@ -68,6 +68,7 @@ export type Database = {
           current_participants: number | null
           date: string
           description: string | null
+          end_date: string | null
           id: string
           location: string | null
           max_participants: number | null
@@ -79,6 +80,7 @@ export type Database = {
           current_participants?: number | null
           date: string
           description?: string | null
+          end_date?: string | null
           id?: string
           location?: string | null
           max_participants?: number | null
@@ -90,6 +92,7 @@ export type Database = {
           current_participants?: number | null
           date?: string
           description?: string | null
+          end_date?: string | null
           id?: string
           location?: string | null
           max_participants?: number | null

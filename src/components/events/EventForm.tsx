@@ -21,6 +21,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
     title: "",
     date: "",
     time: "",
+    end_time: "",
     location: "",
     description: "",
     max_participants: 10,
@@ -48,11 +49,16 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
         const eventDate = new Date(data.date);
         const dateStr = eventDate.toISOString().split('T')[0];
         const timeStr = eventDate.toTimeString().split(' ')[0].slice(0, 5);
+        
+        const endTimeStr = data.end_date
+          ? new Date(data.end_date).toTimeString().split(' ')[0].slice(0, 5)
+          : "";
 
         setFormData({
           title: data.title,
           date: dateStr,
           time: timeStr,
+          end_time: endTimeStr,
           location: data.location || "",
           description: data.description || "",
           max_participants: data.max_participants || 10,
@@ -74,10 +80,12 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
     
     try {
       const eventDateTime = new Date(`${formData.date}T${formData.time}`);
+      const endDateTime = formData.end_time ? new Date(`${formData.date}T${formData.end_time}`) : null;
       
       const eventData = {
         title: formData.title,
         date: eventDateTime.toISOString(),
+        end_date: endDateTime ? endDateTime.toISOString() : null,
         location: formData.location,
         description: formData.description,
         max_participants: formData.max_participants,
@@ -159,7 +167,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="time">Time</Label>
+              <Label htmlFor="time">Start Time</Label>
               <Input
                 id="time"
                 name="time"
@@ -167,6 +175,19 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
                 value={formData.time}
                 onChange={handleChange}
                 required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="end_time">End Time</Label>
+              <Input
+                id="end_time"
+                name="end_time"
+                type="time"
+                value={formData.end_time}
+                onChange={handleChange}
               />
             </div>
           </div>
