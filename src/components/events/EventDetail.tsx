@@ -127,9 +127,23 @@ const EventDetail = () => {
     return grouped;
   }, [crew]);
 
+  // --- New UI for Invite Crew Dialog ---
+  const handleRoleToggle = (role: Role) => {
+    setSelectedRoles(prev => {
+      const next = new Set(prev);
+      if (next.has(role)) {
+        next.delete(role)
+      } else {
+        next.add(role)
+      }
+      return next;
+    });
+  };
+
   const handleInviteCrew = async () => {
     if (!id) return;
     setIsInviting(true);
+
     // Gather all member ids from selected roles and not already invited
     const memberIdsToInvite = new Set<string>();
     selectedRoles.forEach(role => {
@@ -338,15 +352,63 @@ const EventDetail = () => {
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-2">
                         Crew Status
-                        <Button 
+                        {/* Invite Crew Button */}
+                        <Button
                           size="icon"
                           variant="outline"
                           className="ml-2"
                           onClick={() => setShowInviteDialog(true)}
                           aria-label="Invite Crew"
                         >
-                          <UserPlus className="h-4 w-4" />
+                          <Plus className="h-4 w-4" />
                         </Button>
+                        {/* Dialog for bulk invite */}
+                        <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Invite Crew by Role</DialogTitle>
+                              <DialogDescription>
+                                Select roles to bulk-invite all operators of those roles that haven't already been invited to this programme.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="flex flex-col gap-2">
+                              {ROLES_ORDER.map(role => (
+                                <label key={role} className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedRoles.has(role)}
+                                    onChange={() => handleRoleToggle(role)}
+                                    className="h-4 w-4"
+                                  />
+                                  {role}
+                                  <span className="text-muted-foreground ml-1 text-xs">
+                                    ({(membersByRole[role] || []).filter(m => !invitedIds.includes(m.id)).length} available to invite)
+                                  </span>
+                                </label>
+                              ))}
+                              {Array.from(selectedRoles).length > 0 && (
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {Array.from(selectedRoles).length} role(s) selected.
+                                </div>
+                              )}
+                            </div>
+                            <DialogFooter>
+                              <Button
+                                variant="secondary"
+                                onClick={() => setShowInviteDialog(false)}
+                                type="button"
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                onClick={handleInviteCrew}
+                                disabled={selectedRoles.size === 0 || isInviting}
+                              >
+                                {isInviting ? "Inviting..." : "Invite Selected"}
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
