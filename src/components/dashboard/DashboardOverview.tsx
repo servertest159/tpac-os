@@ -3,7 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Map, Backpack, Users, ClipboardList, MapPin } from "lucide-react";
+import { Calendar, Package, Users, MessageSquare } from "lucide-react";
 
 // Sample data for demo purposes
 const stats = [
@@ -11,28 +11,28 @@ const stats = [
     title: "Upcoming Events",
     value: 3,
     description: "Events in the next 30 days",
-    icon: <Map className="h-8 w-8 text-primary" />,
+    icon: <Calendar className="h-8 w-8 text-forest" />,
     link: "/events",
   },
   {
-    title: "Gear Inventory",
+    title: "Gear Items",
     value: 24,
-    description: "Items ready for the field",
-    icon: <Backpack className="h-8 w-8 text-primary" />,
+    description: "Items in your inventory",
+    icon: <Package className="h-8 w-8 text-forest" />,
     link: "/gear",
   },
   {
-    title: "Active Participants",
+    title: "Participants",
     value: 18,
-    description: "Members on upcoming trips",
-    icon: <Users className="h-8 w-8 text-primary" />,
+    description: "People attending your events",
+    icon: <Users className="h-8 w-8 text-forest" />,
     link: "/events",
   },
   {
-    title: "Feedback Reports",
+    title: "Feedback Responses",
     value: 12,
-    description: "AARs submitted",
-    icon: <ClipboardList className="h-8 w-8 text-primary" />,
+    description: "Responses collected",
+    icon: <MessageSquare className="h-8 w-8 text-forest" />,
     link: "/feedback",
   },
 ];
@@ -65,9 +65,9 @@ const DashboardOverview = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="mb-2">Your Digital Basecamp</h1>
+        <h1 className="mb-2">Welcome to Adventure Planner</h1>
         <p className="text-muted-foreground">
-          Plan, execute, and reflect on your Singapore adventures.
+          Manage your outdoor adventures from one place
         </p>
       </div>
 
@@ -107,7 +107,7 @@ const DashboardOverview = () => {
               <CardHeader>
                 <CardTitle className="text-lg">{event.title}</CardTitle>
                 <CardDescription className="flex items-center gap-1">
-                  <Map className="h-3 w-3" />
+                  <Calendar className="h-3 w-3" />
                   {new Date(event.date).toLocaleDateString(undefined, {
                     weekday: 'long',
                     year: 'numeric',
@@ -117,15 +117,12 @@ const DashboardOverview = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex justify-between text-sm text-muted-foreground">
+                <div className="flex justify-between text-sm">
                   <span className="flex items-center gap-1">
                     <Users className="h-3 w-3" />
                     {event.participants} participants
                   </span>
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {event.location}
-                  </span>
+                  <span>{event.location}</span>
                 </div>
               </CardContent>
               <CardFooter>

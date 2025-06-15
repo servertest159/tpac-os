@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -52,26 +53,26 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				// Custom colors updated for Singapore outdoors theme
+				// Custom colors updated for red, black, white theme
 				forest: {
-					DEFAULT: '#2d5a3d', // Deep tropical green
-					light: '#4a7c59',
-					dark: '#1e3c28'
+					DEFAULT: '#000000',
+					light: '#333333',
+					dark: '#000000'
 				},
 				earth: {
-					DEFAULT: '#8b5e34', // Rich loamy brown
-					light: '#a98467',
-					dark: '#6f4a29'
+					DEFAULT: '#000000',
+					light: '#666666',
+					dark: '#000000'
 				},
 				sky: {
-					DEFAULT: '#a2b2c1', // Hazy sky blue
-					light: '#c1cdd7',
-					dark: '#8395a9'
+					DEFAULT: '#FF0000',
+					light: '#FF6666',
+					dark: '#CC0000'
 				},
 				tan: {
-					DEFAULT: '#f0e6d2', // Sandy beige
-					light: '#f5efe3',
-					dark: '#e0d6c2'
+					DEFAULT: '#FFFFFF',
+					light: '#FFFFFF',
+					dark: '#F0F0F0'
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
