@@ -4,11 +4,24 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MessageSquare, Users, BarChart } from "lucide-react";
+import { Calendar, MessageSquare, BarChart, ExternalLink } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import AddFeedbackDialog from "./AddFeedbackDialog";
+
+// Define the type for a feedback item
+interface FeedbackItem {
+  id: string;
+  eventTitle: string;
+  eventDate: string;
+  responseCount: number;
+  participantCount: number;
+  averageRating: number;
+  status: "completed" | "pending";
+  url?: string; // Add optional URL for MS Forms
+}
 
 // Sample data for feedback responses
-const feedbackData = [
+const initialFeedbackData: FeedbackItem[] = [
   {
     id: "1",
     eventTitle: "Mountain Hiking Weekend",
@@ -48,7 +61,22 @@ const feedbackData = [
 ];
 
 const FeedbackList = () => {
+  const [feedbackData, setFeedbackData] = React.useState<FeedbackItem[]>(initialFeedbackData);
   const [filter, setFilter] = React.useState<"all" | "completed" | "pending">("all");
+
+  const handleAddForm = (values: { title: string; url: string }) => {
+    const newFeedback: FeedbackItem = {
+      id: new Date().getTime().toString(),
+      eventTitle: values.title,
+      url: values.url,
+      eventDate: new Date().toISOString().split("T")[0],
+      responseCount: 0,
+      participantCount: 0,
+      averageRating: 0,
+      status: "pending",
+    };
+    setFeedbackData((prevData) => [newFeedback, ...prevData]);
+  };
 
   const filteredFeedback = feedbackData.filter((item) => {
     if (filter === "all") return true;
@@ -59,12 +87,12 @@ const FeedbackList = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1>Event Feedback</h1>
-          <p className="text-muted-foreground">Collect and manage participant feedback</p>
+          <h1>AAR (After Action Review) Forms</h1>
+          <p className="text-muted-foreground">Collect and manage mission feedback via Microsoft Forms.</p>
         </div>
-        <Button asChild>
-          <Link to="/feedback/new">Create Feedback Form</Link>
-        </Button>
+        <AddFeedbackDialog onFormSubmit={handleAddForm}>
+          <Button>Create AAR Form</Button>
+        </AddFeedbackDialog>
       </div>
 
       {/* Filter buttons */}
@@ -73,7 +101,7 @@ const FeedbackList = () => {
           variant={filter === "all" ? "default" : "outline"}
           onClick={() => setFilter("all")}
         >
-          All Feedback
+          All AARs
         </Button>
         <Button
           variant={filter === "completed" ? "default" : "outline"}
@@ -92,15 +120,15 @@ const FeedbackList = () => {
       {filteredFeedback.length === 0 ? (
         <div className="text-center py-12">
           <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 mb-2">No feedback forms found</h3>
+          <h3 className="mt-4 mb-2">No AAR forms found</h3>
           <p className="text-muted-foreground mb-4">
             {filter !== "all"
-              ? `There are no ${filter} feedback forms.`
-              : "You haven't created any feedback forms yet."}
+              ? `There are no ${filter} AAR forms.`
+              : "You haven't added any AAR forms yet."}
           </p>
-          <Button asChild>
-            <Link to="/feedback/new">Create Feedback Form</Link>
-          </Button>
+          <AddFeedbackDialog onFormSubmit={handleAddForm}>
+            <Button>Create AAR Form</Button>
+          </AddFeedbackDialog>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -147,6 +175,12 @@ const FeedbackList = () => {
                 {item.status === "completed" ? (
                   <Button asChild variant="default" className="w-full">
                     <Link to={`/feedback/${item.id}`}>View Responses</Link>
+                  </Button>
+                ) : item.url ? (
+                  <Button asChild variant="default" className="w-full">
+                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="w-full h-full flex items-center justify-center">
+                      <ExternalLink className="mr-2 h-4 w-4" /> Open Form
+                    </a>
                   </Button>
                 ) : (
                   <Button asChild variant="default" className="w-full">
