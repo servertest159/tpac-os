@@ -62,6 +62,41 @@ export type Database = {
           },
         ]
       }
+      emergency_contacts: {
+        Row: {
+          contact_number: string
+          created_at: string
+          id: string
+          name: string
+          trip_id: string
+          type: string
+        }
+        Insert: {
+          contact_number: string
+          created_at?: string
+          id?: string
+          name: string
+          trip_id: string
+          type: string
+        }
+        Update: {
+          contact_number?: string
+          created_at?: string
+          id?: string
+          name?: string
+          trip_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_contacts_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_invitations: {
         Row: {
           created_at: string
@@ -139,12 +174,12 @@ export type Database = {
       events: {
         Row: {
           created_at: string | null
-          creator_id: string | null
           current_participants: number | null
           date: string
           description: string | null
           end_date: string | null
           id: string
+          last_edited_by: string | null
           location: string | null
           max_participants: number | null
           title: string
@@ -152,12 +187,12 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          creator_id?: string | null
           current_participants?: number | null
           date: string
           description?: string | null
           end_date?: string | null
           id?: string
+          last_edited_by?: string | null
           location?: string | null
           max_participants?: number | null
           title: string
@@ -165,12 +200,12 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          creator_id?: string | null
           current_participants?: number | null
           date?: string
           description?: string | null
           end_date?: string | null
           id?: string
+          last_edited_by?: string | null
           location?: string | null
           max_participants?: number | null
           title?: string
@@ -184,6 +219,7 @@ export type Database = {
           condition: string
           created_at: string | null
           id: string
+          last_edited_by: string | null
           last_maintenance: string | null
           name: string
           notes: string | null
@@ -198,6 +234,7 @@ export type Database = {
           condition?: string
           created_at?: string | null
           id?: string
+          last_edited_by?: string | null
           last_maintenance?: string | null
           name: string
           notes?: string | null
@@ -212,6 +249,7 @@ export type Database = {
           condition?: string
           created_at?: string | null
           id?: string
+          last_edited_by?: string | null
           last_maintenance?: string | null
           name?: string
           notes?: string | null
@@ -258,6 +296,44 @@ export type Database = {
             columns: ["gear_id"]
             isOneToOne: false
             referencedRelation: "gear"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      itinerary_items: {
+        Row: {
+          activity: string | null
+          created_at: string
+          day: number
+          id: string
+          location: string | null
+          time: string | null
+          trip_id: string
+        }
+        Insert: {
+          activity?: string | null
+          created_at?: string
+          day: number
+          id?: string
+          location?: string | null
+          time?: string | null
+          trip_id: string
+        }
+        Update: {
+          activity?: string | null
+          created_at?: string
+          day?: number
+          id?: string
+          location?: string | null
+          time?: string | null
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itinerary_items_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "events"
             referencedColumns: ["id"]
           },
         ]
@@ -322,6 +398,112 @@ export type Database = {
         }
         Relationships: []
       }
+      trip_documents: {
+        Row: {
+          created_at: string
+          file_path: string
+          id: string
+          name: string
+          trip_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_path: string
+          id?: string
+          name: string
+          trip_id: string
+        }
+        Update: {
+          created_at?: string
+          file_path?: string
+          id?: string
+          name?: string
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_documents_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_gear_items: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          gear_id: string | null
+          id: string
+          status: string
+          trip_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          gear_id?: string | null
+          id?: string
+          status?: string
+          trip_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          gear_id?: string | null
+          id?: string
+          status?: string
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_gear_items_gear_id_fkey"
+            columns: ["gear_id"]
+            isOneToOne: false
+            referencedRelation: "gear"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_gear_items_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_participants: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          role: string | null
+          trip_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          role?: string | null
+          trip_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          role?: string | null
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_participants_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       User: {
         Row: {
           createdAt: string
@@ -371,6 +553,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_past_trips_with_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          title: string
+          date: string
+          end_date: string
+          location: string
+          gear_total: number
+          gear_packed: number
+          participant_count: number
+        }[]
+      }
+      get_upcoming_trips_with_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          title: string
+          date: string
+          end_date: string
+          location: string
+          gear_total: number
+          gear_packed: number
+          participant_count: number
+        }[]
+      }
       has_role: {
         Args: {
           _user_id: string

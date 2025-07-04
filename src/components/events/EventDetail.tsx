@@ -12,41 +12,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { format } from 'date-fns';
-import { useCrew } from "@/hooks/useCrew";
-import EventCrewStatusCard from "./EventCrewStatusCard";
 import EventParticipantsPanel from "./EventParticipantsPanel";
 import EventLoadoutPanel from "./EventLoadoutPanel";
 import EventItineraryPanel from "./EventItineraryPanel";
 import { Card, CardContent } from "@/components/ui/card";
-import { Enums } from "@/integrations/supabase/types";
-type Role = Enums<'app_role'>;
-
-const ROLES_ORDER: Role[] = [
-  'President',
-  'Vice-President',
-  'Honorary Secretary',
-  'Honorary Assistant Secretary',
-  'Honorary Treasurer',
-  'Honorary Assistant Treasurer',
-  'Training Head (General)',
-  'Training Head (Land)',
-  'Training Head (Water)',
-  'Training Head (Welfare)',
-  'Quartermaster',
-  'Assistant Quarter Master',
-  'Publicity Head',
-  'First Assistant Publicity Head',
-  'Second Assistant Publicity Head'
-];
-type ProfileWithRoles = {
-  id: string;
-  full_name: string | null;
-  email: string | null;
-  avatar_url: string | null;
-  user_roles: {
-    role: Role;
-  }[];
-};
 
 const EventDetailSkeleton = () => (
   <div className="space-y-6">
@@ -75,30 +44,7 @@ const EventDetail = () => {
   const { toast } = useToast();
   const { event, loading, error, refetch } = useEventDetail(id);
 
-  const { data: crew = [], isLoading: loadingCrew } = useCrew();
-
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
-
-  const invitedIds = React.useMemo(() =>
-    event?.event_invitations.map(inv => inv.profiles?.id).filter(Boolean) as string[] ?? []
-  , [event]);
-
-  const membersByRole = React.useMemo(() => {
-    const grouped: Record<Role, ProfileWithRoles[]> = {} as Record<Role, ProfileWithRoles[]>;
-    ROLES_ORDER.forEach(r => grouped[r] = []);
-    if (crew) {
-      crew.forEach(member => {
-        member.user_roles.forEach(roleInfo => {
-          if (grouped[roleInfo.role]) {
-            if (!grouped[roleInfo.role].some(m => m.id === member.id)) {
-              grouped[roleInfo.role].push(member);
-            }
-          }
-        });
-      });
-    }
-    return grouped;
-  }, [crew]);
 
   const handleDelete = async () => {
     if (!id) return;
@@ -191,7 +137,7 @@ const EventDetail = () => {
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="participants">Crew Roster</TabsTrigger>
+          <TabsTrigger value="participants">Participants</TabsTrigger>
           <TabsTrigger value="gear">Loadout</TabsTrigger>
           <TabsTrigger value="itinerary">Itinerary</TabsTrigger>
         </TabsList>
@@ -219,7 +165,7 @@ const EventDetail = () => {
                       <div className="flex items-center">
                         <Users className="mr-2 h-4 w-4 text-muted-foreground" />
                         <span>
-                          {participants.length} / {maxParticipants} operators confirmed
+                          {participants.length} / {maxParticipants} participants confirmed
                         </span>
                       </div>
                     </div>
@@ -250,16 +196,6 @@ const EventDetail = () => {
                       </Button>
                     </div>
                   </div>
-                  <EventCrewStatusCard
-                    eventId={id!}
-                    participantsCount={participants.length}
-                    maxParticipants={maxParticipants}
-                    membersByRole={membersByRole}
-                    crew={crew}
-                    invitedIds={invitedIds}
-                    refetch={refetch}
-                    rolesOrder={ROLES_ORDER}
-                  />
                 </div>
               </div>
             </CardContent>
@@ -286,6 +222,3 @@ const EventDetail = () => {
 };
 
 export default EventDetail;
-
-// NOTE: This file now imports Card and CardContent and is cleaned of dead code.
-

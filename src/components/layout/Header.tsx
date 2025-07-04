@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Calendar, Users, Package, MessageSquare, LogOut, User } from "lucide-react";
+import { LayoutDashboard, Calendar, Package, MessageSquare, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Header = () => {
@@ -18,7 +18,6 @@ const Header = () => {
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
     { path: "/events", label: "Programmes", icon: <Calendar className="w-4 h-4" /> },
-    { path: "/crew", label: "Crew", icon: <Users className="w-4 h-4" /> },
     { path: "/gear", label: "Inventory", icon: <Package className="w-4 h-4" /> },
     { path: "/feedback", label: "AARs", icon: <MessageSquare className="w-4 h-4" /> },
     { path: "/profile", label: "Profile", icon: <User className="w-4 h-4" /> },
