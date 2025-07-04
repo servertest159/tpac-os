@@ -38,13 +38,6 @@ const DashboardOverview = () => {
       icon: <Package className="h-8 w-8 text-forest" />,
       link: "/gear",
     },
-    {
-      title: "AARs Submitted",
-      value: completedAARs,
-      description: "After Action Reviews logged",
-      icon: <MessageSquare className="h-8 w-8 text-forest" />,
-      link: "/feedback",
-    },
   ];
   
   const recentUpcomingEvents = upcomingEventsData.slice(0, 3);
@@ -59,7 +52,7 @@ const DashboardOverview = () => {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {stats.map((stat) => (
           <Card key={stat.title} className="card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
@@ -77,6 +70,23 @@ const DashboardOverview = () => {
             </CardFooter>
           </Card>
         ))}
+        
+        {/* AARs Submitted Card - spans full width on mobile, single column on larger screens but matches height */}
+        <Card className="card-hover md:col-span-1">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium">AARs Submitted</CardTitle>
+            <MessageSquare className="h-8 w-8 text-forest" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{completedAARs}</div>
+            <p className="text-xs text-muted-foreground">After Action Reviews logged</p>
+          </CardContent>
+          <CardFooter>
+            <Button asChild variant="ghost" size="sm" className="w-full">
+              <Link to="/feedback">View Details</Link>
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
 
       {/* Upcoming Events Section */}
