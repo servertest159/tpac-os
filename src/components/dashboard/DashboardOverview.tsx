@@ -3,7 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Package, Users, MessageSquare, LayoutDashboard } from "lucide-react";
+import { Calendar, Package, MessageSquare, LayoutDashboard } from "lucide-react";
 import { useGearInventory } from "@/hooks/useGearInventory";
 import { useEvents } from "@/hooks/useEvents";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,7 +19,9 @@ const DashboardOverview = () => {
   const upcomingEventsData = events.filter(e => new Date(e.date) > new Date());
   const upcomingEventsCount = upcomingEventsData.length;
   
-  const activeCrewCount = upcomingEventsData.reduce((sum, event) => sum + (event.current_participants || 0), 0);
+  // Calculate actual AARs submitted - this would come from feedback data
+  // For now using a placeholder that can be updated when feedback data is available
+  const completedAARs = 0; // This should be calculated from actual feedback data
   
   const stats = [
     {
@@ -37,15 +39,8 @@ const DashboardOverview = () => {
       link: "/gear",
     },
     {
-      title: "Active Crew",
-      value: loading ? <Skeleton className="h-6 w-10" /> : activeCrewCount,
-      description: "Members on upcoming programmes",
-      icon: <Users className="h-8 w-8 text-forest" />,
-      link: "/crew",
-    },
-    {
       title: "AARs Submitted",
-      value: 12, // Stays static for now
+      value: completedAARs,
       description: "After Action Reviews logged",
       icon: <MessageSquare className="h-8 w-8 text-forest" />,
       link: "/feedback",
@@ -64,7 +59,7 @@ const DashboardOverview = () => {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {stats.map((stat) => (
           <Card key={stat.title} className="card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
@@ -125,10 +120,6 @@ const DashboardOverview = () => {
               </CardHeader>
               <CardContent>
                 <div className="flex justify-between text-sm">
-                  <span className="flex items-center gap-1">
-                    <Users className="h-3 w-3" />
-                    {event.current_participants || 0} crew
-                  </span>
                   <span>{event.location}</span>
                 </div>
               </CardContent>
