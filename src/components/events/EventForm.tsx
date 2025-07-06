@@ -32,8 +32,9 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
   
   const [formData, setFormData] = useState({
     title: "",
-    date: "",
-    time: "",
+    start_date: "",
+    start_time: "",
+    end_date: "",
     end_time: "",
     location: "",
     description: "",
@@ -59,18 +60,23 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
       if (error) throw error;
 
       if (data) {
-        const eventDate = new Date(data.date);
-        const dateStr = eventDate.toISOString().split('T')[0];
-        const timeStr = eventDate.toTimeString().split(' ')[0].slice(0, 5);
+        const startDate = new Date(data.date);
+        const startDateStr = startDate.toISOString().split('T')[0];
+        const startTimeStr = startDate.toTimeString().split(' ')[0].slice(0, 5);
         
-        const endTimeStr = data.end_date
-          ? new Date(data.end_date).toTimeString().split(' ')[0].slice(0, 5)
-          : "";
+        let endDateStr = "";
+        let endTimeStr = "";
+        if (data.end_date) {
+          const endDate = new Date(data.end_date);
+          endDateStr = endDate.toISOString().split('T')[0];
+          endTimeStr = endDate.toTimeString().split(' ')[0].slice(0, 5);
+        }
 
         setFormData({
           title: data.title,
-          date: dateStr,
-          time: timeStr,
+          start_date: startDateStr,
+          start_time: startTimeStr,
+          end_date: endDateStr,
           end_time: endTimeStr,
           location: data.location || "",
           description: data.description || "",
@@ -78,9 +84,9 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
         });
 
         if (data.event_role_requirements) {
-            setRoleRequirements(
-                data.event_role_requirements.map(r => ({ role: r.role, quantity: r.quantity }))
-            );
+          setRoleRequirements(
+            data.event_role_requirements.map(r => ({ role: r.role, quantity: r.quantity }))
+          );
         }
       }
     } catch (error) {
@@ -109,12 +115,19 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
     }
     
     try {
-      const eventDateTime = new Date(`${formData.date}T${formData.time}`);
-      const endDateTime = formData.end_time ? new Date(`${formData.date}T${formData.end_time}`) : null;
+      const startDateTime = new Date(`${formData.start_date}T${formData.start_time}`);
+      let endDateTime = null;
+      
+      if (formData.end_date && formData.end_time) {
+        endDateTime = new Date(`${formData.end_date}T${formData.end_time}`);
+      } else if (formData.end_date) {
+        // If only end date is provided, use start time
+        endDateTime = new Date(`${formData.end_date}T${formData.start_time}`);
+      }
       
       const eventData = {
         title: formData.title,
-        date: eventDateTime.toISOString(),
+        date: startDateTime.toISOString(),
         end_date: endDateTime ? endDateTime.toISOString() : null,
         location: formData.location,
         description: formData.description,
@@ -226,23 +239,23 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
+              <Label htmlFor="start_date">Start Date</Label>
               <Input
-                id="date"
-                name="date"
+                id="start_date"
+                name="start_date"
                 type="date"
-                value={formData.date}
+                value={formData.start_date}
                 onChange={handleChange}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="time">Start Time</Label>
+              <Label htmlFor="start_time">Start Time</Label>
               <Input
-                id="time"
-                name="time"
+                id="start_time"
+                name="start_time"
                 type="time"
-                value={formData.time}
+                value={formData.start_time}
                 onChange={handleChange}
                 required
               />
@@ -250,6 +263,16 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="end_date">End Date</Label>
+              <Input
+                id="end_date"
+                name="end_date"
+                type="date"
+                value={formData.end_date}
+                onChange={handleChange}
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="end_time">End Time</Label>
               <Input

@@ -174,6 +174,7 @@ export type Database = {
       events: {
         Row: {
           created_at: string | null
+          creator_id: string | null
           current_participants: number | null
           date: string
           description: string | null
@@ -187,6 +188,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          creator_id?: string | null
           current_participants?: number | null
           date: string
           description?: string | null
@@ -200,6 +202,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          creator_id?: string | null
           current_participants?: number | null
           date?: string
           description?: string | null
