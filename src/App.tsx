@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Dashboard from "@/pages/Dashboard";
 import Events from "@/pages/Events";
@@ -23,6 +24,7 @@ function App() {
         <Route path="/events/new" element={<EventNew />} />
         <Route path="/events/:id" element={<EventDetail />} />
         <Route path="/events/:id/edit" element={<EventNew />} />
+        <Route path="/events/:id/gear" element={<InventoryLoadout />} />
         <Route path="/gear" element={<Gear />} />
         <Route path="/gear/new" element={<GearNew />} />
         <Route path="/gear/:id/edit" element={<GearEdit />} />
