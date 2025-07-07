@@ -56,6 +56,7 @@ const LoadoutChecker = () => {
   }, [loadoutItems, searchQuery]);
 
   const handleItemCheck = (itemId: string, checked: boolean) => {
+    console.log(`Checking item ${itemId}: ${checked}`);
     setCheckedItems(prev => ({
       ...prev,
       [itemId]: checked
@@ -82,8 +83,14 @@ const LoadoutChecker = () => {
   const totalItems = filteredItems.length;
 
   const handleCompleteLoadoutCheck = () => {
+    console.log('Complete Check button clicked');
+    console.log('Checked items:', checkedItems);
+    
     const checkedItemsList = filteredItems.filter(item => checkedItems[item.id]);
+    console.log('Checked items list:', checkedItemsList);
+    
     const unavailableItems = checkedItemsList.filter(item => item.quantityAvailable < item.quantityRequired);
+    console.log('Unavailable items:', unavailableItems);
     
     if (unavailableItems.length > 0) {
       toast({
@@ -91,10 +98,16 @@ const LoadoutChecker = () => {
         description: `${unavailableItems.length} item(s) have availability issues. Review before deployment.`,
         variant: "destructive",
       });
-    } else {
+    } else if (checkedItemsList.length > 0) {
       toast({
         title: "✅ Loadout Check Complete",
         description: `All ${checkedItemsList.length} checked items are ready for deployment.`,
+      });
+    } else {
+      toast({
+        title: "ℹ️ No Items Selected",
+        description: "Please select items to check before completing the loadout check.",
+        variant: "destructive",
       });
     }
   };
@@ -137,7 +150,7 @@ const LoadoutChecker = () => {
               </span>
               <Button 
                 onClick={handleCompleteLoadoutCheck}
-                disabled={checkedCount === 0}
+                className="bg-blue-600 hover:bg-blue-700"
               >
                 <FileCheck className="mr-2 h-4 w-4" />
                 Complete Check
