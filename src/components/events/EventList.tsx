@@ -132,10 +132,17 @@ const EventList = () => {
       {filteredEvents.length === 0 ? (
         <div className="text-center py-12">
           <h3 className="mb-2">No Programmes Found</h3>
-          <p className="text-muted-foreground mb-4">There are no programmes matching your filters. Time to plan one?</p>
-          <Button asChild>
-            <Link to="/events/new">Plan a Programme</Link>
-          </Button>
+          <p className="text-muted-foreground mb-4">
+            {filter === "aborted" 
+              ? "No aborted programmes found." 
+              : "There are no programmes matching your filters. Time to plan one?"
+            }
+          </p>
+          {filter !== "aborted" && (
+            <Button asChild>
+              <Link to="/events/new">Plan a Programme</Link>
+            </Button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
