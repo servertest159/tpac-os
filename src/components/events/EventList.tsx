@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,6 @@ import { Calendar, MapPin, Users, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useEvents, type EventWithRequirements } from "@/hooks/useEvents";
 import { Skeleton } from "@/components/ui/skeleton";
-import RemoveEventsButton from "./RemoveEventsButton";
 
 const EventList = () => {
   const { events, loading, error, refetch } = useEvents();
@@ -97,12 +97,9 @@ const EventList = () => {
           <h1>Programmes</h1>
           <p className="text-muted-foreground">Coordinate your field operations.</p>
         </div>
-        <div className="flex gap-2">
-          <RemoveEventsButton onRemovalComplete={() => refetch()} />
-          <Button asChild>
-            <Link to="/events/new">Plan Programme</Link>
-          </Button>
-        </div>
+        <Button asChild>
+          <Link to="/events/new">Plan Programme</Link>
+        </Button>
       </div>
 
       {/* Filter buttons */}
