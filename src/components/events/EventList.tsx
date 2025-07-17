@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,7 @@ const EventList = () => {
       total_roles: (event.event_role_requirements || []).reduce((sum, req) => sum + req.quantity, 0),
     }))
     .filter((event) => {
-      if (filter === "all") return true;
+      if (filter === "all") return event.status !== "aborted"; // Exclude aborted from "all"
       return event.status === filter;
     });
 
@@ -107,7 +108,7 @@ const EventList = () => {
           variant={filter === "all" ? "default" : "outline"}
           onClick={() => setFilter("all")}
         >
-          All Programmes
+          Active Programmes
         </Button>
         <Button
           variant={filter === "upcoming" ? "default" : "outline"}
