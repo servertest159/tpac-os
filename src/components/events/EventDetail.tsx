@@ -46,22 +46,30 @@ const EventDetail = () => {
 
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
 
-  const handleDelete = async () => {
+  const handleAbort = async () => {
     if (!id) return;
-    const { error } = await supabase.from("events").delete().eq("id", id);
-    if (error) {
-      toast({
-        title: "Failed to abort programme",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
+    
+    try {
+      const { error } = await supabase
+        .from("events")
+        .update({ status: 'aborted', updated_at: new Date().toISOString() })
+        .eq("id", id);
+
+      if (error) throw error;
+
       toast({
         title: "Programme Aborted",
-        description: "This programme has been deleted.",
+        description: "This programme has been marked as aborted and logged in the system.",
       });
       setShowDeleteDialog(false);
-      navigate("/events");
+      refetch(); // Refresh the event data to show updated status
+    } catch (error) {
+      console.error('Error aborting programme:', error);
+      toast({
+        title: "Failed to abort programme",
+        description: error instanceof Error ? error.message : "An error occurred while aborting the programme.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -80,7 +88,8 @@ const EventDetail = () => {
     );
   }
 
-  const status = new Date(event.date) > new Date() ? 'upcoming' : 'completed';
+  const status = event.status === 'aborted' ? 'aborted' : 
+                 new Date(event.date) > new Date() ? 'upcoming' : 'completed';
   const participants = event.event_invitations
     .filter(inv => inv.status === 'accepted')
     .map(inv => inv.profiles)
@@ -88,51 +97,76 @@ const EventDetail = () => {
   
   const maxParticipants = event.max_participants || 0;
 
+  const getStatusBadge = () => {
+    if (event.status === 'aborted') {
+      return <Badge variant="destructive">Aborted</Badge>;
+    }
+    return (
+      <Badge variant={status === "upcoming" ? "default" : "secondary"}>
+        {status === "upcoming" ? "Upcoming" : "Completed"}
+      </Badge>
+    );
+  };
+
+  const isAborted = event.status === 'aborted';
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
             <h1>{event.title}</h1>
-            <Badge variant={status === "upcoming" ? "default" : "secondary"}>
-              {status}
-            </Badge>
+            {getStatusBadge()}
           </div>
-          <p className="text-muted-foreground">Programme Debrief & Coordination</p>
+          <p className="text-muted-foreground">
+            {isAborted ? "Aborted Programme Details" : "Programme Debrief & Coordination"}
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Button asChild variant="outline">
-            <Link to={`/events/${id}/edit`}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </Link>
-          </Button>
-          <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-            <DialogTrigger asChild>
-              <Button variant="destructive">
-                <Trash2 className="mr-2 h-4 w-4" />
-                Abort Programme
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Abort Programme</DialogTitle>
-                <DialogDescription>
-                  Are you sure you want to abort this programme? This action cannot be undone and will be logged.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-                  Cancel
+        {!isAborted && (
+          <div className="flex gap-2">
+            <Button asChild variant="outline">
+              <Link to={`/events/${id}/edit`}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </Link>
+            </Button>
+            <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+              <DialogTrigger asChild>
+                <Button variant="destructive">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Abort Programme
                 </Button>
-                <Button variant="destructive" onClick={handleDelete}>
-                  Confirm Abort
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Abort Programme</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to abort this programme? This action will mark the programme as aborted in the system for record-keeping purposes. This cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+                    Cancel
+                  </Button>
+                  <Button variant="destructive" onClick={handleAbort}>
+                    Confirm Abort
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        )}
       </div>
+
+      {isAborted && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Programme Aborted</AlertTitle>
+          <AlertDescription>
+            This programme has been aborted and is kept for record-keeping purposes only.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
@@ -184,16 +218,25 @@ const EventDetail = () => {
                       <h3 className="font-medium text-lg">Field Actions</h3>
                     </div>
                     <div className="grid grid-cols-1 gap-2 mt-2">
-                      <Button asChild variant="outline">
-                        <Link to={`/feedback/new?eventId=${id}`}>
-                          File After-Action Report (AAR)
-                        </Link>
-                      </Button>
-                      <Button asChild variant="secondary">
-                        <Link to={`/events/${id}/gear`}>
-                          Check Inventory Loadout
-                        </Link>
-                      </Button>
+                      {!isAborted && (
+                        <>
+                          <Button asChild variant="outline">
+                            <Link to={`/feedback/new?eventId=${id}`}>
+                              File After-Action Report (AAR)
+                            </Link>
+                          </Button>
+                          <Button asChild variant="secondary">
+                            <Link to={`/events/${id}/gear`}>
+                              Check Inventory Loadout
+                            </Link>
+                          </Button>
+                        </>
+                      )}
+                      {isAborted && (
+                        <p className="text-sm text-muted-foreground">
+                          Programme actions are not available for aborted programmes.
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>

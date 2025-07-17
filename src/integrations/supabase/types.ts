@@ -188,6 +188,7 @@ export type Database = {
           last_edited_by: string | null
           location: string | null
           max_participants: number | null
+          status: string | null
           title: string
           updated_at: string | null
         }
@@ -202,6 +203,7 @@ export type Database = {
           last_edited_by?: string | null
           location?: string | null
           max_participants?: number | null
+          status?: string | null
           title: string
           updated_at?: string | null
         }
@@ -216,6 +218,7 @@ export type Database = {
           last_edited_by?: string | null
           location?: string | null
           max_participants?: number | null
+          status?: string | null
           title?: string
           updated_at?: string | null
         }
@@ -307,6 +310,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      habits: {
+        Row: {
+          completions: Json
+          created_at: string
+          description: string | null
+          frequency: string
+          id: string
+          start_date: string | null
+          streak: number
+          title: string
+          user_id: string
+        }
+        Insert: {
+          completions?: Json
+          created_at?: string
+          description?: string | null
+          frequency: string
+          id?: string
+          start_date?: string | null
+          streak?: number
+          title: string
+          user_id: string
+        }
+        Update: {
+          completions?: Json
+          created_at?: string
+          description?: string | null
+          frequency?: string
+          id?: string
+          start_date?: string | null
+          streak?: number
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       itinerary_items: {
         Row: {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -93,7 +92,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
       console.error('Error fetching event:', error);
       toast({
         title: "Error",
-        description: "Failed to load event data",
+        description: "Failed to load programme data",
         variant: "destructive",
       });
     }
@@ -140,7 +139,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
       if (isEditing && eventId) {
         const { error } = await supabase
           .from('events')
-          .update(eventData)
+          .update({ ...eventData, status: 'active' }) // Ensure status remains active when editing
           .eq('id', eventId);
         if (error) throw error;
       } else {
@@ -148,7 +147,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
         if (!user) throw new Error("User not found");
         const { data: newEvent, error } = await supabase
           .from('events')
-          .insert([{ ...eventData, creator_id: user.id }])
+          .insert([{ ...eventData, creator_id: user.id, status: 'active' }])
           .select('id')
           .single();
         if (error) throw error;
@@ -177,7 +176,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
 
       toast({
         title: isEditing ? "Programme Updated" : "Programme Planned",
-        description: `The programme details for '${formData.title}' have been logged.`,
+        description: `The programme details for '${formData.title}' have been saved successfully.`,
       });
       navigate("/events");
     } catch (error) {

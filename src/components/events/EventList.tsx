@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,19 +9,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const EventList = () => {
   const { events, loading, error, refetch } = useEvents();
-  const [filter, setFilter] = React.useState<"all" | "upcoming" | "past">("all");
+  const [filter, setFilter] = React.useState<"all" | "upcoming" | "past" | "aborted">("all");
 
-  const getEventStatus = (eventDate: string) => {
-    const eventDay = new Date(eventDate);
+  const getEventStatus = (event: EventWithRequirements) => {
+    if (event.status === 'aborted') return 'aborted';
+    const eventDay = new Date(event.date);
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Set to start of today
+    today.setHours(0, 0, 0, 0);
     return eventDay < today ? "past" : "upcoming";
   };
 
   const filteredEvents = events
     .map((event) => ({
       ...event,
-      status: getEventStatus(event.date),
+      status: getEventStatus(event),
       total_roles: (event.event_role_requirements || []).reduce((sum, req) => sum + req.quantity, 0),
     }))
     .filter((event) => {
@@ -45,6 +45,7 @@ const EventList = () => {
         <div className="flex space-x-2 mb-6">
           <Skeleton className="h-10 w-32" />
           <Skeleton className="h-10 w-24" />
+          <Skeleton className="h-10 w-28" />
           <Skeleton className="h-10 w-28" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -120,6 +121,12 @@ const EventList = () => {
         >
           Completed
         </Button>
+        <Button
+          variant={filter === "aborted" ? "default" : "outline"}
+          onClick={() => setFilter("aborted")}
+        >
+          Aborted
+        </Button>
       </div>
 
       {filteredEvents.length === 0 ? (
@@ -137,8 +144,14 @@ const EventList = () => {
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-xl">{event.title}</CardTitle>
-                  <Badge variant={event.status === "upcoming" ? "default" : "secondary"}>
-                    {event.status === "upcoming" ? "Upcoming" : "Completed"}
+                  <Badge 
+                    variant={
+                      event.status === "aborted" ? "destructive" :
+                      event.status === "upcoming" ? "default" : "secondary"
+                    }
+                  >
+                    {event.status === "upcoming" ? "Upcoming" : 
+                     event.status === "aborted" ? "Aborted" : "Completed"}
                   </Badge>
                 </div>
               </CardHeader>
@@ -179,7 +192,9 @@ const EventList = () => {
               </CardContent>
               <CardFooter>
                 <Button asChild variant="default" className="w-full">
-                  <Link to={`/events/${event.id}`}>View Debrief</Link>
+                  <Link to={`/events/${event.id}`}>
+                    {event.status === "aborted" ? "View Details" : "View Debrief"}
+                  </Link>
                 </Button>
               </CardFooter>
             </Card>
