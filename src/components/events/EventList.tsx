@@ -7,7 +7,6 @@ import { Calendar, MapPin, Users, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useEvents, type EventWithRequirements } from "@/hooks/useEvents";
 import { Skeleton } from "@/components/ui/skeleton";
-import RemovePulauUbinButton from "./RemovePulauUbinButton";
 
 const EventList = () => {
   const { events, loading, error, refetch } = useEvents();
@@ -93,18 +92,15 @@ const EventList = () => {
 
   return (
     <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1>Programmes</h1>
-            <p className="text-muted-foreground">Coordinate your field operations.</p>
-          </div>
-          <div className="flex gap-2">
-            <RemovePulauUbinButton />
-            <Button asChild>
-              <Link to="/events/new">Plan Programme</Link>
-            </Button>
-          </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1>Programmes</h1>
+          <p className="text-muted-foreground">Coordinate your field operations.</p>
         </div>
+        <Button asChild>
+          <Link to="/events/new">Plan Programme</Link>
+        </Button>
+      </div>
 
       {/* Filter buttons */}
       <div className="flex space-x-2 mb-6">
