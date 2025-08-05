@@ -146,67 +146,9 @@ const EventList = () => {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents.map((event) => (
-            <Card key={event.id} className="card-hover">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-xl">{event.title}</CardTitle>
-                  <Badge 
-                    variant={
-                      event.status === "aborted" ? "destructive" :
-                      event.status === "upcoming" ? "default" : "secondary"
-                    }
-                  >
-                    {event.status === "upcoming" ? "Upcoming" : 
-                     event.status === "aborted" ? "Aborted" : "Completed"}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-muted-foreground text-sm line-clamp-2">
-                  {event.description}
-                </p>
-                <div className="space-y-2">
-                  <div className="flex items-center text-sm">
-                    <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>{new Date(event.date).toLocaleDateString()}</span>
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>{new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>{event.location}</span>
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <Users className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>
-                      {event.total_roles > 0
-                        ? `${event.total_roles} roles required`
-                        : "No roles specified"}
-                    </span>
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <Users className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>
-                      {event.max_participants
-                        ? `Up to ${event.max_participants} crew`
-                        : "Crew size not set"}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button asChild variant="default" className="w-full">
-                  <Link to={`/events/${event.id}`}>
-                    {event.status === "aborted" ? "View Details" : "View Debrief"}
-                  </Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+        <div className="text-center py-12">
+          <h3 className="mb-2">Events display has been removed</h3>
+          <p className="text-muted-foreground">Event cards are no longer displayed.</p>
         </div>
       )}
     </div>
