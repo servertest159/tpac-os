@@ -26,11 +26,13 @@ const Header = () => {
   useEffect(() => {
     const setup = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      setIsAuthed(!!session);
+      const hasAccessCode = localStorage.getItem('tpac_access_granted') === 'true';
+      setIsAuthed(!!session || hasAccessCode);
     };
     setup();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthed(!!session);
+      const hasAccessCode = localStorage.getItem('tpac_access_granted') === 'true';
+      setIsAuthed(!!session || hasAccessCode);
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -38,6 +40,9 @@ const Header = () => {
   const handleLogout = async () => {
     try {
       cleanupAuthState();
+      // Clear access code state as well
+      localStorage.removeItem('tpac_access_granted');
+      localStorage.removeItem('tpac_user_role');
       try { await supabase.auth.signOut({ scope: 'global' }); } catch {}
       window.location.href = "/auth";
     } catch {

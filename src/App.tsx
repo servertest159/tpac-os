@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Dashboard from "@/pages/Dashboard";
 import Events from "@/pages/Events";
@@ -15,8 +16,14 @@ import NotFound from "@/pages/NotFound";
 import "./App.css";
 import Auth from "@/pages/Auth";
 import { Toaster } from "@/components/ui/toaster";
-
+import AccessGate from "@/components/auth/AccessGate";
 function App() {
+  const [hasAccess, setHasAccess] = useState<boolean>(() => localStorage.getItem('tpac_access_granted') === 'true');
+
+  if (!hasAccess) {
+    return <AccessGate onAccessGranted={() => setHasAccess(true)} />;
+  }
+
   return (
     <BrowserRouter>
       <Routes>
