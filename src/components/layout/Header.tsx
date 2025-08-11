@@ -2,9 +2,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Calendar, Package, MessageSquare, LogOut, User, LogIn } from "lucide-react";
+import { LayoutDashboard, Calendar, Package, MessageSquare, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+
 
 const cleanupAuthState = () => {
   try {
@@ -24,17 +24,16 @@ const Header = () => {
   const [isAuthed, setIsAuthed] = useState(false);
 
   useEffect(() => {
-    const setup = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    const updateAuth = () => {
       const hasAccessCode = localStorage.getItem('tpac_access_granted') === 'true';
-      setIsAuthed(!!session || hasAccessCode);
+      setIsAuthed(hasAccessCode);
     };
-    setup();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      const hasAccessCode = localStorage.getItem('tpac_access_granted') === 'true';
-      setIsAuthed(!!session || hasAccessCode);
-    });
-    return () => subscription.unsubscribe();
+    updateAuth();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'tpac_access_granted') updateAuth();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
   }, []);
 
   const handleLogout = async () => {
@@ -43,10 +42,9 @@ const Header = () => {
       // Clear access code state as well
       localStorage.removeItem('tpac_access_granted');
       localStorage.removeItem('tpac_user_role');
-      try { await supabase.auth.signOut({ scope: 'global' }); } catch {}
-      window.location.href = "/auth";
+      window.location.href = "/";
     } catch {
-      window.location.href = "/auth";
+      window.location.href = "/";
     }
   };
   const navItems = [
@@ -87,19 +85,12 @@ const Header = () => {
 
         <div className="flex items-center space-x-2">
           {/* Auth Buttons for Desktop */}
-          {isAuthed ? (
-            <Button variant="ghost" onClick={handleLogout} className="hidden md:inline-flex items-center">
-              <LogOut className="w-4 h-4 mr-2" />
-              Log Out
-            </Button>
-          ) : (
-            <Link to="/auth" className="hidden md:inline-flex">
-              <Button variant="ghost" className="items-center">
-                <LogIn className="w-4 h-4 mr-2" />
-                Log In
+            {isAuthed && (
+              <Button variant="ghost" onClick={handleLogout} className="hidden md:inline-flex items-center">
+                <LogOut className="w-4 h-4 mr-2" />
+                Log Out
               </Button>
-            </Link>
-          )}
+            )}
 
           {/* Mobile menu button */}
           <Button
@@ -153,7 +144,7 @@ const Header = () => {
               </Link>
             ))}
             <div className="border-t -mx-4 my-2"></div>
-            {isAuthed ? (
+            {isAuthed && (
               <button
                 onClick={() => {
                   handleLogout();
@@ -164,15 +155,6 @@ const Header = () => {
                 <LogOut className="w-4 h-4" />
                 <span>Log Out</span>
               </button>
-            ) : (
-              <Link
-                to="/auth"
-                onClick={() => setIsMenuOpen(false)}
-                className="flex items-center space-x-2 py-3 px-2 w-full text-left hover:bg-muted rounded"
-              >
-                <LogIn className="w-4 h-4" />
-                <span>Log In</span>
-              </Link>
             )}
           </div>
         </div>

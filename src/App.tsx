@@ -14,7 +14,7 @@ import InventoryLoadout from "@/pages/InventoryLoadout";
 import Profile from "@/pages/Profile";
 import NotFound from "@/pages/NotFound";
 import "./App.css";
-import Auth from "@/pages/Auth";
+
 import { Toaster } from "@/components/ui/toaster";
 import AccessGate from "@/components/auth/AccessGate";
 function App() {
@@ -29,7 +29,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/auth" element={<Auth />} />
+        
         <Route path="/events" element={<Events />} />
         <Route path="/events/new" element={<EventNew />} />
         <Route path="/events/:id" element={<EventDetail />} />
