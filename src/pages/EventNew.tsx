@@ -10,13 +10,12 @@ const EventNew = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = id ? 'Edit Programme - TPAC OS' : 'Plan Programme - TPAC OS';
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        navigate("/auth", { replace: true });
-      }
-    });
-  }, [id, navigate]);
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) navigate("/auth");
+    };
+    checkAuth();
+  }, [navigate]);
   
   return (
     <MainLayout>
