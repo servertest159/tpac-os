@@ -12,8 +12,6 @@ import FeedbackNew from "@/pages/FeedbackNew";
 import InventoryLoadout from "@/pages/InventoryLoadout";
 import Profile from "@/pages/Profile";
 import NotFound from "@/pages/NotFound";
-import Auth from "@/pages/Auth";
-import { Toaster } from "@/components/ui/toaster";
 import "./App.css";
 
 function App() {
@@ -34,10 +32,8 @@ function App() {
         <Route path="/feedback/new" element={<FeedbackNew />} />
         <Route path="/inventory-loadout" element={<InventoryLoadout />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/auth" element={<Auth />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <Toaster />
     </BrowserRouter>
   );
 }
