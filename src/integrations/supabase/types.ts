@@ -14,6 +14,98 @@ export type Database = {
   }
   public: {
     Tables: {
+      clearance_documents: {
+        Row: {
+          clearance_id: string
+          content_type: string | null
+          created_at: string
+          document_name: string
+          document_type: string
+          file_path: string
+          file_size: number | null
+          id: string
+          uploaded_by: string
+        }
+        Insert: {
+          clearance_id: string
+          content_type?: string | null
+          created_at?: string
+          document_name: string
+          document_type: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          uploaded_by: string
+        }
+        Update: {
+          clearance_id?: string
+          content_type?: string | null
+          created_at?: string
+          document_name?: string
+          document_type?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clearance_documents_clearance_id_fkey"
+            columns: ["clearance_id"]
+            isOneToOne: false
+            referencedRelation: "clearances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clearances: {
+        Row: {
+          adjudication_date: string | null
+          created_at: string
+          expiration_date: string
+          granted_date: string | null
+          id: string
+          investigating_agency: string | null
+          investigation_type: string | null
+          notes: string | null
+          security_level: Database["public"]["Enums"]["security_level"]
+          sponsoring_agency: string | null
+          status: Database["public"]["Enums"]["clearance_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          adjudication_date?: string | null
+          created_at?: string
+          expiration_date: string
+          granted_date?: string | null
+          id?: string
+          investigating_agency?: string | null
+          investigation_type?: string | null
+          notes?: string | null
+          security_level: Database["public"]["Enums"]["security_level"]
+          sponsoring_agency?: string | null
+          status?: Database["public"]["Enums"]["clearance_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          adjudication_date?: string | null
+          created_at?: string
+          expiration_date?: string
+          granted_date?: string | null
+          id?: string
+          investigating_agency?: string | null
+          investigation_type?: string | null
+          notes?: string | null
+          security_level?: Database["public"]["Enums"]["security_level"]
+          sponsoring_agency?: string | null
+          status?: Database["public"]["Enums"]["clearance_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       Connection: {
         Row: {
           city: string | null
@@ -424,23 +516,44 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          created_at: string | null
+          department: string | null
           email: string | null
+          employee_id: string | null
+          first_name: string | null
           full_name: string | null
           id: string
+          last_name: string | null
+          phone: string | null
+          supervisor_email: string | null
           updated_at: string | null
         }
         Insert: {
           avatar_url?: string | null
+          created_at?: string | null
+          department?: string | null
           email?: string | null
+          employee_id?: string | null
+          first_name?: string | null
           full_name?: string | null
           id: string
+          last_name?: string | null
+          phone?: string | null
+          supervisor_email?: string | null
           updated_at?: string | null
         }
         Update: {
           avatar_url?: string | null
+          created_at?: string | null
+          department?: string | null
           email?: string | null
+          employee_id?: string | null
+          first_name?: string | null
           full_name?: string | null
           id?: string
+          last_name?: string | null
+          phone?: string | null
+          supervisor_email?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -757,7 +870,14 @@ export type Database = {
         | "First Assistant Publicity Head"
         | "Second Assistant Publicity Head"
         | "Member"
+      clearance_status:
+        | "Active"
+        | "Pending"
+        | "Expired"
+        | "Suspended"
+        | "Denied"
       invitation_status: "pending" | "accepted" | "declined"
+      security_level: "Confidential" | "Secret" | "Top Secret" | "SCI"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -903,7 +1023,9 @@ export const Constants = {
         "Second Assistant Publicity Head",
         "Member",
       ],
+      clearance_status: ["Active", "Pending", "Expired", "Suspended", "Denied"],
       invitation_status: ["pending", "accepted", "declined"],
+      security_level: ["Confidential", "Secret", "Top Secret", "SCI"],
     },
   },
 } as const
