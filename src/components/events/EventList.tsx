@@ -146,9 +146,47 @@ const EventList = () => {
           )}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <h3 className="mb-2">Events display has been removed</h3>
-          <p className="text-muted-foreground">Event cards are no longer displayed.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredEvents.map((event) => (
+            <Card key={event.id} className="flex flex-col">
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-lg">{event.title}</CardTitle>
+                  <Badge variant={event.status === "upcoming" ? "default" : event.status === "past" ? "secondary" : "destructive"}>
+                    {event.status === "upcoming" ? "Upcoming" : event.status === "past" ? "Completed" : "Aborted"}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1 space-y-4">
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {event.description || "No description provided."}
+                </p>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span>{new Date(event.date).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span>{event.location || "Location TBD"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span>{event.current_participants || 0}/{event.max_participants || 10} Participants</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span>{event.total_roles} Roles Required</span>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button asChild className="w-full">
+                  <Link to={`/events/${event.id}`}>View Details</Link>
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
         </div>
       )}
     </div>
