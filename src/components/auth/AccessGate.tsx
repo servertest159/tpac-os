@@ -29,6 +29,7 @@ const AccessGate: React.FC<AccessGateProps> = ({ onAccessGranted }) => {
     530984: 'Publicity Head',
     298374: 'First Assistant Publicity Head',
     476213: 'Second Assistant Publicity Head',
+    888888: 'Member',
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -44,6 +45,7 @@ const AccessGate: React.FC<AccessGateProps> = ({ onAccessGranted }) => {
         setMessage(`✅ Access granted. Welcome, ${role}.`);
         localStorage.setItem("tpac_access_granted", "true");
         localStorage.setItem("tpac_user_role", role);
+        localStorage.setItem("tpac_access_code", code.trim());
         setTimeout(() => {
           onAccessGranted();
         }, 1000);
