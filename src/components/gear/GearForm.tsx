@@ -11,6 +11,7 @@ import { Loader2, UploadCloud, X } from "lucide-react";
 import ImagePreview from "./ImagePreview";
 import { supabase } from "@/integrations/supabase/client";
 import type { GearItem } from "@/hooks/useGearInventory";
+import { FormSkeleton } from "@/components/ui/loading-states";
 
 interface GearFormProps {
   gearId?: string;
@@ -260,21 +261,7 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
   };
 
   if (fetchLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Loading Gear...</CardTitle>
-        </CardHeader>
-        <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          {retryAttempt > 0 && (
-            <p className="ml-3 text-muted-foreground">
-              Retry attempt {retryAttempt}/3
-            </p>
-          )}
-        </CardContent>
-      </Card>
-    );
+    return <FormSkeleton />;
   }
 
   return (

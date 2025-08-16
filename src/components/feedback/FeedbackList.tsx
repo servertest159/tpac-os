@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, MessageSquare, BarChart, ExternalLink } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import AddFeedbackDialog from "./AddFeedbackDialog";
+import { FeedbackListSkeleton } from "@/components/ui/loading-states";
 
 // Define the type for a feedback item
 interface FeedbackItem {
@@ -25,6 +26,16 @@ const initialFeedbackData: FeedbackItem[] = [];
 const FeedbackList = () => {
   const [feedbackData, setFeedbackData] = React.useState<FeedbackItem[]>(initialFeedbackData);
   const [filter, setFilter] = React.useState<"all" | "completed" | "pending">("all");
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    // Simulate initial loading
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleAddForm = (values: { title: string; url: string }) => {
     const newFeedback: FeedbackItem = {
@@ -44,6 +55,10 @@ const FeedbackList = () => {
     if (filter === "all") return true;
     return item.status === filter;
   });
+
+  if (loading) {
+    return <FeedbackListSkeleton />;
+  }
 
   return (
     <div className="space-y-6">

@@ -3,13 +3,21 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { ProfileSkeleton } from "@/components/ui/loading-states";
 
 const ProfileCard = () => {
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const role = localStorage.getItem("tpac_user_role");
-    setUserRole(role);
+    // Simulate loading state for better UX
+    const timer = setTimeout(() => {
+      const role = localStorage.getItem("tpac_user_role");
+      setUserRole(role);
+      setLoading(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const getInitials = (role: string | null) => {
@@ -20,6 +28,10 @@ const ProfileCard = () => {
     }
     return role.substring(0, 2).toUpperCase();
   };
+  
+  if (loading) {
+    return <ProfileSkeleton />;
+  }
   
   return (
     <div className="space-y-6">
