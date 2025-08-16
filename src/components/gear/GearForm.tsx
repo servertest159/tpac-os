@@ -265,7 +265,7 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
   }
 
   return (
-    <Card>
+    <Card className="page-enter">
       <CardHeader>
         <CardTitle>{isEditing ? "Edit Gear" : "Add New Gear"}</CardTitle>
       </CardHeader>

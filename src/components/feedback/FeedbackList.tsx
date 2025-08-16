@@ -61,7 +61,7 @@ const FeedbackList = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 page-enter">
       <div className="flex items-center justify-between">
         <div>
           <h1>AAR (After Action Review) Forms</h1>
@@ -109,8 +109,8 @@ const FeedbackList = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredFeedback.map((item) => (
-            <Card key={item.id} className="card-hover">
+          {filteredFeedback.map((item, index) => (
+            <Card key={item.id} className="card-hover hover-lift animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-lg">{item.eventTitle}</CardTitle>

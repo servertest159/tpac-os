@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 
 // Event list loading skeleton
 export const EventListSkeleton = () => (
-  <div className="space-y-6">
+  <div className="space-y-6 animate-fade-in-up">
     <div className="flex items-center justify-between">
       <div>
         <h1>Programmes</h1>
@@ -21,7 +21,7 @@ export const EventListSkeleton = () => (
     
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {[...Array(6)].map((_, i) => (
-        <Card key={i} className="animate-pulse">
+        <Card key={i} className="animate-scale-in" style={{ animationDelay: `${i * 0.1}s` }}>
           <CardHeader>
             <div className="flex justify-between items-start">
               <Skeleton className="h-6 w-3/4" />
@@ -59,12 +59,12 @@ export const EventListSkeleton = () => (
 
 // Profile loading skeleton
 export const ProfileSkeleton = () => (
-  <div className="space-y-6">
+  <div className="space-y-6 animate-fade-in-up">
     <div>
       <h1>Profile</h1>
       <p className="text-muted-foreground">Your currently assumed role.</p>
     </div>
-    <Card className="w-full max-w-lg mx-auto mt-6">
+    <Card className="w-full max-w-lg mx-auto mt-6 animate-scale-in">
       <CardHeader>
         <div className="flex items-center space-x-4">
           <Skeleton className="h-20 w-20 rounded-full" />
@@ -87,7 +87,7 @@ export const ProfileSkeleton = () => (
 
 // Feedback list loading skeleton
 export const FeedbackListSkeleton = () => (
-  <div className="space-y-6">
+  <div className="space-y-6 animate-fade-in-up">
     <div className="flex items-center justify-between">
       <div>
         <h1>AAR (After Action Review) Forms</h1>
@@ -104,7 +104,7 @@ export const FeedbackListSkeleton = () => (
 
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {[...Array(4)].map((_, i) => (
-        <Card key={i} className="animate-pulse">
+        <Card key={i} className="animate-scale-in" style={{ animationDelay: `${i * 0.1}s` }}>
           <CardHeader className="pb-2">
             <div className="flex justify-between items-start">
               <Skeleton className="h-6 w-3/4" />
@@ -144,7 +144,7 @@ export const FeedbackListSkeleton = () => (
 
 // Form loading skeleton
 export const FormSkeleton = () => (
-  <Card>
+  <Card className="animate-fade-in-up">
     <CardHeader>
       <Skeleton className="h-8 w-48" />
     </CardHeader>

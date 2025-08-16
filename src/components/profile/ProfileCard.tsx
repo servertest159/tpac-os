@@ -34,12 +34,12 @@ const ProfileCard = () => {
   }
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 page-enter">
       <div>
         <h1>Profile</h1>
         <p className="text-muted-foreground">Your currently assumed role.</p>
       </div>
-      <Card className="w-full max-w-lg mx-auto mt-6">
+      <Card className="w-full max-w-lg mx-auto mt-6 animate-scale-in">
         <CardHeader>
           <div className="flex items-center space-x-4">
             <Avatar className="h-20 w-20">

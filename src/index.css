@@ -113,14 +113,72 @@
   }
   
   .card-hover {
-    @apply transition-all duration-300 hover:shadow-lg hover:border-primary/50;
+    @apply transition-all duration-300 hover:shadow-lg hover:border-primary/50 hover:scale-[1.02];
   }
 
   .nav-link {
-    @apply flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent;
+    @apply flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-accent;
   }
 
   .nav-link.active {
     @apply bg-accent/80 text-accent-foreground;
+  }
+
+  /* Interactive Elements */
+  .story-link {
+    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left;
+  }
+  
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+  
+  .hover-lift {
+    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+  }
+
+  .btn-primary {
+    @apply transition-all duration-200 hover:scale-105 active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply transition-all duration-200 hover:bg-secondary/80;
+  }
+
+  /* Page transitions */
+  .page-enter {
+    @apply animate-fade-in-up;
+  }
+
+  .card-enter {
+    @apply animate-fade-in;
+  }
+
+  .stagger-child {
+    @apply animate-stagger;
+  }
+
+  /* Form animations */
+  .form-field {
+    @apply transition-all duration-200 focus-within:scale-[1.02];
+  }
+
+  /* Loading animations */
+  .loading-pulse {
+    @apply animate-pulse;
+  }
+
+  .loading-bounce {
+    @apply animate-bounce;
+  }
+
+  /* Smooth scrolling */
+  html {
+    @apply scroll-smooth;
+  }
+
+  /* Focus animations */
+  .focus-ring {
+    @apply transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:scale-105;
   }
 }

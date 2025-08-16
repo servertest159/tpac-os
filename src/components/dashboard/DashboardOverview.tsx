@@ -43,7 +43,7 @@ const DashboardOverview = () => {
   const recentUpcomingEvents = upcomingEventsData.slice(0, 3);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 page-enter">
       <div>
         <h1 className="mb-2">Welcome to your Dashboard</h1>
         <p className="text-muted-foreground">
@@ -53,8 +53,8 @@ const DashboardOverview = () => {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {stats.map((stat) => (
-          <Card key={stat.title} className="card-hover">
+        {stats.map((stat, index) => (
+          <Card key={stat.title} className="card-hover hover-lift animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
               {stat.icon}
@@ -72,7 +72,7 @@ const DashboardOverview = () => {
         ))}
         
         {/* AARs Submitted Card - spans full width on mobile, single column on larger screens but matches height */}
-        <Card className="card-hover md:col-span-1">
+        <Card className="card-hover hover-lift md:col-span-1 animate-fade-in" style={{ animationDelay: '0.3s' }}>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-sm font-medium">AARs Submitted</CardTitle>
             <MessageSquare className="h-8 w-8 text-forest" />
@@ -114,8 +114,8 @@ const DashboardOverview = () => {
                 </CardFooter>
               </Card>
             ))
-          ) : recentUpcomingEvents.map((event) => (
-            <Card key={event.id} className="card-hover">
+          ) : recentUpcomingEvents.map((event, index) => (
+            <Card key={event.id} className="card-hover hover-lift animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
               <CardHeader>
                 <CardTitle className="text-lg">{event.title}</CardTitle>
                 <CardDescription className="flex items-center gap-1">
@@ -144,7 +144,7 @@ const DashboardOverview = () => {
       </div>
 
       {/* Quick Actions */}
-      <Card>
+      <Card className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
         <CardHeader>
           <CardTitle>Mission Control</CardTitle>
         </CardHeader>
