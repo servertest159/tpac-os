@@ -300,6 +300,7 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
                 <SelectItem value="navigation">Navigation</SelectItem>
                 <SelectItem value="safety">Safety Equipment</SelectItem>
                 <SelectItem value="clothing">Clothing</SelectItem>
+                <SelectItem value="pioneering">Pioneering</SelectItem>
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
