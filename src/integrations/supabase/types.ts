@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -821,33 +821,33 @@ export type Database = {
       get_past_trips_with_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
-          title: string
           date: string
           end_date: string
-          location: string
-          gear_total: number
           gear_packed: number
+          gear_total: number
+          id: string
+          location: string
           participant_count: number
+          title: string
         }[]
       }
       get_upcoming_trips_with_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
-          title: string
           date: string
           end_date: string
-          location: string
-          gear_total: number
           gear_packed: number
+          gear_total: number
+          id: string
+          location: string
           participant_count: number
+          title: string
         }[]
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
