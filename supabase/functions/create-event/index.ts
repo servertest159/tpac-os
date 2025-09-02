@@ -23,15 +23,21 @@ interface CreateEventRequest {
 }
 
 const validAccessCodes = {
-  123456: 'President',
-  654321: 'Vice-President', 
-  111111: 'Secretary',
-  222222: 'Treasurer',
-  333333: 'Safety-Officer',
-  444444: 'Training-Officer',
-  555555: 'Logistics-Officer',
-  666666: 'Welfare-Officer',
-  777777: 'Publicity-Officer',
+  938271: 'President',
+  472839: 'Vice-President',
+  615204: 'Honorary Secretary',
+  307198: 'Honorary Assistant Secretary',
+  529746: 'Honorary Treasurer',
+  184302: 'Honorary Assistant Treasurer',
+  763910: 'Training Head (General)',
+  920458: 'Training Head (Land)',
+  381207: 'Training Head (Water)',
+  640193: 'Training Head (Welfare)',
+  859321: 'Quartermaster',
+  712496: 'Assistant Quarter Master',
+  530984: 'Publicity Head',
+  298374: 'First Assistant Publicity Head',
+  476213: 'Second Assistant Publicity Head',
   888888: 'Member'
 }
 
@@ -68,6 +74,7 @@ serve(async (req) => {
       .from('events')
       .insert([{
         ...eventData,
+        max_participants: Number(eventData.max_participants),
         creator_id: null, // No specific user since it's created via access code
         status: 'active',
         updated_at: new Date().toISOString()
