@@ -55,12 +55,14 @@ serve(async (req) => {
 
     const { accessCode, eventData, roleRequirements }: CreateEventRequest = await req.json()
 
-    // Validate access code
-    if (!validAccessCodes[accessCode as keyof typeof validAccessCodes]) {
+    // Validate access code (be tolerant to string/number and avoid non-2xx)
+    const codeKey = String(accessCode ?? '').trim()
+    const role = (validAccessCodes as Record<string, string>)[codeKey] ?? validAccessCodes[(Number(codeKey) as keyof typeof validAccessCodes)]
+    if (!role) {
       return new Response(
-        JSON.stringify({ error: 'Invalid access code' }),
-        { 
-          status: 401, 
+        JSON.stringify({ success: false, error: 'Invalid access code' }),
+        {
+          status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
