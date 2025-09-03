@@ -222,7 +222,10 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === 'max_participants' ? Math.max(1, parseInt(value, 10) || 1) : value,
+    }));
   };
 
   const handleRequirementChange = (index: number, field: keyof RoleRequirement, value: string | number) => {
