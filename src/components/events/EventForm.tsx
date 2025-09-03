@@ -179,26 +179,38 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
           }
         }
       } else {
-        // Use edge function for non-authenticated users with access codes
+        // Use edge functions for non-authenticated users with access codes
         const accessCode = localStorage.getItem('tpac_access_code');
         if (!accessCode) throw new Error("No access code found");
 
-        if (isEditing) {
-          throw new Error("Cannot edit programmes without authentication");
+        const filteredRequirements = roleRequirements.filter(r => r.role && r.quantity > 0);
+
+        if (isEditing && eventId) {
+          const { data, error } = await supabase.functions.invoke('update-event', {
+            body: {
+              accessCode,
+              eventId,
+              eventData,
+              roleRequirements: filteredRequirements,
+            }
+          });
+
+          if (error) throw error;
+          if (!data.success) throw new Error(data.error || 'Failed to update programme');
+          eventIdToUse = eventId;
+        } else {
+          const { data, error } = await supabase.functions.invoke('create-event', {
+            body: {
+              accessCode,
+              eventData,
+              roleRequirements: filteredRequirements,
+            }
+          });
+
+          if (error) throw error;
+          if (!data.success) throw new Error(data.error || 'Failed to create programme');
+          eventIdToUse = data.eventId;
         }
-
-        const { data, error } = await supabase.functions.invoke('create-event', {
-          body: {
-            accessCode: accessCode,
-            eventData: eventData,
-            roleRequirements: roleRequirements.filter(r => r.role && r.quantity > 0)
-          }
-        });
-
-        if (error) throw error;
-        if (!data.success) throw new Error(data.error || 'Failed to create programme');
-        
-        eventIdToUse = data.eventId;
       }
 
       toast({
