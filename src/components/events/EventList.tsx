@@ -146,9 +146,66 @@ const EventList = () => {
           )}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <h3 className="mb-2">Events display has been removed</h3>
-          <p className="text-muted-foreground">Event cards are no longer displayed.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredEvents.map((event) => (
+            <Card key={event.id} className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-lg">{event.title}</CardTitle>
+                  <Badge 
+                    variant={
+                      event.status === "upcoming" ? "default" : 
+                      event.status === "past" ? "secondary" : 
+                      "destructive"
+                    }
+                  >
+                    {event.status === "upcoming" ? "Upcoming" : 
+                     event.status === "past" ? "Completed" : 
+                     "Aborted"}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {event.description && (
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {event.description}
+                  </p>
+                )}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span>{new Date(event.date).toLocaleDateString()}</span>
+                    {event.end_date && new Date(event.date).toDateString() !== new Date(event.end_date).toDateString() && (
+                      <span>- {new Date(event.end_date).toLocaleDateString()}</span>
+                    )}
+                  </div>
+                  {event.location && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span>{event.location}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 text-sm">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span>{event.current_participants || 0}/{event.max_participants || 0} participants</span>
+                  </div>
+                  {event.total_roles > 0 && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span>{event.total_roles} roles needed</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button asChild className="w-full">
+                  <Link to={`/events/${event.id}`}>
+                    View Details
+                  </Link>
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
         </div>
       )}
     </div>
