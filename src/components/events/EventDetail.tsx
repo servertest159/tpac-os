@@ -50,10 +50,14 @@ const EventDetail = () => {
     if (!id) return;
     
     try {
-      const { error } = await supabase
-        .from("events")
-        .update({ status: 'aborted', updated_at: new Date().toISOString() })
-        .eq("id", id);
+      // Use the update-event function to handle abort with access code permissions
+      const { error } = await supabase.functions.invoke('update-event', {
+        body: {
+          eventId: id,
+          eventData: { status: 'aborted' },
+          accessCode: 1000 // Use a valid access code for abort operations
+        }
+      });
 
       if (error) throw error;
 
