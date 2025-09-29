@@ -56,6 +56,13 @@ export type Database = {
             referencedRelation: "clearances"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "clearance_documents_clearance_id_fkey"
+            columns: ["clearance_id"]
+            isOneToOne: false
+            referencedRelation: "clearances_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       clearances: {
@@ -102,6 +109,42 @@ export type Database = {
           sponsoring_agency?: string | null
           status?: Database["public"]["Enums"]["clearance_status"]
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      clearances_audit_log: {
+        Row: {
+          accessed_fields: string[] | null
+          action: string
+          clearance_id: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          accessed_fields?: string[] | null
+          action: string
+          clearance_id: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          accessed_fields?: string[] | null
+          action?: string
+          clearance_id?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          session_id?: string | null
+          user_agent?: string | null
           user_id?: string
         }
         Relationships: []
@@ -815,9 +858,60 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      clearances_secure: {
+        Row: {
+          adjudication_date: string | null
+          created_at: string | null
+          expiration_date: string | null
+          granted_date: string | null
+          id: string | null
+          investigating_agency: string | null
+          investigation_type: string | null
+          notes: string | null
+          security_level: string | null
+          sponsoring_agency: string | null
+          status: Database["public"]["Enums"]["clearance_status"] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          adjudication_date?: string | null
+          created_at?: string | null
+          expiration_date?: string | null
+          granted_date?: string | null
+          id?: string | null
+          investigating_agency?: never
+          investigation_type?: never
+          notes?: never
+          security_level?: never
+          sponsoring_agency?: never
+          status?: Database["public"]["Enums"]["clearance_status"] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          adjudication_date?: string | null
+          created_at?: string | null
+          expiration_date?: string | null
+          granted_date?: string | null
+          id?: string | null
+          investigating_agency?: never
+          investigation_type?: never
+          notes?: never
+          security_level?: never
+          sponsoring_agency?: never
+          status?: Database["public"]["Enums"]["clearance_status"] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      can_access_sensitive_clearance_data: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       get_past_trips_with_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -850,6 +944,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      log_clearances_access: {
+        Args: { _action: string; _clearance_id: string; _fields?: string[] }
+        Returns: undefined
       }
     }
     Enums: {
