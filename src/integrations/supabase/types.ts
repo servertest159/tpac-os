@@ -60,7 +60,7 @@ export type Database = {
             foreignKeyName: "clearance_documents_clearance_id_fkey"
             columns: ["clearance_id"]
             isOneToOne: false
-            referencedRelation: "clearances_secure_view"
+            referencedRelation: "clearances_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -858,7 +858,7 @@ export type Database = {
       }
     }
     Views: {
-      clearances_secure_view: {
+      clearances_secure: {
         Row: {
           adjudication_date: string | null
           created_at: string | null
@@ -868,7 +868,7 @@ export type Database = {
           investigating_agency: string | null
           investigation_type: string | null
           notes: string | null
-          security_level: Database["public"]["Enums"]["security_level"] | null
+          security_level: string | null
           sponsoring_agency: string | null
           status: Database["public"]["Enums"]["clearance_status"] | null
           updated_at: string | null
@@ -883,7 +883,7 @@ export type Database = {
           investigating_agency?: never
           investigation_type?: never
           notes?: never
-          security_level?: Database["public"]["Enums"]["security_level"] | null
+          security_level?: never
           sponsoring_agency?: never
           status?: Database["public"]["Enums"]["clearance_status"] | null
           updated_at?: string | null
@@ -898,7 +898,7 @@ export type Database = {
           investigating_agency?: never
           investigation_type?: never
           notes?: never
-          security_level?: Database["public"]["Enums"]["security_level"] | null
+          security_level?: never
           sponsoring_agency?: never
           status?: Database["public"]["Enums"]["clearance_status"] | null
           updated_at?: string | null
@@ -944,10 +944,6 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
-      }
-      log_clearance_select_access: {
-        Args: { _clearance_id: string; _fields?: string[] }
-        Returns: undefined
       }
       log_clearances_access: {
         Args: { _action: string; _clearance_id: string; _fields?: string[] }
