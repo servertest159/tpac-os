@@ -30,20 +30,20 @@ const LoadoutHeader: React.FC<LoadoutHeaderProps> = ({
           </span>
           <Button 
             onClick={onCompleteCheck}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-primary hover:bg-primary/90 transition-all duration-200"
           >
             <FileCheck className="mr-2 h-4 w-4" />
             Complete Check
           </Button>
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        <Search className="h-4 w-4 text-muted-foreground" />
+      <div className="relative flex items-center gap-2 mt-2">
+        <Search className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
         <Input
           placeholder="Search gear by name or type..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="max-w-sm"
+          className="max-w-sm pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
         />
       </div>
     </CardHeader>
