@@ -52,22 +52,22 @@ const EventDetail = () => {
     try {
       const { error } = await supabase
         .from("events")
-        .update({ status: 'aborted', updated_at: new Date().toISOString() })
+        .delete()
         .eq("id", id);
 
       if (error) throw error;
 
       toast({
-        title: "Programme Aborted",
-        description: "This programme has been marked as aborted and logged in the system.",
+        title: "Programme Deleted",
+        description: "The programme and all related data have been permanently removed.",
       });
       setShowDeleteDialog(false);
-      refetch(); // Refresh the event data to show updated status
+      navigate('/events');
     } catch (error) {
-      console.error('Error aborting programme:', error);
+      console.error('Error deleting programme:', error);
       toast({
-        title: "Failed to abort programme",
-        description: error instanceof Error ? error.message : "An error occurred while aborting the programme.",
+        title: "Failed to delete programme",
+        description: error instanceof Error ? error.message : "An error occurred while deleting the programme.",
         variant: "destructive",
       });
     }
@@ -134,14 +134,14 @@ const EventDetail = () => {
               <DialogTrigger asChild>
                 <Button variant="destructive">
                   <Trash2 className="mr-2 h-4 w-4" />
-                  Abort Programme
+                  Delete Programme
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Abort Programme</DialogTitle>
+                  <DialogTitle>Delete Programme</DialogTitle>
                   <DialogDescription>
-                    Are you sure you want to abort this programme? This action will mark the programme as aborted in the system for record-keeping purposes. This cannot be undone.
+                    Are you sure you want to delete this programme? This will permanently remove the programme and all related data (participants, loadout, itinerary). This cannot be undone.
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
@@ -149,7 +149,7 @@ const EventDetail = () => {
                     Cancel
                   </Button>
                   <Button variant="destructive" onClick={handleAbort}>
-                    Confirm Abort
+                    Confirm Delete
                   </Button>
                 </DialogFooter>
               </DialogContent>
