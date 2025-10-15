@@ -88,8 +88,7 @@ const EventDetail = () => {
     );
   }
 
-  const status = event.status === 'aborted' ? 'aborted' : 
-                 new Date(event.date) > new Date() ? 'upcoming' : 'completed';
+  const status = new Date(event.date) > new Date() ? 'upcoming' : 'completed';
   const participants = event.event_invitations
     .filter(inv => inv.status === 'accepted')
     .map(inv => inv.profiles)
@@ -98,17 +97,12 @@ const EventDetail = () => {
   const maxParticipants = event.max_participants || 0;
 
   const getStatusBadge = () => {
-    if (event.status === 'aborted') {
-      return <Badge variant="destructive">Aborted</Badge>;
-    }
     return (
       <Badge variant={status === "upcoming" ? "default" : "secondary"}>
         {status === "upcoming" ? "Upcoming" : "Completed"}
       </Badge>
     );
   };
-
-  const isAborted = event.status === 'aborted';
 
   return (
     <div className="space-y-6">
@@ -119,11 +113,10 @@ const EventDetail = () => {
             {getStatusBadge()}
           </div>
           <p className="text-muted-foreground">
-            {isAborted ? "Aborted Programme Details" : "Programme Debrief & Coordination"}
+            Programme Debrief & Coordination
           </p>
         </div>
-        {!isAborted && (
-          <div className="flex gap-2">
+        <div className="flex gap-2">
             <Button asChild variant="outline">
               <Link to={`/events/${id}/edit`}>
                 <Edit className="mr-2 h-4 w-4" />
@@ -154,19 +147,8 @@ const EventDetail = () => {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-          </div>
-        )}
+        </div>
       </div>
-
-      {isAborted && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Programme Aborted</AlertTitle>
-          <AlertDescription>
-            This programme has been aborted and is kept for record-keeping purposes only.
-          </AlertDescription>
-        </Alert>
-      )}
 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
@@ -218,25 +200,16 @@ const EventDetail = () => {
                       <h3 className="font-medium text-lg">Field Actions</h3>
                     </div>
                     <div className="grid grid-cols-1 gap-2 mt-2">
-                      {!isAborted && (
-                        <>
-                          <Button asChild variant="outline">
-                            <Link to={`/feedback/new?eventId=${id}`}>
-                              File After-Action Report (AAR)
-                            </Link>
-                          </Button>
-                          <Button asChild variant="secondary">
-                            <Link to={`/events/${id}/gear`}>
-                              Check Inventory Loadout
-                            </Link>
-                          </Button>
-                        </>
-                      )}
-                      {isAborted && (
-                        <p className="text-sm text-muted-foreground">
-                          Programme actions are not available for aborted programmes.
-                        </p>
-                      )}
+                      <Button asChild variant="outline">
+                        <Link to={`/feedback/new?eventId=${id}`}>
+                          File After-Action Report (AAR)
+                        </Link>
+                      </Button>
+                      <Button asChild variant="secondary">
+                        <Link to={`/events/${id}/gear`}>
+                          Check Inventory Loadout
+                        </Link>
+                      </Button>
                     </div>
                   </div>
                 </div>
