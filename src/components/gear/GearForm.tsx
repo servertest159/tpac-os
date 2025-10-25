@@ -154,11 +154,14 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
 
             if (uploadError) throw uploadError;
 
-            const { data: urlData } = supabase.storage
+            // Use signed URL instead of public URL for security
+            const { data: signedUrlData, error: signedUrlError } = await supabase.storage
                 .from('gear-uploads')
-                .getPublicUrl(filePath);
+                .createSignedUrl(filePath, 315360000); // 10 years (effectively permanent for gear photos)
+
+            if (signedUrlError) throw signedUrlError;
             
-            finalPhotoUrl = urlData.publicUrl;
+            finalPhotoUrl = signedUrlData.signedUrl;
             uploadedTimestamp = new Date().toISOString();
             setIsUploading(false);
         } else if (!imagePreview && isEditing) {

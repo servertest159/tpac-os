@@ -52,7 +52,7 @@ serve(async (req) => {
     // Verify user is authenticated
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
     if (userError || !user) {
-      console.error('Authentication failed:', userError)
+      console.error('Authentication failed - user not authenticated')
       return new Response(
         JSON.stringify({ success: false, error: 'Authentication required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -64,7 +64,7 @@ serve(async (req) => {
     const validatedData = requestSchema.parse(body)
     const { eventId, eventData, roleRequirements } = validatedData
 
-    console.log('Updating event for user:', user.id, 'event:', eventId)
+    console.log('Event update initiated')
 
     // Validate dates logic
     if (eventData.end_date) {
@@ -89,7 +89,7 @@ serve(async (req) => {
       .eq('id', eventId)
 
     if (updateError) {
-      console.error('Error updating event:', updateError)
+      console.error('Failed to update event')
       // Check if it's a permission error
       if (updateError.code === 'PGRST301' || updateError.message.includes('permission')) {
         return new Response(
@@ -107,7 +107,7 @@ serve(async (req) => {
       .eq('event_id', eventId)
 
     if (delError) {
-      console.error('Error deleting existing role requirements:', delError)
+      console.error('Failed to delete existing role requirements')
       throw delError
     }
 
@@ -125,11 +125,11 @@ serve(async (req) => {
         .insert(requirements)
 
       if (insError) {
-        console.error('Error inserting role requirements:', insError)
+        console.error('Failed to insert role requirements')
         throw insError
       }
 
-      console.log('Role requirements updated:', requirements.length)
+      console.log('Role requirements updated successfully')
     }
 
     return new Response(
