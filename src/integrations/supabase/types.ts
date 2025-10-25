@@ -120,7 +120,7 @@ export type Database = {
           clearance_id: string
           created_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           session_id: string | null
           user_agent: string | null
           user_id: string
@@ -131,7 +131,7 @@ export type Database = {
           clearance_id: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           session_id?: string | null
           user_agent?: string | null
           user_id: string
@@ -142,7 +142,7 @@ export type Database = {
           clearance_id?: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           session_id?: string | null
           user_agent?: string | null
           user_id?: string
@@ -601,6 +601,33 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles_audit_log: {
+        Row: {
+          accessed_by: string
+          accessed_fields: string[] | null
+          created_at: string
+          id: string
+          ip_address: unknown
+          profile_id: string
+        }
+        Insert: {
+          accessed_by: string
+          accessed_fields?: string[] | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          profile_id: string
+        }
+        Update: {
+          accessed_by?: string
+          accessed_fields?: string[] | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          profile_id?: string
+        }
+        Relationships: []
+      }
       relief_contacts: {
         Row: {
           created_at: string
@@ -912,8 +939,17 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      check_bulk_profile_access: {
+        Args: never
+        Returns: {
+          access_count: number
+          accessed_by: string
+          first_access: string
+          last_access: string
+        }[]
+      }
       get_past_trips_with_stats: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           date: string
           end_date: string
@@ -926,7 +962,7 @@ export type Database = {
         }[]
       }
       get_upcoming_trips_with_stats: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           date: string
           end_date: string
@@ -951,6 +987,10 @@ export type Database = {
       }
       log_clearances_access: {
         Args: { _action: string; _clearance_id: string; _fields?: string[] }
+        Returns: undefined
+      }
+      log_profile_access: {
+        Args: { _accessed_fields?: string[]; _profile_id: string }
         Returns: undefined
       }
     }

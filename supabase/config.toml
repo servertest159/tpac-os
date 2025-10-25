@@ -6,7 +6,7 @@ site_url = "http://localhost:3000"
 additional_redirect_urls = ["https://localhost:3000"]
 
 [functions.create-event]
-verify_jwt = false
+verify_jwt = true
 
 [functions.update-event]
-verify_jwt = false
+verify_jwt = true

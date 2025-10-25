@@ -1,45 +1,34 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0'
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface CreateEventRequest {
-  accessCode: string
-  eventData: {
-    title: string
-    date: string
-    end_date?: string
-    location: string
-    description: string
-    max_participants: number
-  }
-  roleRequirements: Array<{
-    role: string
-    quantity: number
-  }>
-}
+// Input validation schema
+const eventDataSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(200, 'Title must be less than 200 characters'),
+  date: z.string().refine((val) => !isNaN(Date.parse(val)), 'Invalid date format'),
+  end_date: z.string().nullable().optional().refine(
+    (val) => !val || !isNaN(Date.parse(val)), 
+    'Invalid end date format'
+  ),
+  location: z.string().min(1, 'Location is required').max(200, 'Location must be less than 200 characters'),
+  description: z.string().max(2000, 'Description must be less than 2000 characters'),
+  max_participants: z.number().int().min(1).max(1000, 'Max participants must be between 1 and 1000'),
+})
 
-const validAccessCodes = {
-  938271: 'President',
-  472839: 'Vice-President',
-  615204: 'Honorary Secretary',
-  307198: 'Honorary Assistant Secretary',
-  529746: 'Honorary Treasurer',
-  184302: 'Honorary Assistant Treasurer',
-  763910: 'Training Head (General)',
-  920458: 'Training Head (Land)',
-  381207: 'Training Head (Water)',
-  640193: 'Training Head (Welfare)',
-  859321: 'Quartermaster',
-  712496: 'Assistant Quarter Master',
-  530984: 'Publicity Head',
-  298374: 'First Assistant Publicity Head',
-  476213: 'Second Assistant Publicity Head',
-  888888: 'Member'
-}
+const roleRequirementSchema = z.object({
+  role: z.string().min(1),
+  quantity: z.number().int().min(1),
+})
+
+const requestSchema = z.object({
+  eventData: eventDataSchema,
+  roleRequirements: z.array(roleRequirementSchema).optional(),
+})
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -48,36 +37,52 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
+    // Create Supabase client with the auth header (JWT now verified by config)
+    const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: req.headers.get('Authorization')! },
+        },
+      }
     )
 
-    const { accessCode, eventData, roleRequirements }: CreateEventRequest = await req.json()
-
-    // Validate access code (be tolerant to string/number and avoid non-2xx)
-    const codeKey = String(accessCode ?? '').trim()
-    const role = (validAccessCodes as Record<string, string>)[codeKey] ?? validAccessCodes[(Number(codeKey) as keyof typeof validAccessCodes)]
-    if (!role) {
+    // Verify user is authenticated
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
+    if (userError || !user) {
+      console.error('Authentication failed:', userError)
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid access code' }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
+        JSON.stringify({ success: false, error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    console.log('Creating event with access code:', accessCode)
-    console.log('Event data:', eventData)
+    // Parse and validate request body
+    const body = await req.json()
+    const validatedData = requestSchema.parse(body)
+    const { eventData, roleRequirements } = validatedData
 
-    // Create the event (using service role to bypass RLS)
-    const { data: newEvent, error: eventError } = await supabase
+    console.log('Creating event for user:', user.id)
+
+    // Validate dates logic
+    if (eventData.end_date) {
+      const startDate = new Date(eventData.date)
+      const endDate = new Date(eventData.end_date)
+      if (endDate < startDate) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'End date must be after start date' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    }
+
+    // Create the event with user as creator (RLS will enforce ownership)
+    const { data: newEvent, error: eventError } = await supabaseClient
       .from('events')
       .insert([{
         ...eventData,
-        max_participants: Number(eventData.max_participants),
-        creator_id: null, // No specific user since it's created via access code
+        creator_id: user.id,
         status: 'active',
         updated_at: new Date().toISOString()
       }])
@@ -102,7 +107,7 @@ serve(async (req) => {
         }))
 
       if (requirements.length > 0) {
-        const { error: requirementsError } = await supabase
+        const { error: requirementsError } = await supabaseClient
           .from('event_role_requirements')
           .insert(requirements)
 
@@ -111,7 +116,7 @@ serve(async (req) => {
           throw requirementsError
         }
 
-        console.log('Role requirements created:', requirements)
+        console.log('Role requirements created:', requirements.length)
       }
     }
 
@@ -129,10 +134,25 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in create-event function:', error)
+    
+    // Handle validation errors
+    if (error instanceof z.ZodError) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Validation error',
+          details: error.errors 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
     return new Response(
       JSON.stringify({ 
         error: 'Failed to create programme',
-        details: error.message 
+        details: error instanceof Error ? error.message : 'Unknown error'
       }),
       { 
         status: 500, 
