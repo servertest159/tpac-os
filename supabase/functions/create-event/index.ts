@@ -51,7 +51,7 @@ serve(async (req) => {
     // Verify user is authenticated
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
     if (userError || !user) {
-      console.error('Authentication failed - user not authenticated')
+      console.error('Authentication failed:', userError)
       return new Response(
         JSON.stringify({ success: false, error: 'Authentication required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -63,7 +63,7 @@ serve(async (req) => {
     const validatedData = requestSchema.parse(body)
     const { eventData, roleRequirements } = validatedData
 
-    console.log('Event creation initiated')
+    console.log('Creating event for user:', user.id)
 
     // Validate dates logic
     if (eventData.end_date) {
@@ -90,11 +90,11 @@ serve(async (req) => {
       .single()
 
     if (eventError) {
-      console.error('Failed to create event')
+      console.error('Error creating event:', eventError)
       throw eventError
     }
 
-    console.log('Event created successfully')
+    console.log('Event created:', newEvent)
 
     // Add role requirements if any
     if (roleRequirements && roleRequirements.length > 0 && newEvent) {
@@ -112,11 +112,11 @@ serve(async (req) => {
           .insert(requirements)
 
         if (requirementsError) {
-          console.error('Failed to create role requirements')
+          console.error('Error creating role requirements:', requirementsError)
           throw requirementsError
         }
 
-        console.log('Role requirements created successfully')
+        console.log('Role requirements created:', requirements.length)
       }
     }
 
