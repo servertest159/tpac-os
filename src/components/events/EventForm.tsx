@@ -104,10 +104,13 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
 
     const { data: { session } } = await supabase.auth.getSession();
     
-    if (!session) {
+    // Check if user is authenticated OR has valid access code
+    const accessCode = localStorage.getItem('tpac_access_code');
+    
+    if (!session && !accessCode) {
       toast({
         title: "Authentication Required",
-        description: "You must be logged in to manage programmes.",
+        description: "You need to be logged in or have a valid access code to manage programmes.",
         variant: "destructive",
       });
       setLoading(false);
@@ -136,41 +139,77 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
 
       let eventIdToUse = eventId;
 
-      if (isEditing && eventId) {
-        const { error } = await supabase
-          .from('events')
-          .update({ ...eventData, status: 'active', updated_at: new Date().toISOString() })
-          .eq('id', eventId);
-        if (error) throw error;
-      } else {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("User not found");
-        const { data: newEvent, error } = await supabase
-          .from('events')
-          .insert([{ ...eventData, creator_id: user.id, status: 'active', updated_at: new Date().toISOString() }])
-          .select('id')
-          .single();
-        if (error) throw error;
-        if (newEvent) {
-          eventIdToUse = newEvent.id;
+      // If user is authenticated, use normal flow
+      if (session) {
+        if (isEditing && eventId) {
+          const { error } = await supabase
+            .from('events')
+            .update({ ...eventData, status: 'active', updated_at: new Date().toISOString() })
+            .eq('id', eventId);
+          if (error) throw error;
+        } else {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) throw new Error("User not found");
+          const { data: newEvent, error } = await supabase
+            .from('events')
+            .insert([{ ...eventData, creator_id: user.id, status: 'active', updated_at: new Date().toISOString() }])
+            .select('id')
+            .single();
+          if (error) throw error;
+          if (newEvent) {
+            eventIdToUse = newEvent.id;
+          }
         }
-      }
 
-      if (eventIdToUse) {
-        const { error: deleteError } = await supabase.from('event_role_requirements').delete().eq('event_id', eventIdToUse);
-        if (deleteError) throw deleteError;
+        if (eventIdToUse) {
+          const { error: deleteError } = await supabase.from('event_role_requirements').delete().eq('event_id', eventIdToUse);
+          if (deleteError) throw deleteError;
 
-        const newRequirements = roleRequirements
-          .filter(r => r.role && r.quantity > 0)
-          .map(r => ({
-            event_id: eventIdToUse!,
-            role: r.role as Role,
-            quantity: Number(r.quantity),
-          }));
+          const newRequirements = roleRequirements
+            .filter(r => r.role && r.quantity > 0)
+            .map(r => ({
+              event_id: eventIdToUse!,
+              role: r.role as Role,
+              quantity: Number(r.quantity),
+            }));
 
-        if (newRequirements.length > 0) {
-          const { error: insertError } = await supabase.from('event_role_requirements').insert(newRequirements);
-          if (insertError) throw insertError;
+          if (newRequirements.length > 0) {
+            const { error: insertError } = await supabase.from('event_role_requirements').insert(newRequirements);
+            if (insertError) throw insertError;
+          }
+        }
+      } else {
+        // Use edge functions for non-authenticated users with access codes
+        const accessCode = localStorage.getItem('tpac_access_code');
+        if (!accessCode) throw new Error("No access code found");
+
+        const filteredRequirements = roleRequirements.filter(r => r.role && r.quantity > 0);
+
+        if (isEditing && eventId) {
+          const { data, error } = await supabase.functions.invoke('update-event', {
+            body: {
+              accessCode,
+              eventId,
+              eventData,
+              roleRequirements: filteredRequirements,
+            }
+          });
+
+          if (error) throw error;
+          if (!data.success) throw new Error(data.error || 'Failed to update programme');
+          eventIdToUse = eventId;
+        } else {
+          const { data, error } = await supabase.functions.invoke('create-event', {
+            body: {
+              accessCode,
+              eventData,
+              roleRequirements: filteredRequirements,
+            }
+          });
+
+          if (error) throw error;
+          if (!data.success) throw new Error(data.error || 'Failed to create programme');
+          eventIdToUse = data.eventId;
         }
       }
 

@@ -1,35 +1,48 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0'
-import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Input validation schema
-const eventDataSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title must be less than 200 characters'),
-  date: z.string().refine((val) => !isNaN(Date.parse(val)), 'Invalid date format'),
-  end_date: z.string().nullable().optional().refine(
-    (val) => !val || !isNaN(Date.parse(val)), 
-    'Invalid end date format'
-  ),
-  location: z.string().min(1, 'Location is required').max(200, 'Location must be less than 200 characters'),
-  description: z.string().max(2000, 'Description must be less than 2000 characters'),
-  max_participants: z.number().int().min(1).max(1000, 'Max participants must be between 1 and 1000'),
-})
+interface UpdateEventRequest {
+  accessCode: string
+  eventId: string
+  eventData: {
+    title: string
+    date: string
+    end_date?: string | null
+    location: string
+    description: string
+    max_participants: number
+  }
+  roleRequirements: Array<{
+    role: string
+    quantity: number
+  }>
+}
 
-const roleRequirementSchema = z.object({
-  role: z.string().min(1),
-  quantity: z.number().int().min(1),
-})
+const validAccessCodes = {
+  938271: 'President',
+  472839: 'Vice-President',
+  615204: 'Honorary Secretary',
+  307198: 'Honorary Assistant Secretary',
+  529746: 'Honorary Treasurer',
+  184302: 'Honorary Assistant Treasurer',
+  763910: 'Training Head (General)',
+  920458: 'Training Head (Land)',
+  381207: 'Training Head (Water)',
+  640193: 'Training Head (Welfare)',
+  859321: 'Quartermaster',
+  712496: 'Assistant Quarter Master',
+  530984: 'Publicity Head',
+  298374: 'First Assistant Publicity Head',
+  476213: 'Second Assistant Publicity Head',
+  888888: 'Member',
+} as const
 
-const requestSchema = z.object({
-  eventId: z.string().uuid('Invalid event ID'),
-  eventData: eventDataSchema,
-  roleRequirements: z.array(roleRequirementSchema).optional(),
-})
+type AccessRole = typeof validAccessCodes[keyof typeof validAccessCodes]
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -38,51 +51,31 @@ serve(async (req) => {
   }
 
   try {
-    // Create Supabase client with the auth header (JWT now verified by config)
-    const supabaseClient = createClient(
+    const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Verify user is authenticated
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
-    if (userError || !user) {
-      console.error('Authentication failed:', userError)
+    const { accessCode, eventId, eventData, roleRequirements }: UpdateEventRequest = await req.json()
+
+    // Validate access code (tolerant to string/number; always return 200 with success=false on invalid)
+    const codeKey = String(accessCode ?? '').trim()
+    const role: AccessRole | undefined = (validAccessCodes as Record<string, AccessRole>)[codeKey] ?? (validAccessCodes as any)[Number(codeKey)]
+    if (!role) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Authentication required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, error: 'Invalid access code' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Parse and validate request body
-    const body = await req.json()
-    const validatedData = requestSchema.parse(body)
-    const { eventId, eventData, roleRequirements } = validatedData
+    console.log('Updating event via access code:', { role, eventId })
 
-    console.log('Updating event for user:', user.id, 'event:', eventId)
-
-    // Validate dates logic
-    if (eventData.end_date) {
-      const startDate = new Date(eventData.date)
-      const endDate = new Date(eventData.end_date)
-      if (endDate < startDate) {
-        return new Response(
-          JSON.stringify({ success: false, error: 'End date must be after start date' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-    }
-
-    // Update the event (RLS will enforce that user is the creator)
-    const { error: updateError } = await supabaseClient
+    // Update the event (using service role to bypass RLS)
+    const { error: updateError } = await supabase
       .from('events')
       .update({
         ...eventData,
+        max_participants: Number(eventData.max_participants),
         status: 'active',
         updated_at: new Date().toISOString(),
       })
@@ -90,18 +83,11 @@ serve(async (req) => {
 
     if (updateError) {
       console.error('Error updating event:', updateError)
-      // Check if it's a permission error
-      if (updateError.code === 'PGRST301' || updateError.message.includes('permission')) {
-        return new Response(
-          JSON.stringify({ success: false, error: 'You do not have permission to update this event' }),
-          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
       throw updateError
     }
 
     // Replace role requirements
-    const { error: delError } = await supabaseClient
+    const { error: delError } = await supabase
       .from('event_role_requirements')
       .delete()
       .eq('event_id', eventId)
@@ -120,7 +106,7 @@ serve(async (req) => {
       }))
 
     if (requirements.length > 0) {
-      const { error: insError } = await supabaseClient
+      const { error: insError } = await supabase
         .from('event_role_requirements')
         .insert(requirements)
 
@@ -128,8 +114,6 @@ serve(async (req) => {
         console.error('Error inserting role requirements:', insError)
         throw insError
       }
-
-      console.log('Role requirements updated:', requirements.length)
     }
 
     return new Response(
@@ -138,30 +122,9 @@ serve(async (req) => {
     )
   } catch (error) {
     console.error('Error in update-event function:', error)
-    
-    // Handle validation errors
-    if (error instanceof z.ZodError) {
-      return new Response(
-        JSON.stringify({ 
-          error: 'Validation error',
-          details: error.errors 
-        }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      )
-    }
-
     return new Response(
-      JSON.stringify({ 
-        error: 'Failed to update programme', 
-        details: error instanceof Error ? error.message : 'Unknown error'
-      }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      JSON.stringify({ error: 'Failed to update programme', details: (error as any)?.message }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
 })
