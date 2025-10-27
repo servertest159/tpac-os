@@ -1,9 +1,22 @@
+
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LayoutDashboard, Calendar, Package, MessageSquare, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+
+
+const cleanupAuthState = () => {
+  try {
+    localStorage.removeItem('supabase.auth.token');
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) localStorage.removeItem(key);
+    });
+    Object.keys(sessionStorage || {}).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) sessionStorage.removeItem(key);
+    });
+  } catch {}
+};
 
 const Header = () => {
   const location = useLocation();
@@ -11,26 +24,27 @@ const Header = () => {
   const [isAuthed, setIsAuthed] = useState(false);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsAuthed(!!session);
+    const updateAuth = () => {
+      const hasAccessCode = localStorage.getItem('tpac_access_granted') === 'true';
+      setIsAuthed(hasAccessCode);
     };
-    
-    checkAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthed(!!session);
-    });
-
-    return () => subscription.unsubscribe();
+    updateAuth();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'tpac_access_granted') updateAuth();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
   }, []);
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
-      window.location.href = "/auth";
+      cleanupAuthState();
+      // Clear access code state as well
+      localStorage.removeItem('tpac_access_granted');
+      localStorage.removeItem('tpac_user_role');
+      window.location.href = "/";
     } catch {
-      window.location.href = "/auth";
+      window.location.href = "/";
     }
   };
   const navItems = [
