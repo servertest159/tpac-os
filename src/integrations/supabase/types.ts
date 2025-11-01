@@ -7,94 +7,1062 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
   public: {
     Tables: {
-      contacts: {
+      clearance_documents: {
         Row: {
+          clearance_id: string
+          content_type: string | null
           created_at: string
-          email: string | null
+          document_name: string
+          document_type: string
+          file_path: string
+          file_size: number | null
           id: string
-          last_contacted: string | null
-          latitude: number | null
-          location: string | null
-          longitude: number | null
-          name: string
-          phone: string | null
-          relationship_strength: string | null
-          tags: string[] | null
+          uploaded_by: string
+        }
+        Insert: {
+          clearance_id: string
+          content_type?: string | null
+          created_at?: string
+          document_name: string
+          document_type: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          uploaded_by: string
+        }
+        Update: {
+          clearance_id?: string
+          content_type?: string | null
+          created_at?: string
+          document_name?: string
+          document_type?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clearance_documents_clearance_id_fkey"
+            columns: ["clearance_id"]
+            isOneToOne: false
+            referencedRelation: "clearances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clearance_documents_clearance_id_fkey"
+            columns: ["clearance_id"]
+            isOneToOne: false
+            referencedRelation: "clearances_secure_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clearances: {
+        Row: {
+          adjudication_date: string | null
+          created_at: string
+          expiration_date: string
+          granted_date: string | null
+          id: string
+          investigating_agency: string | null
+          investigation_type: string | null
+          notes: string | null
+          security_level: Database["public"]["Enums"]["security_level"]
+          sponsoring_agency: string | null
+          status: Database["public"]["Enums"]["clearance_status"]
           updated_at: string
           user_id: string
         }
         Insert: {
+          adjudication_date?: string | null
           created_at?: string
-          email?: string | null
+          expiration_date: string
+          granted_date?: string | null
           id?: string
-          last_contacted?: string | null
-          latitude?: number | null
-          location?: string | null
-          longitude?: number | null
-          name: string
-          phone?: string | null
-          relationship_strength?: string | null
-          tags?: string[] | null
+          investigating_agency?: string | null
+          investigation_type?: string | null
+          notes?: string | null
+          security_level: Database["public"]["Enums"]["security_level"]
+          sponsoring_agency?: string | null
+          status?: Database["public"]["Enums"]["clearance_status"]
           updated_at?: string
           user_id: string
         }
         Update: {
+          adjudication_date?: string | null
           created_at?: string
-          email?: string | null
+          expiration_date?: string
+          granted_date?: string | null
           id?: string
-          last_contacted?: string | null
-          latitude?: number | null
-          location?: string | null
-          longitude?: number | null
-          name?: string
-          phone?: string | null
-          relationship_strength?: string | null
-          tags?: string[] | null
+          investigating_agency?: string | null
+          investigation_type?: string | null
+          notes?: string | null
+          security_level?: Database["public"]["Enums"]["security_level"]
+          sponsoring_agency?: string | null
+          status?: Database["public"]["Enums"]["clearance_status"]
           updated_at?: string
           user_id?: string
         }
         Relationships: []
       }
-      notes: {
+      clearances_audit_log: {
         Row: {
-          contact_id: string
-          content: string
+          accessed_fields: string[] | null
+          action: string
+          clearance_id: string
           created_at: string
           id: string
+          ip_address: unknown
+          session_id: string | null
+          user_agent: string | null
+          user_id: string
         }
         Insert: {
-          contact_id: string
-          content: string
+          accessed_fields?: string[] | null
+          action: string
+          clearance_id: string
           created_at?: string
           id?: string
+          ip_address?: unknown
+          session_id?: string | null
+          user_agent?: string | null
+          user_id: string
         }
         Update: {
-          contact_id?: string
-          content?: string
+          accessed_fields?: string[] | null
+          action?: string
+          clearance_id?: string
           created_at?: string
           id?: string
+          ip_address?: unknown
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      Connection: {
+        Row: {
+          city: string | null
+          country: string | null
+          createdAt: string
+          id: string
+          latitude: number
+          location: string | null
+          longitude: number
+          name: string
+          notes: string | null
+          relationship: string | null
+          updatedAt: string
+          userId: string
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          createdAt?: string
+          id: string
+          latitude: number
+          location?: string | null
+          longitude: number
+          name: string
+          notes?: string | null
+          relationship?: string | null
+          updatedAt: string
+          userId: string
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          createdAt?: string
+          id?: string
+          latitude?: number
+          location?: string | null
+          longitude?: number
+          name?: string
+          notes?: string | null
+          relationship?: string | null
+          updatedAt?: string
+          userId?: string
         }
         Relationships: [
           {
-            foreignKeyName: "notes_contact_id_fkey"
-            columns: ["contact_id"]
+            foreignKeyName: "Connection_userId_fkey"
+            columns: ["userId"]
             isOneToOne: false
-            referencedRelation: "contacts"
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emergency_contacts: {
+        Row: {
+          contact_number: string
+          created_at: string
+          id: string
+          name: string
+          trip_id: string
+          type: string
+        }
+        Insert: {
+          contact_number: string
+          created_at?: string
+          id?: string
+          name: string
+          trip_id: string
+          type: string
+        }
+        Update: {
+          contact_number?: string
+          created_at?: string
+          id?: string
+          name?: string
+          trip_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_contacts_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_invitations: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          status: Database["public"]["Enums"]["invitation_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          status?: Database["public"]["Enums"]["invitation_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          status?: Database["public"]["Enums"]["invitation_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_invitations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_invitations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_role_requirements: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          quantity: number
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          quantity?: number
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          quantity?: number
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_role_requirements_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          created_at: string | null
+          creator_id: string | null
+          current_participants: number | null
+          date: string
+          description: string | null
+          end_date: string | null
+          id: string
+          last_edited_by: string | null
+          location: string | null
+          max_participants: number | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          creator_id?: string | null
+          current_participants?: number | null
+          date: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          last_edited_by?: string | null
+          location?: string | null
+          max_participants?: number | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          creator_id?: string | null
+          current_participants?: number | null
+          date?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          last_edited_by?: string | null
+          location?: string | null
+          max_participants?: number | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      gear: {
+        Row: {
+          available: number
+          condition: string
+          created_at: string | null
+          id: string
+          last_edited_by: string | null
+          last_maintenance: string | null
+          name: string
+          notes: string | null
+          photo_url: string | null
+          quantity: number
+          type: string
+          updated_at: string | null
+          uploaded_at: string | null
+        }
+        Insert: {
+          available?: number
+          condition?: string
+          created_at?: string | null
+          id?: string
+          last_edited_by?: string | null
+          last_maintenance?: string | null
+          name: string
+          notes?: string | null
+          photo_url?: string | null
+          quantity?: number
+          type: string
+          updated_at?: string | null
+          uploaded_at?: string | null
+        }
+        Update: {
+          available?: number
+          condition?: string
+          created_at?: string | null
+          id?: string
+          last_edited_by?: string | null
+          last_maintenance?: string | null
+          name?: string
+          notes?: string | null
+          photo_url?: string | null
+          quantity?: number
+          type?: string
+          updated_at?: string | null
+          uploaded_at?: string | null
+        }
+        Relationships: []
+      }
+      gear_events: {
+        Row: {
+          created_at: string | null
+          event_id: string | null
+          gear_id: string | null
+          id: string
+          quantity: number
+        }
+        Insert: {
+          created_at?: string | null
+          event_id?: string | null
+          gear_id?: string | null
+          id?: string
+          quantity?: number
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string | null
+          gear_id?: string | null
+          id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gear_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gear_events_gear_id_fkey"
+            columns: ["gear_id"]
+            isOneToOne: false
+            referencedRelation: "gear"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      habits: {
+        Row: {
+          completions: Json
+          created_at: string
+          description: string | null
+          frequency: string
+          id: string
+          start_date: string | null
+          streak: number
+          title: string
+          user_id: string
+        }
+        Insert: {
+          completions?: Json
+          created_at?: string
+          description?: string | null
+          frequency: string
+          id?: string
+          start_date?: string | null
+          streak?: number
+          title: string
+          user_id: string
+        }
+        Update: {
+          completions?: Json
+          created_at?: string
+          description?: string | null
+          frequency?: string
+          id?: string
+          start_date?: string | null
+          streak?: number
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      itinerary_items: {
+        Row: {
+          activity: string | null
+          created_at: string
+          day: number
+          id: string
+          location: string | null
+          time: string | null
+          trip_id: string
+        }
+        Insert: {
+          activity?: string | null
+          created_at?: string
+          day: number
+          id?: string
+          location?: string | null
+          time?: string | null
+          trip_id: string
+        }
+        Update: {
+          activity?: string | null
+          created_at?: string
+          day?: number
+          id?: string
+          location?: string | null
+          time?: string | null
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itinerary_items_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media: {
+        Row: {
+          content_id: string
+          created_at: string
+          description: string | null
+          id: string
+          title: string | null
+          type: string
+          updated_at: string
+          url: string
+          user_id: string | null
+        }
+        Insert: {
+          content_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          title?: string | null
+          type: string
+          updated_at?: string
+          url: string
+          user_id?: string | null
+        }
+        Update: {
+          content_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          title?: string | null
+          type?: string
+          updated_at?: string
+          url?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          department: string | null
+          email: string | null
+          employee_id: string | null
+          first_name: string | null
+          full_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          supervisor_email: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          department?: string | null
+          email?: string | null
+          employee_id?: string | null
+          first_name?: string | null
+          full_name?: string | null
+          id: string
+          last_name?: string | null
+          phone?: string | null
+          supervisor_email?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          department?: string | null
+          email?: string | null
+          employee_id?: string | null
+          first_name?: string | null
+          full_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          supervisor_email?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      profiles_audit_log: {
+        Row: {
+          accessed_by: string
+          accessed_fields: string[] | null
+          created_at: string
+          id: string
+          ip_address: unknown
+          profile_id: string
+        }
+        Insert: {
+          accessed_by: string
+          accessed_fields?: string[] | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          profile_id: string
+        }
+        Update: {
+          accessed_by?: string
+          accessed_fields?: string[] | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          profile_id?: string
+        }
+        Relationships: []
+      }
+      relief_contacts: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          phone: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          phone: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      relief_contacts_audit_log: {
+        Row: {
+          accessed_by: string
+          accessed_fields: string[] | null
+          action: string
+          contact_id: string
+          created_at: string
+          id: string
+          ip_address: unknown
+        }
+        Insert: {
+          accessed_by: string
+          accessed_fields?: string[] | null
+          action: string
+          contact_id: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+        }
+        Update: {
+          accessed_by?: string
+          accessed_fields?: string[] | null
+          action?: string
+          contact_id?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+        }
+        Relationships: []
+      }
+      relief_needs: {
+        Row: {
+          category: string
+          contact: string | null
+          created_at: string
+          description: string | null
+          id: string
+          location: string
+          priority: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          category: string
+          contact?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          location: string
+          priority: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          contact?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      relief_tasks: {
+        Row: {
+          assignee: string | null
+          created_at: string
+          description: string | null
+          id: string
+          priority: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          assignee?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          priority: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          assignee?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      trip_documents: {
+        Row: {
+          created_at: string
+          file_path: string
+          id: string
+          name: string
+          trip_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_path: string
+          id?: string
+          name: string
+          trip_id: string
+        }
+        Update: {
+          created_at?: string
+          file_path?: string
+          id?: string
+          name?: string
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_documents_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_gear_items: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          gear_id: string | null
+          id: string
+          status: string
+          trip_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          gear_id?: string | null
+          id?: string
+          status?: string
+          trip_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          gear_id?: string | null
+          id?: string
+          status?: string
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_gear_items_gear_id_fkey"
+            columns: ["gear_id"]
+            isOneToOne: false
+            referencedRelation: "gear"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_gear_items_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_participants: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          role: string | null
+          trip_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          role?: string | null
+          trip_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          role?: string | null
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_participants_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      User: {
+        Row: {
+          createdAt: string
+          email: string
+          id: string
+        }
+        Insert: {
+          createdAt?: string
+          email: string
+          id: string
+        }
+        Update: {
+          createdAt?: string
+          email?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
     }
     Views: {
-      [_ in never]: never
+      clearances_secure_view: {
+        Row: {
+          adjudication_date: string | null
+          created_at: string | null
+          expiration_date: string | null
+          granted_date: string | null
+          id: string | null
+          investigating_agency: string | null
+          investigation_type: string | null
+          notes: string | null
+          security_level: Database["public"]["Enums"]["security_level"] | null
+          sponsoring_agency: string | null
+          status: Database["public"]["Enums"]["clearance_status"] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          adjudication_date?: string | null
+          created_at?: string | null
+          expiration_date?: string | null
+          granted_date?: string | null
+          id?: string | null
+          investigating_agency?: never
+          investigation_type?: never
+          notes?: never
+          security_level?: Database["public"]["Enums"]["security_level"] | null
+          sponsoring_agency?: never
+          status?: Database["public"]["Enums"]["clearance_status"] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          adjudication_date?: string | null
+          created_at?: string | null
+          expiration_date?: string | null
+          granted_date?: string | null
+          id?: string | null
+          investigating_agency?: never
+          investigation_type?: never
+          notes?: never
+          security_level?: Database["public"]["Enums"]["security_level"] | null
+          sponsoring_agency?: never
+          status?: Database["public"]["Enums"]["clearance_status"] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      can_access_sensitive_clearance_data: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
+      check_bulk_profile_access: {
+        Args: never
+        Returns: {
+          access_count: number
+          accessed_by: string
+          first_access: string
+          last_access: string
+        }[]
+      }
+      check_bulk_relief_contacts_access: {
+        Args: never
+        Returns: {
+          access_count: number
+          accessed_by: string
+          first_access: string
+          last_access: string
+        }[]
+      }
+      get_past_trips_with_stats: {
+        Args: never
+        Returns: {
+          date: string
+          end_date: string
+          gear_packed: number
+          gear_total: number
+          id: string
+          location: string
+          participant_count: number
+          title: string
+        }[]
+      }
+      get_upcoming_trips_with_stats: {
+        Args: never
+        Returns: {
+          date: string
+          end_date: string
+          gear_packed: number
+          gear_total: number
+          id: string
+          location: string
+          participant_count: number
+          title: string
+        }[]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      log_clearance_select_access: {
+        Args: { _clearance_id: string; _fields?: string[] }
+        Returns: undefined
+      }
+      log_clearances_access: {
+        Args: { _action: string; _clearance_id: string; _fields?: string[] }
+        Returns: undefined
+      }
+      log_profile_access: {
+        Args: { _accessed_fields?: string[]; _profile_id: string }
+        Returns: undefined
+      }
+      log_relief_contacts_access: {
+        Args: { _action: string; _contact_id: string; _fields?: string[] }
+        Returns: undefined
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "President"
+        | "Vice-President"
+        | "Honorary Secretary"
+        | "Honorary Assistant Secretary"
+        | "Honorary Treasurer"
+        | "Honorary Assistant Treasurer"
+        | "Training Head (General)"
+        | "Training Head (Land)"
+        | "Training Head (Water)"
+        | "Training Head (Welfare)"
+        | "Quartermaster"
+        | "Assistant Quarter Master"
+        | "Publicity Head"
+        | "First Assistant Publicity Head"
+        | "Second Assistant Publicity Head"
+        | "Member"
+      clearance_status:
+        | "Active"
+        | "Pending"
+        | "Expired"
+        | "Suspended"
+        | "Denied"
+      invitation_status: "pending" | "accepted" | "declined"
+      security_level: "Confidential" | "Secret" | "Top Secret" | "SCI"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -102,21 +1070,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -134,14 +1106,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -157,14 +1131,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -180,14 +1156,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -195,20 +1173,44 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: [
+        "President",
+        "Vice-President",
+        "Honorary Secretary",
+        "Honorary Assistant Secretary",
+        "Honorary Treasurer",
+        "Honorary Assistant Treasurer",
+        "Training Head (General)",
+        "Training Head (Land)",
+        "Training Head (Water)",
+        "Training Head (Welfare)",
+        "Quartermaster",
+        "Assistant Quarter Master",
+        "Publicity Head",
+        "First Assistant Publicity Head",
+        "Second Assistant Publicity Head",
+        "Member",
+      ],
+      clearance_status: ["Active", "Pending", "Expired", "Suspended", "Denied"],
+      invitation_status: ["pending", "accepted", "declined"],
+      security_level: ["Confidential", "Secret", "Top Secret", "SCI"],
+    },
   },
 } as const

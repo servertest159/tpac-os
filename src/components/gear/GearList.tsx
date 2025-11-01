@@ -1,6 +1,6 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,85 +8,53 @@ import { Package, Edit, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-
-// Sample data for gear items
-const gearItems = [
-  {
-    id: "1",
-    name: "Tents - 2 Person",
-    type: "Shelter",
-    quantity: 5,
-    available: 3,
-    condition: "Good",
-    lastMaintenance: "2025-03-15",
-  },
-  {
-    id: "2",
-    name: "Sleeping Bags - Winter",
-    type: "Sleep",
-    quantity: 10,
-    available: 8,
-    condition: "Excellent",
-    lastMaintenance: "2025-04-02",
-  },
-  {
-    id: "3",
-    name: "Hiking Poles",
-    type: "Equipment",
-    quantity: 12,
-    available: 7,
-    condition: "Fair",
-    lastMaintenance: "2025-01-20",
-    needsMaintenance: true,
-  },
-  {
-    id: "4",
-    name: "Water Filters",
-    type: "Equipment",
-    quantity: 3,
-    available: 0,
-    condition: "Good",
-    lastMaintenance: "2025-02-10",
-  },
-  {
-    id: "5",
-    name: "First Aid Kits",
-    type: "Safety",
-    quantity: 5,
-    available: 4,
-    condition: "Good",
-    lastMaintenance: "2025-04-05",
-  },
-  {
-    id: "6",
-    name: "Backpacks - 50L",
-    type: "Carry",
-    quantity: 8,
-    available: 2,
-    condition: "Good",
-    lastMaintenance: "2025-03-22",
-  },
-];
+import { supabase } from "@/integrations/supabase/client";
 
 const GearList = () => {
   const [searchTerm, setSearchTerm] = React.useState("");
   const { toast } = useToast();
   const [showDeleteDialog, setShowDeleteDialog] = React.useState<string | null>(null);
 
+  // Fetch gear from Supabase
+  const { data: gearItems = [], isLoading } = useQuery({
+    queryKey: ['gear'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('gear')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const filteredGear = gearItems.filter((item) =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleDelete = (id: string) => {
-    // Simulate API call to delete
-    setTimeout(() => {
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('gear')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
       toast({
         title: "Gear Item Deleted",
         description: "The gear item has been successfully deleted.",
       });
       setShowDeleteDialog(null);
-    }, 500);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete gear item.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getConditionBadge = (condition: string, needsMaintenance?: boolean) => {
@@ -108,12 +76,25 @@ const GearList = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1>Gear Inventory</h1>
+            <p className="text-muted-foreground">Loading your equipment...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1>Gear Inventory</h1>
-          <p className="text-muted-foreground">Manage your equipment</p>
+          <p className="text-muted-foreground">Manage your equipment ({gearItems.length} items)</p>
         </div>
         <Button asChild>
           <Link to="/gear/new">Add Gear</Link>
@@ -149,7 +130,7 @@ const GearList = () => {
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-lg">{item.name}</CardTitle>
-                  {getConditionBadge(item.condition, item.needsMaintenance)}
+                  {getConditionBadge(item.condition)}
                 </div>
                 <p className="text-sm text-muted-foreground">{item.type}</p>
               </CardHeader>
@@ -163,10 +144,12 @@ const GearList = () => {
                     <span className="text-sm text-muted-foreground">Available:</span>
                     <span className="font-medium">{item.available}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Last Maintenance:</span>
-                    <span className="font-medium">{new Date(item.lastMaintenance).toLocaleDateString()}</span>
-                  </div>
+                  {item.last_maintenance && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Last Maintenance:</span>
+                      <span className="font-medium">{new Date(item.last_maintenance).toLocaleDateString()}</span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
               <CardFooter className="flex justify-between">
