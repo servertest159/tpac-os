@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import tpacLogo from "@/assets/tpac-logo.png";
 
 interface AccessGateProps {
   onAccessGranted: () => void;
@@ -61,6 +62,9 @@ const AccessGate: React.FC<AccessGateProps> = ({ onAccessGranted }) => {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          <div className="flex justify-center mb-6">
+            <img src={tpacLogo} alt="TPAC Logo" className="w-24 h-24" />
+          </div>
           <CardTitle className="text-2xl font-bold">TPAC OS</CardTitle>
           <p className="text-muted-foreground">Enter your access code to continue</p>
         </CardHeader>
