@@ -1,1 +1,12 @@
 project_id = "cfxecxtkwgbfeqeichij"
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://localhost:3000"]
+
+[functions.create-event]
+verify_jwt = false
+
+[functions.update-event]
+verify_jwt = false

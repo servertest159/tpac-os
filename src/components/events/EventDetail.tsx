@@ -2,60 +2,106 @@
 import React from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, MapPin, User, Users, Clock, Edit, Trash2, Plus } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { Calendar, MapPin, Users, Clock, Edit, Trash2, AlertCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useEventDetail } from "@/hooks/useEventDetail";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { format } from 'date-fns';
+import EventParticipantsPanel from "./EventParticipantsPanel";
+import EventLoadoutPanel from "./EventLoadoutPanel";
+import EventItineraryPanel from "./EventItineraryPanel";
+import { Card, CardContent } from "@/components/ui/card";
 
-// Sample event data (in a real app this would come from an API)
-const eventData = {
-  id: "1",
-  title: "Mountain Hiking Weekend",
-  date: "2025-05-24",
-  time: "08:00 AM",
-  location: "Blue Ridge Mountains, Appalachian Trail Entrance",
-  participants: [
-    { id: "1", name: "John Doe", email: "john@example.com" },
-    { id: "2", name: "Jane Smith", email: "jane@example.com" },
-    { id: "3", name: "Mike Johnson", email: "mike@example.com" },
-    { id: "4", name: "Sarah Williams", email: "sarah@example.com" },
-    { id: "5", name: "Tom Brown", email: "tom@example.com" },
-    { id: "6", name: "Lisa Davis", email: "lisa@example.com" },
-    { id: "7", name: "David Wilson", email: "david@example.com" },
-    { id: "8", name: "Emma Miller", email: "emma@example.com" },
-  ],
-  maxParticipants: 12,
-  description: "A weekend hiking trip through the beautiful Blue Ridge Mountains with camping overnight. We'll be hiking approximately 10 miles per day with moderate elevation gain. Suitable for intermediate hikers with some experience. We'll camp at designated sites along the Appalachian Trail and enjoy stunning sunset views from the ridge.",
-  status: "upcoming",
-  itinerary: [
-    { day: "Day 1", activities: "Meet at trailhead (8:00 AM), Hike to Bear Mountain (5 miles), Lunch at vista point, Continue to campsite (3 miles), Setup camp, Dinner around campfire" },
-    { day: "Day 2", activities: "Sunrise hike to ridge (1 mile), Breakfast at camp, Pack up, Hike to Blue Lake (4 miles), Lunch at lake, Return to trailhead (7 miles), Departure (approx 5:00 PM)" },
-  ],
-  gearRequired: [
-    "Tent", "Sleeping bag", "Hiking boots", "Water bottles (2L minimum)", "Backpack (40L+)", "Headlamp", "Weather-appropriate clothing"
-  ],
-  gearProvided: [
-    "Cooking equipment", "First aid kit", "Emergency satellite phone", "Maps and compass"
-  ],
-};
+const EventDetailSkeleton = () => (
+  <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <Skeleton className="h-8 w-72" />
+          <Skeleton className="h-4 w-96 mt-2" />
+        </div>
+        <div className="flex gap-2">
+          <Skeleton className="h-10 w-24" />
+          <Skeleton className="h-10 w-40" />
+        </div>
+      </div>
+      <Skeleton className="h-10 w-full max-w-sm" />
+      <Card>
+        <CardContent className="pt-6">
+            <Skeleton className="h-96 w-full" />
+        </CardContent>
+      </Card>
+  </div>
+);
 
 const EventDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { event, loading, error, refetch } = useEventDetail(id);
+
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
 
-  const handleDelete = () => {
-    // Simulate API call to delete
-    setTimeout(() => {
+  const handleAbort = async () => {
+    if (!id) return;
+    
+    try {
+      const { error } = await supabase
+        .from("events")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
       toast({
-        title: "Event Deleted",
-        description: "The event has been successfully deleted.",
+        title: "Programme Deleted",
+        description: "The programme and all related data have been permanently removed.",
       });
-      navigate("/events");
-    }, 500);
+      setShowDeleteDialog(false);
+      navigate('/events');
+    } catch (error) {
+      console.error('Error deleting programme:', error);
+      toast({
+        title: "Failed to delete programme",
+        description: error instanceof Error ? error.message : "An error occurred while deleting the programme.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading) {
+    return <EventDetailSkeleton />;
+  }
+
+  if (error || !event) {
+    return (
+      <Alert variant="destructive" className="mt-4">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{error || "Could not load event details."}</AlertDescription>
+        <Button onClick={() => refetch()} className="mt-4">Try Again</Button>
+      </Alert>
+    );
+  }
+
+  const status = new Date(event.date) > new Date() ? 'upcoming' : 'completed';
+  const participants = event.event_invitations
+    .filter(inv => inv.status === 'accepted')
+    .map(inv => inv.profiles)
+    .filter((p): p is NonNullable<typeof p> => p !== null);
+  
+  const maxParticipants = event.max_participants || 0;
+
+  const getStatusBadge = () => {
+    return (
+      <Badge variant={status === "upcoming" ? "default" : "secondary"}>
+        {status === "upcoming" ? "Upcoming" : "Completed"}
+      </Badge>
+    );
   };
 
   return (
@@ -63,44 +109,44 @@ const EventDetail = () => {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1>{eventData.title}</h1>
-            <Badge variant={eventData.status === "upcoming" ? "default" : "secondary"}>
-              {eventData.status === "upcoming" ? "Upcoming" : "Past"}
-            </Badge>
+            <h1>{event.title}</h1>
+            {getStatusBadge()}
           </div>
-          <p className="text-muted-foreground">Event details and management</p>
+          <p className="text-muted-foreground">
+            Programme Debrief & Coordination
+          </p>
         </div>
         <div className="flex gap-2">
-          <Button asChild variant="outline">
-            <Link to={`/events/${id}/edit`}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </Link>
-          </Button>
-          <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-            <DialogTrigger asChild>
-              <Button variant="destructive">
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Delete Event</DialogTitle>
-                <DialogDescription>
-                  Are you sure you want to delete this event? This action cannot be undone.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-                  Cancel
+            <Button asChild variant="outline">
+              <Link to={`/events/${id}/edit`}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </Link>
+            </Button>
+            <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+              <DialogTrigger asChild>
+                <Button variant="destructive">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Programme
                 </Button>
-                <Button variant="destructive" onClick={handleDelete}>
-                  Delete Event
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Delete Programme</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to delete this programme? This will permanently remove the programme and all related data (participants, loadout, itinerary). This cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+                    Cancel
+                  </Button>
+                  <Button variant="destructive" onClick={handleAbort}>
+                    Confirm Delete
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
         </div>
       </div>
 
@@ -108,7 +154,7 @@ const EventDetail = () => {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="participants">Participants</TabsTrigger>
-          <TabsTrigger value="gear">Gear</TabsTrigger>
+          <TabsTrigger value="gear">Loadout</TabsTrigger>
           <TabsTrigger value="itinerary">Itinerary</TabsTrigger>
         </TabsList>
         
@@ -118,24 +164,24 @@ const EventDetail = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="font-medium text-lg">Event Details</h3>
+                    <h3 className="font-medium text-lg">Programme Intel</h3>
                     <div className="space-y-2 mt-2">
                       <div className="flex items-center">
                         <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                        <span>{new Date(eventData.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                        <span>{format(new Date(event.date), "EEEE, MMMM d, yyyy")}</span>
                       </div>
                       <div className="flex items-center">
                         <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                        <span>{eventData.time}</span>
+                        <span>{format(new Date(event.date), "p")}</span>
                       </div>
                       <div className="flex items-center">
                         <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
-                        <span>{eventData.location}</span>
+                        <span>{event.location}</span>
                       </div>
                       <div className="flex items-center">
                         <Users className="mr-2 h-4 w-4 text-muted-foreground" />
                         <span>
-                          {eventData.participants.length} / {eventData.maxParticipants} participants
+                          {participants.length} / {maxParticipants} participants confirmed
                         </span>
                       </div>
                     </div>
@@ -144,56 +190,28 @@ const EventDetail = () => {
                   <div>
                     <h3 className="font-medium text-lg">Description</h3>
                     <p className="mt-2 text-muted-foreground whitespace-pre-line">
-                      {eventData.description}
+                      {event.description}
                     </p>
                   </div>
                 </div>
-                
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-center justify-between">
-                      <h3 className="font-medium text-lg">Quick Actions</h3>
+                      <h3 className="font-medium text-lg">Field Actions</h3>
                     </div>
-                    
                     <div className="grid grid-cols-1 gap-2 mt-2">
-                      <Button asChild>
-                        <Link to={`/events/${id}/invite`}>
-                          <Plus className="mr-2 h-4 w-4" />
-                          Invite Participants
-                        </Link>
-                      </Button>
                       <Button asChild variant="outline">
                         <Link to={`/feedback/new?eventId=${id}`}>
-                          Create Feedback Form
+                          File After-Action Report (AAR)
                         </Link>
                       </Button>
                       <Button asChild variant="secondary">
                         <Link to={`/events/${id}/gear`}>
-                          Manage Event Gear
+                          Check Inventory Loadout
                         </Link>
                       </Button>
                     </div>
                   </div>
-                  
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base">Participant Status</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between">
-                        <div className="text-2xl font-bold">{eventData.participants.length}/{eventData.maxParticipants}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {eventData.maxParticipants - eventData.participants.length} spots remaining
-                        </div>
-                      </div>
-                      <div className="w-full bg-secondary h-2 rounded-full mt-2">
-                        <div 
-                          className="bg-primary h-2 rounded-full" 
-                          style={{ width: `${(eventData.participants.length / eventData.maxParticipants) * 100}%` }}
-                        ></div>
-                      </div>
-                    </CardContent>
-                  </Card>
                 </div>
               </div>
             </CardContent>
@@ -201,99 +219,18 @@ const EventDetail = () => {
         </TabsContent>
         
         <TabsContent value="participants" className="space-y-4 pt-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle>Participants ({eventData.participants.length})</CardTitle>
-                <Button asChild size="sm">
-                  <Link to={`/events/${id}/invite`}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Invite
-                  </Link>
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <div className="grid grid-cols-3 p-3 font-medium border-b">
-                  <div>Name</div>
-                  <div>Email</div>
-                  <div className="text-right">Actions</div>
-                </div>
-                {eventData.participants.map((participant) => (
-                  <div key={participant.id} className="grid grid-cols-3 p-3 border-b last:border-0 items-center">
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      {participant.name}
-                    </div>
-                    <div>{participant.email}</div>
-                    <div className="text-right">
-                      <Button variant="ghost" size="sm">Remove</Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <EventParticipantsPanel
+            invitations={event.event_invitations}
+            participantsCount={participants.length}
+          />
         </TabsContent>
         
         <TabsContent value="gear" className="space-y-4 pt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Required Gear</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-1">
-                  {eventData.gearRequired.map((item, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Provided Gear</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-1">
-                  {eventData.gearProvided.map((item, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <div className="h-1.5 w-1.5 rounded-full bg-secondary"></div>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-          <Button asChild>
-            <Link to={`/events/${id}/gear`}>
-              Manage Event Gear
-            </Link>
-          </Button>
+          <EventLoadoutPanel />
         </TabsContent>
         
         <TabsContent value="itinerary" className="space-y-4 pt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Event Itinerary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {eventData.itinerary.map((item, index) => (
-                  <div key={index}>
-                    <h3 className="font-medium text-lg mb-2">{item.day}</h3>
-                    <p className="whitespace-pre-line text-muted-foreground">{item.activities}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <EventItineraryPanel />
         </TabsContent>
       </Tabs>
     </div>
