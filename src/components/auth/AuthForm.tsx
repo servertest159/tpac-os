@@ -1,102 +1,212 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Mail, KeyRound } from "lucide-react";
 
 const AuthForm = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState<"email" | "verify">("email");
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // For demo purposes only - would be replaced with actual authentication
-  const handleAuth = (type: "login" | "register", event: React.FormEvent) => {
-    event.preventDefault();
+  useEffect(() => {
+    // Check if user is already logged in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate("/dashboard");
+      }
+    });
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        toast({
+          title: "Welcome!",
+          description: "You have been successfully authenticated.",
+        });
+        navigate("/dashboard");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate, toast]);
+
+  const handleSendCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !email.includes("@")) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     
-    // Simulate authentication
-    setTimeout(() => {
-      setIsLoading(false);
-      localStorage.setItem("user", JSON.stringify({ id: "1", name: "Demo User" }));
-      toast({
-        title: type === "login" ? "Welcome back!" : "Account created!",
-        description: "You have been successfully authenticated.",
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim().toLowerCase(),
+        options: {
+          shouldCreateUser: true,
+        },
       });
-      navigate("/dashboard");
-    }, 1000);
+
+      if (error) throw error;
+
+      toast({
+        title: "Code Sent!",
+        description: "Check your email for the verification code.",
+      });
+      setStep("verify");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send verification code.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!otp || otp.length !== 6) {
+      toast({
+        title: "Invalid Code",
+        description: "Please enter the 6-digit code from your email.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: email.trim().toLowerCase(),
+        token: otp,
+        type: "email",
+      });
+
+      if (error) throw error;
+
+      // Success handling is done in onAuthStateChange
+    } catch (error: any) {
+      toast({
+        title: "Verification Failed",
+        description: error.message || "Invalid or expired code. Please try again.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+    }
+  };
+
+  const handleBackToEmail = () => {
+    setStep("email");
+    setOtp("");
   };
 
   return (
-    <Tabs defaultValue="login" className="w-full max-w-md">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="login">Login</TabsTrigger>
-        <TabsTrigger value="register">Register</TabsTrigger>
-      </TabsList>
-      
-      <TabsContent value="login">
-        <Card>
-          <CardHeader>
-            <CardTitle>Login</CardTitle>
+    <Card className="w-full max-w-md border-primary/20 shadow-xl">
+      {step === "email" ? (
+        <>
+          <CardHeader className="space-y-1 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <Mail className="h-6 w-6 text-primary" />
+            </div>
+            <CardTitle className="text-2xl">Welcome Back</CardTitle>
             <CardDescription>
-              Access your adventure planning dashboard
+              Enter your email to receive a verification code
             </CardDescription>
           </CardHeader>
-          <form onSubmit={(e) => handleAuth("login", e)}>
+          <form onSubmit={handleSendCode}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="hello@example.com" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" required />
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="hello@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={isLoading}
+                  className="border-primary/20 focus:border-primary"
+                />
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Login"}
+              <Button 
+                type="submit" 
+                className="w-full bg-primary hover:bg-primary/90" 
+                disabled={isLoading}
+              >
+                {isLoading ? "Sending Code..." : "Send Verification Code"}
               </Button>
             </CardFooter>
           </form>
-        </Card>
-      </TabsContent>
-      
-      <TabsContent value="register">
-        <Card>
-          <CardHeader>
-            <CardTitle>Register</CardTitle>
+        </>
+      ) : (
+        <>
+          <CardHeader className="space-y-1 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <KeyRound className="h-6 w-6 text-primary" />
+            </div>
+            <CardTitle className="text-2xl">Enter Verification Code</CardTitle>
             <CardDescription>
-              Create an account to start planning your adventures
+              We sent a 6-digit code to {email}
             </CardDescription>
           </CardHeader>
-          <form onSubmit={(e) => handleAuth("register", e)}>
+          <form onSubmit={handleVerifyCode}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" type="text" placeholder="John Doe" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="register-email">Email</Label>
-                <Input id="register-email" type="email" placeholder="hello@example.com" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="register-password">Password</Label>
-                <Input id="register-password" type="password" required />
+                <Label htmlFor="otp">Verification Code</Label>
+                <Input
+                  id="otp"
+                  type="text"
+                  placeholder="000000"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  maxLength={6}
+                  required
+                  disabled={isLoading}
+                  className="border-primary/20 focus:border-primary text-center text-2xl tracking-widest"
+                />
               </div>
             </CardContent>
-            <CardFooter>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating account..." : "Register"}
+            <CardFooter className="flex flex-col space-y-2">
+              <Button 
+                type="submit" 
+                className="w-full bg-primary hover:bg-primary/90" 
+                disabled={isLoading}
+              >
+                {isLoading ? "Verifying..." : "Verify Code"}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full text-primary hover:text-primary/80"
+                onClick={handleBackToEmail}
+                disabled={isLoading}
+              >
+                Back to Email
               </Button>
             </CardFooter>
           </form>
-        </Card>
-      </TabsContent>
-    </Tabs>
+        </>
+      )}
+    </Card>
   );
 };
 

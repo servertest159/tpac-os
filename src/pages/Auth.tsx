@@ -4,10 +4,10 @@ import AuthForm from "@/components/auth/AuthForm";
 
 const Auth = () => {
   return (
-    <div className="min-h-screen bg-tan-light flex flex-col items-center justify-center p-4">
-      <div className="text-center mb-6">
-        <h1 className="text-4xl font-bold text-forest">Adventure Planner</h1>
-        <p className="text-forest-dark mt-2">Plan, organize, and track your outdoor adventures</p>
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/10 flex flex-col items-center justify-center p-4">
+      <div className="text-center mb-8">
+        <h1 className="text-5xl font-bold text-primary mb-3">Adventure Planner</h1>
+        <p className="text-muted-foreground text-lg">Plan, organize, and track your outdoor adventures</p>
       </div>
       
       <div className="w-full max-w-md">
