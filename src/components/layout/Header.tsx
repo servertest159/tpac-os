@@ -1,58 +1,36 @@
 
-import React, { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Calendar, Package, MessageSquare, LogOut, User } from "lucide-react";
+import { Calendar, Users, Package, MessageSquare } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 
-
-const cleanupAuthState = () => {
-  try {
-    localStorage.removeItem('supabase.auth.token');
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) localStorage.removeItem(key);
-    });
-    Object.keys(sessionStorage || {}).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) sessionStorage.removeItem(key);
-    });
-  } catch {}
-};
-
 const Header = () => {
+  const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isAuthed, setIsAuthed] = useState(false);
 
-  useEffect(() => {
-    const updateAuth = () => {
-      const hasAccessCode = localStorage.getItem('tpac_access_granted') === 'true';
-      setIsAuthed(hasAccessCode);
-    };
-    updateAuth();
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === 'tpac_access_granted') updateAuth();
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      cleanupAuthState();
-      // Clear access code state as well
-      localStorage.removeItem('tpac_access_granted');
-      localStorage.removeItem('tpac_user_role');
-      window.location.href = "/";
-    } catch {
-      window.location.href = "/";
-    }
+  const handleLogout = () => {
+    // Clear user data from local storage
+    localStorage.removeItem("user");
+    
+    // Show success message
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+    });
+    
+    // Redirect to login page
+    navigate("/auth");
   };
+
   const navItems = [
-    { path: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-    { path: "/events", label: "Programmes", icon: <Calendar className="w-4 h-4" /> },
-    { path: "/gear", label: "Inventory", icon: <Package className="w-4 h-4" /> },
-    { path: "/feedback", label: "AARs", icon: <MessageSquare className="w-4 h-4" /> },
-    { path: "/profile", label: "Profile", icon: <User className="w-4 h-4" /> },
+    { path: "/dashboard", label: "Dashboard", icon: <Users className="w-4 h-4" /> },
+    { path: "/events", label: "Events", icon: <Calendar className="w-4 h-4" /> },
+    { path: "/gear", label: "Gear", icon: <Package className="w-4 h-4" /> },
+    { path: "/feedback", label: "Feedback", icon: <MessageSquare className="w-4 h-4" /> },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -62,7 +40,7 @@ const Header = () => {
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
         <div className="flex items-center space-x-2">
           <Link to="/dashboard" className="flex items-center">
-            <span className="font-bold text-2xl text-black">TPAC OS</span>
+            <span className="font-bold text-2xl text-forest-dark">AdventurePlanner</span>
           </Link>
         </div>
 
@@ -83,15 +61,15 @@ const Header = () => {
           ))}
         </nav>
 
-        <div className="flex items-center space-x-2">
-          {/* Auth Buttons for Desktop */}
-            {isAuthed && (
-              <Button variant="ghost" onClick={handleLogout} className="hidden md:inline-flex items-center">
-                <LogOut className="w-4 h-4 mr-2" />
-                Log Out
-              </Button>
-            )}
-
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="outline"
+            onClick={handleLogout}
+            className="hidden md:flex"
+          >
+            Logout
+          </Button>
+          
           {/* Mobile menu button */}
           <Button
             variant="ghost"
@@ -143,19 +121,13 @@ const Header = () => {
                 <span>{item.label}</span>
               </Link>
             ))}
-            <div className="border-t -mx-4 my-2"></div>
-            {isAuthed && (
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setIsMenuOpen(false);
-                }}
-                className="flex items-center space-x-2 py-3 px-2 w-full text-left text-red-600 hover:bg-red-50 rounded"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Log Out</span>
-              </button>
-            )}
+            <Button
+              variant="outline"
+              onClick={handleLogout}
+              className="w-full mt-2"
+            >
+              Logout
+            </Button>
           </div>
         </div>
       )}

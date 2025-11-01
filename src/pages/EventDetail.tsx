@@ -11,7 +11,7 @@ const EventDetail = () => {
   return (
     <MainLayout>
       {action === "edit" ? (
-        <EventForm eventId={id} />
+        <EventForm gearId={id} />
       ) : (
         <EventDetailComponent />
       )}

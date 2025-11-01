@@ -3,58 +3,78 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Package, MessageSquare, LayoutDashboard } from "lucide-react";
-import { useGearInventory } from "@/hooks/useGearInventory";
-import { useEvents } from "@/hooks/useEvents";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Calendar, Package, Users, MessageSquare } from "lucide-react";
+
+// Sample data for demo purposes
+const stats = [
+  {
+    title: "Upcoming Events",
+    value: 3,
+    description: "Events in the next 30 days",
+    icon: <Calendar className="h-8 w-8 text-forest" />,
+    link: "/events",
+  },
+  {
+    title: "Gear Items",
+    value: 24,
+    description: "Items in your inventory",
+    icon: <Package className="h-8 w-8 text-forest" />,
+    link: "/gear",
+  },
+  {
+    title: "Participants",
+    value: 18,
+    description: "People attending your events",
+    icon: <Users className="h-8 w-8 text-forest" />,
+    link: "/events",
+  },
+  {
+    title: "Feedback Responses",
+    value: 12,
+    description: "Responses collected",
+    icon: <MessageSquare className="h-8 w-8 text-forest" />,
+    link: "/feedback",
+  },
+];
+
+const upcomingEvents = [
+  {
+    id: "1",
+    title: "Mountain Hiking Weekend",
+    date: "2025-05-24",
+    participants: 8,
+    location: "Blue Ridge Mountains",
+  },
+  {
+    id: "2",
+    title: "Kayaking Trip",
+    date: "2025-06-05",
+    participants: 6,
+    location: "Lake Superior",
+  },
+  {
+    id: "3",
+    title: "Camping Under Stars",
+    date: "2025-06-15",
+    participants: 4,
+    location: "Yellowstone National Park",
+  },
+];
 
 const DashboardOverview = () => {
-  const { gear, loading: gearLoading } = useGearInventory();
-  const { events, loading: eventsLoading } = useEvents();
-
-  const loading = gearLoading || eventsLoading;
-
-  const totalGear = gear.reduce((sum, item) => sum + item.quantity, 0);
-
-  const upcomingEventsData = events.filter(e => new Date(e.date) > new Date());
-  const upcomingEventsCount = upcomingEventsData.length;
-  
-  // Calculate actual AARs submitted - this would come from feedback data
-  // For now using a placeholder that can be updated when feedback data is available
-  const completedAARs = 0; // This should be calculated from actual feedback data
-  
-  const stats = [
-    {
-      title: "Upcoming Programmes",
-      value: loading ? <Skeleton className="h-6 w-10" /> : upcomingEventsCount,
-      description: "Programmes in the near future",
-      icon: <Calendar className="h-8 w-8 text-forest" />,
-      link: "/events",
-    },
-    {
-      title: "Gear in Inventory",
-      value: loading ? <Skeleton className="h-6 w-10" /> : totalGear,
-      description: "Items ready for deployment",
-      icon: <Package className="h-8 w-8 text-forest" />,
-      link: "/gear",
-    },
-  ];
-  
-  const recentUpcomingEvents = upcomingEventsData.slice(0, 3);
-
   return (
-    <div className="space-y-8 page-enter">
+    <div className="space-y-8">
       <div>
-        <h1 className="mb-2">Welcome to your Dashboard</h1>
+        <h1 className="mb-2">Welcome to Adventure Planner</h1>
         <p className="text-muted-foreground">
-          Your digital basecamp for all TPAC missions and operations.
+          Manage your outdoor adventures from one place
         </p>
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {stats.map((stat, index) => (
-          <Card key={stat.title} className="card-hover hover-lift animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat) => (
+          <Card key={stat.title} className="card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
               {stat.icon}
@@ -70,52 +90,20 @@ const DashboardOverview = () => {
             </CardFooter>
           </Card>
         ))}
-        
-        {/* AARs Submitted Card - spans full width on mobile, single column on larger screens but matches height */}
-        <Card className="card-hover hover-lift md:col-span-1 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">AARs Submitted</CardTitle>
-            <MessageSquare className="h-8 w-8 text-forest" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{completedAARs}</div>
-            <p className="text-xs text-muted-foreground">After Action Reviews logged</p>
-          </CardContent>
-          <CardFooter>
-            <Button asChild variant="ghost" size="sm" className="w-full">
-              <Link to="/feedback">View Details</Link>
-            </Button>
-          </CardFooter>
-        </Card>
       </div>
 
       {/* Upcoming Events Section */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Upcoming Programmes</h2>
+          <h2 className="text-xl font-semibold">Upcoming Events</h2>
           <Button asChild variant="outline" size="sm">
-            <Link to="/events">View All Programmes</Link>
+            <Link to="/events">View All Events</Link>
           </Button>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {loading ? (
-            [...Array(3)].map((_, i) => (
-              <Card key={i}>
-                <CardHeader>
-                  <Skeleton className="h-5 w-4/5 mb-2" />
-                  <Skeleton className="h-4 w-1/2" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-4 w-full" />
-                </CardContent>
-                <CardFooter>
-                  <Skeleton className="h-9 w-full" />
-                </CardFooter>
-              </Card>
-            ))
-          ) : recentUpcomingEvents.map((event, index) => (
-            <Card key={event.id} className="card-hover hover-lift animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+          {upcomingEvents.map((event) => (
+            <Card key={event.id} className="card-hover">
               <CardHeader>
                 <CardTitle className="text-lg">{event.title}</CardTitle>
                 <CardDescription className="flex items-center gap-1">
@@ -130,12 +118,16 @@ const DashboardOverview = () => {
               </CardHeader>
               <CardContent>
                 <div className="flex justify-between text-sm">
+                  <span className="flex items-center gap-1">
+                    <Users className="h-3 w-3" />
+                    {event.participants} participants
+                  </span>
                   <span>{event.location}</span>
                 </div>
               </CardContent>
               <CardFooter>
                 <Button asChild variant="default" size="sm" className="w-full">
-                  <Link to={`/events/${event.id}`}>View Debrief</Link>
+                  <Link to={`/events/${event.id}`}>View Details</Link>
                 </Button>
               </CardFooter>
             </Card>
@@ -144,19 +136,19 @@ const DashboardOverview = () => {
       </div>
 
       {/* Quick Actions */}
-      <Card className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
+      <Card>
         <CardHeader>
-          <CardTitle>Mission Control</CardTitle>
+          <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Button asChild className="w-full">
-            <Link to="/events/new">Plan New Programme</Link>
+            <Link to="/events/new">Create New Event</Link>
           </Button>
           <Button asChild variant="outline" className="w-full">
-            <Link to="/gear/new">Log New Gear</Link>
+            <Link to="/gear/new">Add Gear Item</Link>
           </Button>
           <Button asChild variant="secondary" className="w-full">
-            <Link to="/feedback/new">Start an AAR</Link>
+            <Link to="/feedback/new">Create Feedback Form</Link>
           </Button>
         </CardContent>
       </Card>
