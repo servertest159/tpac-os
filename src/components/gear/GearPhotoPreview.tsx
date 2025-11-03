@@ -25,9 +25,9 @@ const GearPhotoPreview: React.FC<GearPhotoPreviewProps> = ({
   };
 
   const PlaceholderContent = () => (
-    <div className="w-full h-full bg-muted flex flex-col items-center justify-center text-muted-foreground rounded-md">
-      <Package className="h-8 w-8 mb-2" />
-      <span className="text-xs text-center">No photo</span>
+    <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50 flex flex-col items-center justify-center text-muted-foreground rounded-md">
+      <Package className="h-8 w-8 mb-2 opacity-50" />
+      <span className="text-xs text-center font-medium">No photo</span>
     </div>
   );
 
@@ -40,7 +40,7 @@ const GearPhotoPreview: React.FC<GearPhotoPreviewProps> = ({
       <img
         src={photoUrl}
         alt={`Photo of ${gearName}`}
-        className="w-full h-full object-cover rounded-md"
+        className="w-full h-full object-cover rounded-md transition-transform duration-300"
         onError={handleImageError}
         loading="lazy"
       />
@@ -54,13 +54,13 @@ const GearPhotoPreview: React.FC<GearPhotoPreviewProps> = ({
           <TooltipTrigger>
             <DialogTrigger asChild>
               <div 
-                className={`relative cursor-pointer group overflow-hidden rounded-md bg-muted ${className}`}
+                className={`relative cursor-pointer group overflow-hidden rounded-lg bg-muted shadow-sm hover:shadow-md transition-all duration-300 ${className}`}
               >
                 <ImageContent />
                 
                 {photoUrl && !imageError && (
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <ZoomIn className="h-6 w-6 text-white" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
+                    <ZoomIn className="h-6 w-6 text-white drop-shadow-lg" />
                   </div>
                 )}
               </div>

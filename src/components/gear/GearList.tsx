@@ -51,16 +51,16 @@ const GearList = () => {
   const getConditionBadge = (condition: string) => {
     switch (condition.toLowerCase()) {
       case "excellent":
-        return <Badge variant="default" className="bg-green-600">Excellent</Badge>;
+        return <Badge className="bg-gradient-to-r from-green-600 to-green-500 text-white border-0 shadow-sm">Excellent</Badge>;
       case "good":
-        return <Badge variant="default" className="bg-forest">Good</Badge>;
+        return <Badge className="bg-gradient-to-r from-primary to-primary-glow text-white border-0 shadow-sm">Good</Badge>;
       case "fair":
-        return <Badge variant="secondary">Fair</Badge>;
+        return <Badge variant="secondary" className="shadow-sm">Fair</Badge>;
       case "poor":
       case "needs repair":
-        return <Badge variant="destructive">Needs Repair</Badge>;
+        return <Badge variant="destructive" className="shadow-sm">Needs Repair</Badge>;
       default:
-        return <Badge>{condition}</Badge>;
+        return <Badge className="shadow-sm">{condition}</Badge>;
     }
   };
 
@@ -167,45 +167,45 @@ const GearList = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredGear.map((item, index) => (
-            <Card key={item.id} className="card-hover hover-lift animate-fade-in" style={{ animationDelay: `${index * 0.05}s` }}>
-              <CardHeader className="pb-2">
-                <div className="flex gap-3 items-start">
+            <Card key={item.id} className="card-premium card-hover hover-lift animate-fade-in overflow-hidden" style={{ animationDelay: `${index * 0.05}s` }}>
+              <CardHeader className="pb-3">
+                <div className="flex gap-4 items-start">
                   <GearPhotoPreview 
                     gearName={item.name} 
                     photoUrl={item.photo_url}
                     uploadedAt={item.uploaded_at}
-                    className="w-16 h-16 flex-shrink-0"
+                    className="w-20 h-20 flex-shrink-0 ring-2 ring-border/50"
                   />
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start mb-1">
-                      <CardTitle className="text-lg truncate">{item.name}</CardTitle>
+                    <div className="flex justify-between items-start gap-2 mb-2">
+                      <CardTitle className="text-lg truncate leading-tight">{item.name}</CardTitle>
                       {getConditionBadge(item.condition)}
                     </div>
-                    <p className="text-sm text-muted-foreground">{item.type}</p>
+                    <p className="text-sm text-muted-foreground font-medium">{item.type}</p>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Quantity:</span>
-                    <span className="font-medium">{item.quantity}</span>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-muted/50 rounded-lg p-3 text-center">
+                    <span className="text-xs text-muted-foreground block mb-1">Total</span>
+                    <span className="text-xl font-bold text-foreground">{item.quantity}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Available:</span>
-                    <span className="font-medium">{item.available}</span>
+                  <div className="bg-primary/10 rounded-lg p-3 text-center ring-1 ring-primary/20">
+                    <span className="text-xs text-muted-foreground block mb-1">Available</span>
+                    <span className="text-xl font-bold text-primary">{item.available}</span>
                   </div>
-                  {item.last_maintenance && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Last Maintenance:</span>
-                      <span className="font-medium">{new Date(item.last_maintenance).toLocaleDateString()}</span>
-                    </div>
-                  )}
                 </div>
+                {item.last_maintenance && (
+                  <div className="flex items-center justify-between text-sm px-2 py-1.5 bg-muted/30 rounded-md">
+                    <span className="text-muted-foreground">Last Maintenance</span>
+                    <span className="font-medium">{new Date(item.last_maintenance).toLocaleDateString()}</span>
+                  </div>
+                )}
               </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button asChild variant="outline" size="sm">
+              <CardFooter className="flex gap-2 pt-4 border-t bg-muted/20">
+                <Button asChild variant="outline" size="sm" className="flex-1">
                   <Link to={`/gear/${item.id}/edit`}>
                     <Edit className="mr-2 h-4 w-4" />
                     Edit
@@ -213,7 +213,7 @@ const GearList = () => {
                 </Button>
                 <Dialog open={showDeleteDialog === item.id} onOpenChange={(open) => open ? setShowDeleteDialog(item.id) : setShowDeleteDialog(null)}>
                   <DialogTrigger asChild>
-                    <Button variant="destructive" size="sm">
+                    <Button variant="destructive" size="sm" className="flex-1">
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete
                     </Button>
