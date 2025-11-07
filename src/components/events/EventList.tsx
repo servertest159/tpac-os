@@ -3,14 +3,41 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Users, Clock } from "lucide-react";
+import { Calendar, MapPin, Users, Clock, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useEvents, type EventWithRequirements } from "@/hooks/useEvents";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const EventList = () => {
   const { events, loading, error, refetch } = useEvents();
   const [filter, setFilter] = React.useState<"all" | "upcoming" | "past" | "aborted">("all");
+  const { toast } = useToast();
+
+  const handleDelete = async (eventId: string, eventTitle: string) => {
+    try {
+      const { error } = await supabase
+        .from("events")
+        .delete()
+        .eq("id", eventId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Programme Deleted",
+        description: `"${eventTitle}" has been permanently removed.`,
+      });
+    } catch (error) {
+      console.error('Error deleting programme:', error);
+      toast({
+        title: "Failed to delete programme",
+        description: error instanceof Error ? error.message : "An error occurred.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const getEventStatus = (event: EventWithRequirements) => {
     if (event.status === 'aborted') return 'aborted';
@@ -150,19 +177,45 @@ const EventList = () => {
           {filteredEvents.map((event) => (
             <Card key={event.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg">{event.title}</CardTitle>
-                  <Badge 
-                    variant={
-                      event.status === "upcoming" ? "default" : 
-                      event.status === "past" ? "secondary" : 
-                      "destructive"
-                    }
-                  >
-                    {event.status === "upcoming" ? "Upcoming" : 
-                     event.status === "past" ? "Completed" : 
-                     "Aborted"}
-                  </Badge>
+                <div className="flex justify-between items-start gap-2">
+                  <CardTitle className="text-lg flex-1">{event.title}</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Badge 
+                      variant={
+                        event.status === "upcoming" ? "default" : 
+                        event.status === "past" ? "secondary" : 
+                        "destructive"
+                      }
+                    >
+                      {event.status === "upcoming" ? "Upcoming" : 
+                       event.status === "past" ? "Completed" : 
+                       "Aborted"}
+                    </Badge>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Programme</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete "{event.title}"? This will permanently remove the programme and all related data. This cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(event.id, event.title)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
