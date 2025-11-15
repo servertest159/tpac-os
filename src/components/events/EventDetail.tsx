@@ -63,11 +63,16 @@ const EventDetail = () => {
       });
       setShowDeleteDialog(false);
       navigate('/events');
-    } catch (error) {
-      console.error('Error deleting programme:', error);
+    } catch (err) {
+      console.error('Error deleting programme:', err);
+      const msg = err && typeof err === 'object' && 'code' in (err as any) && (err as any).code === '23503'
+        ? 'This programme has related records (e.g., itinerary items, gear assignments, or emergency contacts). Remove them first, then try again.'
+        : err instanceof Error
+          ? err.message
+          : 'An error occurred while deleting the programme.';
       toast({
         title: "Failed to delete programme",
-        description: error instanceof Error ? error.message : "An error occurred while deleting the programme.",
+        description: msg,
         variant: "destructive",
       });
     }
