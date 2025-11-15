@@ -14,9 +14,12 @@ import { useToast } from "@/hooks/use-toast";
 const EventList = () => {
   const { events, loading, error, refetch } = useEvents();
   const [filter, setFilter] = React.useState<"all" | "upcoming" | "past" | "aborted">("all");
+  const [deletingIds, setDeletingIds] = React.useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   const handleDelete = async (eventId: string, eventTitle: string) => {
+    // Optimistic UI: hide immediately
+    setDeletingIds((prev) => new Set(prev).add(eventId));
     try {
       const { error } = await supabase
         .from("events")
@@ -29,11 +32,27 @@ const EventList = () => {
         title: "Programme Deleted",
         description: `"${eventTitle}" has been permanently removed.`,
       });
-    } catch (error) {
-      console.error('Error deleting programme:', error);
+
+      // Ensure UI reflects deletion right away
+      await refetch();
+    } catch (err) {
+      // Rollback optimistic removal
+      setDeletingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(eventId);
+        return next;
+      });
+
+      console.error('Error deleting programme:', err);
+      const msg = err && typeof err === 'object' && 'code' in (err as any) && (err as any).code === '23503'
+        ? 'This programme has related records (e.g., itinerary, gear, or contacts). Remove them first, then try again.'
+        : err instanceof Error
+          ? err.message
+          : 'An error occurred.';
+
       toast({
         title: "Failed to delete programme",
-        description: error instanceof Error ? error.message : "An error occurred.",
+        description: msg,
         variant: "destructive",
       });
     }
@@ -53,6 +72,7 @@ const EventList = () => {
       status: getEventStatus(event),
       total_roles: (event.event_role_requirements || []).reduce((sum, req) => sum + req.quantity, 0),
     }))
+    .filter((event) => !deletingIds.has(event.id))
     .filter((event) => {
       if (filter === "all") return event.status !== "aborted"; // Exclude aborted from "all"
       return event.status === filter;
