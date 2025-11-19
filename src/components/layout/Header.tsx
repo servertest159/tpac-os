@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Calendar, Package, MessageSquare, LogOut, User } from "lucide-react";
+import { LayoutDashboard, Calendar, Package, MessageSquare, LogOut, User, FileCode } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 
@@ -53,6 +53,7 @@ const Header = () => {
     { path: "/gear", label: "Inventory", icon: <Package className="w-4 h-4" /> },
     { path: "/feedback", label: "AARs", icon: <MessageSquare className="w-4 h-4" /> },
     { path: "/profile", label: "Profile", icon: <User className="w-4 h-4" /> },
+    { path: "/developer-notes", label: "Dev Notes", icon: <FileCode className="w-4 h-4" /> },
   ];
 
   const isActive = (path: string) => location.pathname === path;
