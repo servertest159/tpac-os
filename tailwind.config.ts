@@ -173,6 +173,43 @@ export default {
 						opacity: '1',
 						transform: 'translateY(0)'
 					}
+				},
+				// Ripple Effect
+				'ripple': {
+					'0%': {
+						width: '10px',
+						height: '10px',
+						opacity: '1'
+					},
+					'100%': {
+						width: '200px',
+						height: '200px',
+						opacity: '0'
+					}
+				},
+				// Modal bounce
+				'modal-bounce': {
+					'0%': {
+						transform: 'translate(-50%, -50%) scale(0.9)'
+					},
+					'50%': {
+						transform: 'translate(-50%, -50%) scale(1.02)'
+					},
+					'100%': {
+						transform: 'translate(-50%, -50%) scale(1)'
+					}
+				},
+				// Toast bounce
+				'toast-bounce': {
+					'0%': {
+						transform: 'translateY(-20px)'
+					},
+					'50%': {
+						transform: 'translateY(5px)'
+					},
+					'100%': {
+						transform: 'translateY(0)'
+					}
 				}
 			},
 			animation: {
@@ -191,7 +228,11 @@ export default {
 				'stagger': 'stagger 0.4s ease-out',
 				// Combined Animations
 				'enter': 'fade-in 0.3s ease-out, scale-in 0.2s ease-out',
-				'exit': 'fade-out 0.3s ease-out, scale-out 0.2s ease-out'
+				'exit': 'fade-out 0.3s ease-out, scale-out 0.2s ease-out',
+				// Micro-interactions
+				'ripple': 'ripple 0.6s ease-out',
+				'modal-bounce': 'modal-bounce 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+				'toast-bounce': 'toast-bounce 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
 			}
 		}
 	},
