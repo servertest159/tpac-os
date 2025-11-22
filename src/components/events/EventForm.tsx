@@ -260,13 +260,13 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
   };
 
   return (
-    <Card>
+    <Card className="animate-fade-in-up card-hover">
       <CardHeader>
         <CardTitle>{isEditing ? "Edit Programme" : "Plan New Programme"}</CardTitle>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
+          <div className="space-y-2 form-field">
             <Label htmlFor="title">Programme Title</Label>
             <Input
               id="title"
@@ -275,11 +275,12 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
               onChange={handleChange}
               placeholder="E.g., 'Ubin Kayak Patrol'"
               required
+              className="focus-ring"
             />
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <div className="space-y-2 form-field">
               <Label htmlFor="start_date">Start Date</Label>
               <Input
                 id="start_date"
@@ -288,9 +289,10 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
                 value={formData.start_date}
                 onChange={handleChange}
                 required
+                className="focus-ring"
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 form-field">
               <Label htmlFor="start_time">Start Time</Label>
               <Input
                 id="start_time"

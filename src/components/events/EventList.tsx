@@ -178,7 +178,7 @@ const EventList = () => {
       </div>
 
       {filteredEvents.length === 0 ? (
-        <div className="text-center py-12">
+        <div className="text-center py-12 animate-fade-in">
           <h3 className="mb-2">No Programmes Found</h3>
           <p className="text-muted-foreground mb-4">
             {filter === "aborted" 
@@ -194,8 +194,8 @@ const EventList = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents.map((event) => (
-            <Card key={event.id} className="hover:shadow-md transition-shadow">
+          {filteredEvents.map((event, index) => (
+            <Card key={event.id} className="card-hover hover-lift animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
               <CardHeader>
                 <div className="flex justify-between items-start gap-2">
                   <CardTitle className="text-lg flex-1">{event.title}</CardTitle>

@@ -265,13 +265,13 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
   }
 
   return (
-    <Card className="page-enter">
+    <Card className="animate-fade-in-up card-hover">
       <CardHeader>
         <CardTitle>{isEditing ? "Edit Gear" : "Add New Gear"}</CardTitle>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
+          <div className="space-y-2 form-field">
             <Label htmlFor="name">Gear Name</Label>
             <Input
               id="name"
@@ -280,19 +280,20 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
               onChange={handleChange}
               placeholder="Enter gear name"
               required
+              className="focus-ring"
             />
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-2 form-field">
             <Label htmlFor="type">Type</Label>
             <Select
               value={formData.type}
               onValueChange={(value) => handleSelectChange("type", value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="focus-ring">
                 <SelectValue placeholder="Select gear type" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="animate-fade-in">
                 <SelectItem value="tent">Tent</SelectItem>
                 <SelectItem value="backpack">Backpack</SelectItem>
                 <SelectItem value="sleeping-bag">Sleeping Bag</SelectItem>
@@ -307,7 +308,7 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <div className="space-y-2 form-field">
               <Label htmlFor="quantity">Total Quantity</Label>
               <Input
                 id="quantity"
@@ -317,9 +318,10 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
                 onChange={handleChange}
                 min={1}
                 required
+                className="focus-ring"
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 form-field">
               <Label htmlFor="available">Available</Label>
               <Input
                 id="available"
@@ -330,20 +332,21 @@ const GearForm: React.FC<GearFormProps> = ({ gearId: propGearId }) => {
                 min={0}
                 max={formData.quantity}
                 required
+                className="focus-ring"
               />
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 form-field">
             <Label htmlFor="condition">Condition</Label>
             <Select
               value={formData.condition}
               onValueChange={(value) => handleSelectChange("condition", value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="focus-ring">
                 <SelectValue placeholder="Select condition" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="animate-fade-in">
                 <SelectItem value="Excellent">Excellent</SelectItem>
                 <SelectItem value="Good">Good</SelectItem>
                 <SelectItem value="Fair">Fair</SelectItem>

@@ -84,7 +84,7 @@ const EventDetail = () => {
 
   if (error || !event) {
     return (
-      <Alert variant="destructive" className="mt-4">
+      <Alert variant="destructive" className="mt-4 animate-fade-in">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>{error || "Could not load event details."}</AlertDescription>
@@ -110,8 +110,8 @@ const EventDetail = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 page-enter">
+      <div className="flex items-center justify-between animate-fade-in">
         <div>
           <div className="flex items-center gap-2">
             <h1>{event.title}</h1>
@@ -122,7 +122,7 @@ const EventDetail = () => {
           </p>
         </div>
         <div className="flex gap-2">
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" className="hover-scale">
               <Link to={`/events/${id}/edit`}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
@@ -130,12 +130,12 @@ const EventDetail = () => {
             </Button>
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
               <DialogTrigger asChild>
-                <Button variant="destructive">
+                <Button variant="destructive" className="hover-scale">
                   <Trash2 className="mr-2 h-4 w-4" />
                   Delete Programme
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="animate-scale-in">
                 <DialogHeader>
                   <DialogTitle>Delete Programme</DialogTitle>
                   <DialogDescription>
@@ -155,7 +155,7 @@ const EventDetail = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="w-full">
+      <Tabs defaultValue="overview" className="w-full animate-fade-in" style={{ animationDelay: '0.1s' }}>
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="participants">Participants</TabsTrigger>
@@ -163,8 +163,8 @@ const EventDetail = () => {
           <TabsTrigger value="itinerary">Itinerary</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="overview" className="space-y-4 pt-4">
-          <Card>
+        <TabsContent value="overview" className="space-y-4 pt-4 animate-fade-in">
+          <Card className="card-hover">
             <CardContent className="pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
@@ -223,18 +223,18 @@ const EventDetail = () => {
           </Card>
         </TabsContent>
         
-        <TabsContent value="participants" className="space-y-4 pt-4">
+        <TabsContent value="participants" className="space-y-4 pt-4 animate-fade-in">
           <EventParticipantsPanel
             invitations={event.event_invitations}
             participantsCount={participants.length}
           />
         </TabsContent>
         
-        <TabsContent value="gear" className="space-y-4 pt-4">
+        <TabsContent value="gear" className="space-y-4 pt-4 animate-fade-in">
           <EventLoadoutPanel />
         </TabsContent>
         
-        <TabsContent value="itinerary" className="space-y-4 pt-4">
+        <TabsContent value="itinerary" className="space-y-4 pt-4 animate-fade-in">
           <EventItineraryPanel />
         </TabsContent>
       </Tabs>
