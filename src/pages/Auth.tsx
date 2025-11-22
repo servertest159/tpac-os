@@ -67,25 +67,28 @@ const Auth: React.FC = () => {
 
   return (
     <MainLayout>
-      <div className="max-w-md mx-auto">
-        <Card>
+      <div className="max-w-md mx-auto animate-fade-in-up">
+        <Card className="card-hover">
           <CardHeader>
-            <CardTitle>{mode === 'signin' ? 'Log in' : 'Create account'}</CardTitle>
+            <div className="flex flex-col items-center space-y-2">
+              <img src="/src/assets/tpac-logo.png" alt="TPAC Logo" className="h-16 w-auto mb-2" />
+              <CardTitle className="text-center">{mode === 'signin' ? 'Log in' : 'Create account'}</CardTitle>
+            </div>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-2 form-field">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="focus-ring" />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 form-field">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="focus-ring" />
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full hover-scale" disabled={loading}>
                 {loading ? 'Please wait…' : (mode === 'signin' ? 'Log in' : 'Sign up')}
               </Button>
-              <Button type="button" variant="ghost" className="w-full" onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}>
+              <Button type="button" variant="ghost" className="w-full hover-scale" onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}>
                 {mode === 'signin' ? "Don't have an account? Sign up" : 'Have an account? Log in'}
               </Button>
             </form>

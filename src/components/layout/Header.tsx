@@ -69,14 +69,15 @@ const Header = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-1">
-          {navItems.map((item) => (
+          {navItems.map((item, index) => (
             <Link
               key={item.path}
               to={item.path}
               className={cn(
-                "nav-link",
+                "nav-link hover-scale",
                 isActive(item.path) && "active"
               )}
+              style={{ animationDelay: `${index * 0.05}s` }}
             >
               {item.icon}
               <span>{item.label}</span>
@@ -128,16 +129,17 @@ const Header = () => {
 
       {/* Mobile Navigation Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t">
+        <div className="md:hidden bg-white border-t animate-slide-up">
           <div className="container mx-auto px-4 py-2">
-            {navItems.map((item) => (
+            {navItems.map((item, index) => (
               <Link
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex items-center space-x-2 py-3 px-2",
-                  isActive(item.path) ? "text-primary font-medium" : "text-gray-700"
+                  "flex items-center space-x-2 py-3 px-2 rounded-md transition-all animate-fade-in",
+                  isActive(item.path) ? "text-primary font-medium bg-accent" : "text-gray-700 hover:bg-accent/50"
                 )}
+                style={{ animationDelay: `${index * 0.05}s` }}
                 onClick={() => setIsMenuOpen(false)}
               >
                 {item.icon}
@@ -151,7 +153,8 @@ const Header = () => {
                   handleLogout();
                   setIsMenuOpen(false);
                 }}
-                className="flex items-center space-x-2 py-3 px-2 w-full text-left text-red-600 hover:bg-red-50 rounded"
+                className="flex items-center space-x-2 py-3 px-2 w-full text-left text-red-600 hover:bg-red-50 rounded transition-all animate-fade-in"
+                style={{ animationDelay: `${navItems.length * 0.05}s` }}
               >
                 <LogOut className="w-4 h-4" />
                 <span>Log Out</span>
