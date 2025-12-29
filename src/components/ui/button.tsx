@@ -41,11 +41,10 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button"
     const [ripples, setRipples] = React.useState<Array<{ x: number; y: number; id: number }>>([])
 
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-      if (!asChild && !props.disabled) {
+      if (!props.disabled) {
         const button = e.currentTarget
         const rect = button.getBoundingClientRect()
         const x = e.clientX - rect.left
@@ -62,15 +61,26 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       props.onClick?.(e)
     }
 
+    // When asChild is true, use Slot without ripple effects to avoid children issues
+    if (asChild) {
+      return (
+        <Slot
+          className={cn(buttonVariants({ variant, size, className }))}
+          ref={ref}
+          {...props}
+        />
+      )
+    }
+
     return (
-      <Comp
+      <button
         className={cn(buttonVariants({ variant, size, className }), "relative overflow-hidden")}
         ref={ref}
         {...props}
-        onClick={asChild ? props.onClick : handleClick}
+        onClick={handleClick}
       >
         {props.children}
-        {!asChild && ripples.map(ripple => (
+        {ripples.map(ripple => (
           <span
             key={ripple.id}
             className="absolute rounded-full bg-white/30 animate-ripple pointer-events-none"
@@ -83,7 +93,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             }}
           />
         ))}
-      </Comp>
+      </button>
     )
   }
 )
