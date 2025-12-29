@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ScrollReveal, ScrollRevealGroup } from "@/components/ui/scroll-reveal";
 
 const EventList = () => {
   const { events, loading, error, refetch } = useEvents();
@@ -139,63 +139,69 @@ const EventList = () => {
 
   return (
     <div className="space-y-6 page-enter">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1>Programmes</h1>
-          <p className="text-muted-foreground">Coordinate your field operations.</p>
+      <ScrollReveal variant="fade-up">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1>Programmes</h1>
+            <p className="text-muted-foreground">Coordinate your field operations.</p>
+          </div>
+          <Button asChild>
+            <Link to="/events/new">Plan Programme</Link>
+          </Button>
         </div>
-        <Button asChild>
-          <Link to="/events/new">Plan Programme</Link>
-        </Button>
-      </div>
+      </ScrollReveal>
 
       {/* Filter buttons */}
-      <div className="flex space-x-2 mb-6">
-        <Button
-          variant={filter === "all" ? "default" : "outline"}
-          onClick={() => setFilter("all")}
-        >
-          Active Programmes
-        </Button>
-        <Button
-          variant={filter === "upcoming" ? "default" : "outline"}
-          onClick={() => setFilter("upcoming")}
-        >
-          Upcoming
-        </Button>
-        <Button
-          variant={filter === "past" ? "default" : "outline"}
-          onClick={() => setFilter("past")}
-        >
-          Completed
-        </Button>
-        <Button
-          variant={filter === "aborted" ? "default" : "outline"}
-          onClick={() => setFilter("aborted")}
-        >
-          Aborted
-        </Button>
-      </div>
+      <ScrollReveal variant="fade-up" delay={100}>
+        <div className="flex space-x-2 mb-6">
+          <Button
+            variant={filter === "all" ? "default" : "outline"}
+            onClick={() => setFilter("all")}
+          >
+            Active Programmes
+          </Button>
+          <Button
+            variant={filter === "upcoming" ? "default" : "outline"}
+            onClick={() => setFilter("upcoming")}
+          >
+            Upcoming
+          </Button>
+          <Button
+            variant={filter === "past" ? "default" : "outline"}
+            onClick={() => setFilter("past")}
+          >
+            Completed
+          </Button>
+          <Button
+            variant={filter === "aborted" ? "default" : "outline"}
+            onClick={() => setFilter("aborted")}
+          >
+            Aborted
+          </Button>
+        </div>
+      </ScrollReveal>
 
       {filteredEvents.length === 0 ? (
-        <div className="text-center py-12 animate-fade-in">
-          <h3 className="mb-2">No Programmes Found</h3>
-          <p className="text-muted-foreground mb-4">
-            {filter === "aborted" 
-              ? "No aborted programmes found." 
-              : "There are no programmes matching your filters. Time to plan one?"
-            }
-          </p>
-          {filter !== "aborted" && (
-            <Button asChild>
-              <Link to="/events/new">Plan a Programme</Link>
-            </Button>
-          )}
-        </div>
+        <ScrollReveal variant="fade-up">
+          <div className="text-center py-12">
+            <h3 className="mb-2">No Programmes Found</h3>
+            <p className="text-muted-foreground mb-4">
+              {filter === "aborted" 
+                ? "No aborted programmes found." 
+                : "There are no programmes matching your filters. Time to plan one?"
+              }
+            </p>
+            {filter !== "aborted" && (
+              <Button asChild>
+                <Link to="/events/new">Plan a Programme</Link>
+              </Button>
+            )}
+          </div>
+        </ScrollReveal>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents.map((event, index) => (
-            <Card key={event.id} className="card-hover hover-lift animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+        <ScrollRevealGroup className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" staggerDelay={80}>
+          {filteredEvents.map((event) => (
+            <Card key={event.id} className="card-hover hover-lift">
               <CardHeader>
                 <div className="flex justify-between items-start gap-2">
                   <CardTitle className="text-lg flex-1">{event.title}</CardTitle>
@@ -279,7 +285,7 @@ const EventList = () => {
               </CardFooter>
             </Card>
           ))}
-        </div>
+        </ScrollRevealGroup>
       )}
     </div>
   );
