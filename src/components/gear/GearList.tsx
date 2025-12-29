@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import GearPhotoPreview from "./GearPhotoPreview";
 import { useGearInventory } from "@/hooks/useGearInventory";
+import { ScrollReveal, ScrollRevealGroup } from "@/components/ui/scroll-reveal";
 
 const GearList = () => {
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -124,50 +125,56 @@ const GearList = () => {
 
   return (
     <div className="space-y-6 page-enter">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1>Inventory</h1>
-          <p className="text-muted-foreground">Track and maintain your kit.</p>
-        </div>
-        <Button asChild>
-          <Link to="/gear/new">Log New Gear</Link>
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <Input
-          placeholder="Search inventory..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
-        />
-        {(loading || retryCount > 0) && (
-          <Button variant="outline" size="sm" onClick={refetch}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            {loading ? 'Loading...' : 'Refresh'}
+      <ScrollReveal variant="fade-up">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1>Inventory</h1>
+            <p className="text-muted-foreground">Track and maintain your kit.</p>
+          </div>
+          <Button asChild>
+            <Link to="/gear/new">Log New Gear</Link>
           </Button>
-        )}
-      </div>
+        </div>
+      </ScrollReveal>
+
+      <ScrollReveal variant="fade-up" delay={100}>
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="Search inventory..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-sm"
+          />
+          {(loading || retryCount > 0) && (
+            <Button variant="outline" size="sm" onClick={refetch}>
+              <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              {loading ? 'Loading...' : 'Refresh'}
+            </Button>
+          )}
+        </div>
+      </ScrollReveal>
 
       {loading && gear.length === 0 ? (
         <LoadingSkeleton />
       ) : filteredGear.length === 0 ? (
-        <div className="text-center py-12">
-          <Package className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 mb-2">Inventory is Empty</h3>
-          <p className="text-muted-foreground mb-4">
-            {searchTerm
-              ? "No gear matches your search."
-              : "Log your first piece of gear to get started."}
-          </p>
-          <Button asChild>
-            <Link to="/gear/new">Log Gear Item</Link>
-          </Button>
-        </div>
+        <ScrollReveal variant="fade-up">
+          <div className="text-center py-12">
+            <Package className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h3 className="mt-4 mb-2">Inventory is Empty</h3>
+            <p className="text-muted-foreground mb-4">
+              {searchTerm
+                ? "No gear matches your search."
+                : "Log your first piece of gear to get started."}
+            </p>
+            <Button asChild>
+              <Link to="/gear/new">Log Gear Item</Link>
+            </Button>
+          </div>
+        </ScrollReveal>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredGear.map((item, index) => (
-            <Card key={item.id} className="card-premium card-hover hover-lift animate-fade-in overflow-hidden" style={{ animationDelay: `${index * 0.05}s` }}>
+        <ScrollRevealGroup className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" staggerDelay={60}>
+          {filteredGear.map((item) => (
+            <Card key={item.id} className="card-premium card-hover hover-lift overflow-hidden">
               <CardHeader className="pb-3">
                 <div className="flex gap-4 items-start">
                   <GearPhotoPreview 
@@ -238,7 +245,7 @@ const GearList = () => {
               </CardFooter>
             </Card>
           ))}
-        </div>
+        </ScrollRevealGroup>
       )}
     </div>
   );
