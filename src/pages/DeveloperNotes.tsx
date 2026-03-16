@@ -26,12 +26,15 @@ const DeveloperNotes = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p>
-                TPAC OS is a comprehensive programme management system designed for field operations coordination. 
+              TPAC OS is a comprehensive programme management system designed for field operations coordination. 
                 The system handles event planning, gear inventory, participant management, itinerary scheduling, 
                 and after-action reporting for organizational programmes.
               </p>
               <p className="text-sm text-muted-foreground mt-2 italic">
-                by fittra syaifullah
+                by fittra syaifullah AY 25/26
+              </p>
+              <p className="text-sm text-muted-foreground italic">
+                System is to be kept running perpetually
               </p>
             </CardContent>
           </Card>
