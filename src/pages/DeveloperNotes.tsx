@@ -30,6 +30,9 @@ const DeveloperNotes = () => {
                 The system handles event planning, gear inventory, participant management, itinerary scheduling, 
                 and after-action reporting for organizational programmes.
               </p>
+              <p className="text-sm text-muted-foreground mt-2 italic">
+                by fittra syaifullah
+              </p>
             </CardContent>
           </Card>
         </ScrollReveal>
