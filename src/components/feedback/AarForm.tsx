@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { FileText, Send } from "lucide-react";
-
+import { supabase } from "@/integrations/supabase/client";
 const aarFormSchema = z.object({
   programmeTitle: z.string().min(1, "Programme title is required"),
   reporterName: z.string().min(1, "Reporter name is required"),
