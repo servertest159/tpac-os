@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,21 +7,36 @@ import { useGearInventory } from "@/hooks/useGearInventory";
 import { useEvents } from "@/hooks/useEvents";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollReveal, ScrollRevealGroup } from "@/components/ui/scroll-reveal";
+import { supabase } from "@/integrations/supabase/client";
 
 const DashboardOverview = () => {
   const { gear, loading: gearLoading } = useGearInventory();
   const { events, loading: eventsLoading } = useEvents();
+  const [aarCount, setAarCount] = useState(0);
+
+  useEffect(() => {
+    const fetchAarCount = async () => {
+      const { count, error } = await supabase
+        .from('aar_reports')
+        .select('*', { count: 'exact', head: true });
+      if (!error && count !== null) setAarCount(count);
+    };
+    fetchAarCount();
+
+    const channel = supabase
+      .channel('aar-reports-dashboard')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'aar_reports' }, () => fetchAarCount())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   const loading = gearLoading || eventsLoading;
 
-  const totalGear = gear.reduce((sum, item) => sum + item.quantity, 0);
+  const totalGearAvailable = gear.reduce((sum, item) => sum + item.available, 0);
+  const totalGearQuantity = gear.reduce((sum, item) => sum + item.quantity, 0);
 
   const upcomingEventsData = events.filter(e => new Date(e.date) > new Date());
   const upcomingEventsCount = upcomingEventsData.length;
-  
-  // Calculate actual AARs submitted - this would come from feedback data
-  // For now using a placeholder that can be updated when feedback data is available
-  const completedAARs = 0; // This should be calculated from actual feedback data
   
   const stats = [
     {
@@ -32,9 +47,9 @@ const DashboardOverview = () => {
       link: "/events",
     },
     {
-      title: "Gear in Inventory",
-      value: loading ? <Skeleton className="h-6 w-10" /> : totalGear,
-      description: "Items ready for deployment",
+      title: "Gear Ready for Deployment",
+      value: loading ? <Skeleton className="h-6 w-10" /> : `${totalGearAvailable} / ${totalGearQuantity}`,
+      description: "Available items out of total inventory",
       icon: <Package className="h-8 w-8 text-forest" />,
       link: "/gear",
     },
@@ -80,7 +95,7 @@ const DashboardOverview = () => {
             <MessageSquare className="h-8 w-8 text-forest" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{completedAARs}</div>
+            <div className="text-2xl font-bold">{loading ? <Skeleton className="h-6 w-10" /> : aarCount}</div>
             <p className="text-xs text-muted-foreground">After Action Reviews logged</p>
           </CardContent>
           <CardFooter>
