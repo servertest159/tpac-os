@@ -47,9 +47,9 @@ const DashboardOverview = () => {
       link: "/events",
     },
     {
-      title: "Gear in Inventory",
-      value: loading ? <Skeleton className="h-6 w-10" /> : totalGear,
-      description: "Items ready for deployment",
+      title: "Gear Ready for Deployment",
+      value: loading ? <Skeleton className="h-6 w-10" /> : `${totalGearAvailable} / ${totalGearQuantity}`,
+      description: "Available items out of total inventory",
       icon: <Package className="h-8 w-8 text-forest" />,
       link: "/gear",
     },
