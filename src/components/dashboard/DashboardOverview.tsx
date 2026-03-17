@@ -95,7 +95,7 @@ const DashboardOverview = () => {
             <MessageSquare className="h-8 w-8 text-forest" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{completedAARs}</div>
+            <div className="text-2xl font-bold">{loading ? <Skeleton className="h-6 w-10" /> : aarCount}</div>
             <p className="text-xs text-muted-foreground">After Action Reviews logged</p>
           </CardContent>
           <CardFooter>
