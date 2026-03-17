@@ -14,6 +14,107 @@ export type Database = {
   }
   public: {
     Tables: {
+      aar_forms: {
+        Row: {
+          average_rating: number
+          created_at: string
+          event_date: string
+          id: string
+          participant_count: number
+          response_count: number
+          status: string
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          average_rating?: number
+          created_at?: string
+          event_date?: string
+          id?: string
+          participant_count?: number
+          response_count?: number
+          status?: string
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          average_rating?: number
+          created_at?: string
+          event_date?: string
+          id?: string
+          participant_count?: number
+          response_count?: number
+          status?: string
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
+      aar_reports: {
+        Row: {
+          additional_comments: string | null
+          created_at: string
+          date_of_programme: string
+          event_id: string | null
+          id: string
+          lessons_learned: string
+          location: string
+          objectives_met: string
+          participants: string
+          programme_title: string
+          recommendations: string | null
+          reporter_name: string
+          updated_at: string
+          what_could_be_improved: string
+          what_went_well: string
+        }
+        Insert: {
+          additional_comments?: string | null
+          created_at?: string
+          date_of_programme: string
+          event_id?: string | null
+          id?: string
+          lessons_learned: string
+          location: string
+          objectives_met: string
+          participants: string
+          programme_title: string
+          recommendations?: string | null
+          reporter_name: string
+          updated_at?: string
+          what_could_be_improved: string
+          what_went_well: string
+        }
+        Update: {
+          additional_comments?: string | null
+          created_at?: string
+          date_of_programme?: string
+          event_id?: string | null
+          id?: string
+          lessons_learned?: string
+          location?: string
+          objectives_met?: string
+          participants?: string
+          programme_title?: string
+          recommendations?: string | null
+          reporter_name?: string
+          updated_at?: string
+          what_could_be_improved?: string
+          what_went_well?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aar_reports_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clearance_documents: {
         Row: {
           clearance_id: string

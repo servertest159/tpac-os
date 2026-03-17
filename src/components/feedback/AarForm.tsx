@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { FileText, Send } from "lucide-react";
-
+import { supabase } from "@/integrations/supabase/client";
 const aarFormSchema = z.object({
   programmeTitle: z.string().min(1, "Programme title is required"),
   reporterName: z.string().min(1, "Reporter name is required"),
@@ -57,13 +57,23 @@ const AarForm = () => {
     setIsSubmitting(true);
     
     try {
-      // Here you would typically save the AAR to the database
-      // For now, we'll simulate saving and show success
-      console.log("AAR Report Data:", values);
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const { error } = await supabase.from('aar_reports').insert({
+        programme_title: values.programmeTitle,
+        reporter_name: values.reporterName,
+        date_of_programme: values.dateOfProgramme,
+        location: values.location,
+        participants: values.participants,
+        objectives_met: values.objectivesMet,
+        what_went_well: values.whatWentWell,
+        what_could_be_improved: values.whatCouldBeImproved,
+        lessons_learned: values.lessonsLearned,
+        recommendations: values.recommendations || null,
+        additional_comments: values.additionalComments || null,
+        event_id: eventId || null,
+      });
+
+      if (error) throw error;
+
       toast({
         title: "✅ AAR Report Filed Successfully",
         description: "Your After Action Report has been submitted and logged.",
@@ -71,6 +81,7 @@ const AarForm = () => {
       
       navigate("/feedback");
     } catch (error) {
+      console.error("Error submitting AAR:", error);
       toast({
         title: "❌ Failed to Submit AAR",
         description: "There was an error submitting your report. Please try again.",
