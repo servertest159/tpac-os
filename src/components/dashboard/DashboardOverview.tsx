@@ -2,12 +2,20 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Package, MessageSquare } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Package, MessageSquare, Activity, CheckCircle, XCircle, Clock } from "lucide-react";
 import { useGearInventory } from "@/hooks/useGearInventory";
 import { useEvents } from "@/hooks/useEvents";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollReveal, ScrollRevealGroup } from "@/components/ui/scroll-reveal";
 import { supabase } from "@/integrations/supabase/client";
+
+const statusConfig: Record<string, { label: string; icon: React.ReactNode; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+  active: { label: "Active", icon: <Activity className="h-3 w-3" />, variant: "default" },
+  upcoming: { label: "Upcoming", icon: <Clock className="h-3 w-3" />, variant: "secondary" },
+  completed: { label: "Completed", icon: <CheckCircle className="h-3 w-3" />, variant: "outline" },
+  aborted: { label: "Aborted", icon: <XCircle className="h-3 w-3" />, variant: "destructive" },
+};
 
 const DashboardOverview = () => {
   const { gear, loading: gearLoading } = useGearInventory();
@@ -35,14 +43,31 @@ const DashboardOverview = () => {
   const totalGearAvailable = gear.reduce((sum, item) => sum + item.available, 0);
   const totalGearQuantity = gear.reduce((sum, item) => sum + item.quantity, 0);
 
-  const upcomingEventsData = events.filter(e => new Date(e.date) > new Date());
-  const upcomingEventsCount = upcomingEventsData.length;
-  
+  // Categorize events by status
+  const now = new Date();
+  const categorizedEvents = events.map(e => {
+    const status = e.status || 'active';
+    // If status is 'active' but date is in the future, treat as upcoming
+    if (status === 'active' && new Date(e.date) > now) {
+      return { ...e, displayStatus: 'upcoming' };
+    }
+    return { ...e, displayStatus: status };
+  });
+
+  const statusCounts = {
+    upcoming: categorizedEvents.filter(e => e.displayStatus === 'upcoming').length,
+    active: categorizedEvents.filter(e => e.displayStatus === 'active').length,
+    completed: categorizedEvents.filter(e => e.displayStatus === 'completed').length,
+    aborted: categorizedEvents.filter(e => e.displayStatus === 'aborted').length,
+  };
+
+  const totalProgrammes = events.length;
+
   const stats = [
     {
-      title: "Upcoming Programmes",
-      value: loading ? <Skeleton className="h-6 w-10" /> : upcomingEventsCount,
-      description: "Programmes in the near future",
+      title: "Total Programmes",
+      value: loading ? <Skeleton className="h-6 w-10" /> : totalProgrammes,
+      description: "All programmes across all statuses",
       icon: <Calendar className="h-8 w-8 text-forest" />,
       link: "/events",
     },
@@ -53,9 +78,25 @@ const DashboardOverview = () => {
       icon: <Package className="h-8 w-8 text-forest" />,
       link: "/gear",
     },
+    {
+      title: "AARs Submitted",
+      value: loading ? <Skeleton className="h-6 w-10" /> : aarCount,
+      description: "After Action Reviews logged",
+      icon: <MessageSquare className="h-8 w-8 text-forest" />,
+      link: "/feedback",
+    },
   ];
-  
-  const recentUpcomingEvents = upcomingEventsData.slice(0, 3);
+
+  // Show most recent events (up to 6) across all statuses
+  const recentEvents = [...events]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 6);
+
+  const getEventDisplayStatus = (event: typeof events[0]) => {
+    const status = event.status || 'active';
+    if (status === 'active' && new Date(event.date) > now) return 'upcoming';
+    return status;
+  };
 
   return (
     <div className="space-y-8 page-enter">
@@ -87,30 +128,42 @@ const DashboardOverview = () => {
             </CardFooter>
           </Card>
         ))}
-        
-        {/* AARs Submitted Card */}
-        <Card className="card-hover hover-lift md:col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">AARs Submitted</CardTitle>
-            <MessageSquare className="h-8 w-8 text-forest" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? <Skeleton className="h-6 w-10" /> : aarCount}</div>
-            <p className="text-xs text-muted-foreground">After Action Reviews logged</p>
-          </CardContent>
-          <CardFooter>
-            <Button asChild variant="ghost" size="sm" className="w-full">
-              <Link to="/feedback">View Details</Link>
-            </Button>
-          </CardFooter>
-        </Card>
       </ScrollRevealGroup>
 
-      {/* Upcoming Events Section */}
+      {/* Programme Status Breakdown */}
+      {!loading && totalProgrammes > 0 && (
+        <ScrollReveal variant="fade-up" delay={100}>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Programme Status Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {Object.entries(statusCounts).map(([status, count]) => {
+                  const config = statusConfig[status];
+                  return (
+                    <div key={status} className="flex items-center gap-3 p-3 rounded-lg border bg-card">
+                      <div className="flex items-center gap-1.5">
+                        {config?.icon}
+                        <span className="text-sm font-medium capitalize">{config?.label || status}</span>
+                      </div>
+                      <Badge variant={config?.variant || "secondary"} className="ml-auto">
+                        {count}
+                      </Badge>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </ScrollReveal>
+      )}
+
+      {/* Recent Programmes Section */}
       <ScrollReveal variant="fade-up" delay={200}>
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Upcoming Programmes</h2>
+            <h2 className="text-xl font-semibold">Recent Programmes</h2>
             <Button asChild variant="outline" size="sm">
               <Link to="/events">View All Programmes</Link>
             </Button>
@@ -132,32 +185,41 @@ const DashboardOverview = () => {
                   </CardFooter>
                 </Card>
               ))
-            ) : recentUpcomingEvents.map((event) => (
-              <Card key={event.id} className="card-hover hover-lift">
-                <CardHeader>
-                  <CardTitle className="text-lg">{event.title}</CardTitle>
-                  <CardDescription className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {new Date(event.date).toLocaleDateString(undefined, {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between text-sm">
-                    <span>{event.location}</span>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button asChild variant="default" size="sm" className="w-full">
-                    <Link to={`/events/${event.id}`}>View Debrief</Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
+            ) : recentEvents.map((event) => {
+              const displayStatus = getEventDisplayStatus(event);
+              const config = statusConfig[displayStatus];
+              return (
+                <Card key={event.id} className="card-hover hover-lift">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">{event.title}</CardTitle>
+                      <Badge variant={config?.variant || "secondary"} className="text-xs">
+                        {config?.label || displayStatus}
+                      </Badge>
+                    </div>
+                    <CardDescription className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {new Date(event.date).toLocaleDateString(undefined, {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex justify-between text-sm">
+                      <span>{event.location}</span>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button asChild variant="default" size="sm" className="w-full">
+                      <Link to={`/events/${event.id}`}>View Debrief</Link>
+                    </Button>
+                  </CardFooter>
+                </Card>
+              );
+            })}
           </ScrollRevealGroup>
         </div>
       </ScrollReveal>
