@@ -110,19 +110,29 @@ export const useGearInventory = () => {
   }, []);
 
   const deleteGear = useCallback(async (id: string) => {
+    // Optimistic UI update — remove immediately
+    setGear(prev => {
+      const updated = prev.filter(item => item.id !== id);
+      saveCache(updated);
+      return updated;
+    });
+
     try {
       const { error } = await supabase
         .from('gear')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
-      // Real-time subscription will handle UI update
+      if (error) {
+        // Revert on failure
+        fetchGear();
+        throw error;
+      }
     } catch (error) {
       console.error('Error deleting gear:', error);
       throw error;
     }
-  }, []);
+  }, [fetchGear]);
 
   useEffect(() => {
     fetchGear();
