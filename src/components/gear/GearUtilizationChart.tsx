@@ -26,17 +26,23 @@ const GearUtilizationChart: React.FC<Props> = ({ gear }) => {
   React.useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      const { data } = await supabase
+      const { data: rows } = await supabase
         .from("gear_events")
-        .select("quantity, events(title)")
+        .select("quantity, event_id")
         .order("created_at", { ascending: false })
         .limit(500);
-      if (cancelled || !data) return;
+      if (cancelled || !rows) return;
+      const ids = Array.from(new Set(rows.map((r: any) => r.event_id).filter(Boolean)));
+      const { data: evs } = ids.length
+        ? await supabase.from("events").select("id, title").in("id", ids)
+        : { data: [] as any[] };
+      const titleById = new Map<string, string>((evs ?? []).map((e: any) => [e.id, e.title]));
       const map = new Map<string, number>();
-      data.forEach((row: any) => {
-        const title = row.events?.title ?? "Unassigned";
+      rows.forEach((row: any) => {
+        const title = titleById.get(row.event_id) ?? "Unassigned";
         map.set(title, (map.get(title) ?? 0) + (row.quantity ?? 0));
       });
+      if (cancelled) return;
       setEventUsage(
         Array.from(map.entries())
           .map(([name, deployed]) => ({ name, deployed }))
