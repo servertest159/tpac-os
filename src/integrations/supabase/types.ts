@@ -465,6 +465,7 @@ export type Database = {
       }
       gear: {
         Row: {
+          archived_at: string | null
           available: number
           condition: string
           created_at: string | null
@@ -480,6 +481,7 @@ export type Database = {
           uploaded_at: string | null
         }
         Insert: {
+          archived_at?: string | null
           available?: number
           condition?: string
           created_at?: string | null
@@ -495,6 +497,7 @@ export type Database = {
           uploaded_at?: string | null
         }
         Update: {
+          archived_at?: string | null
           available?: number
           condition?: string
           created_at?: string | null
