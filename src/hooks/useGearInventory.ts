@@ -16,6 +16,7 @@ export interface GearItem {
   updated_at?: string;
   photo_url?: string | null;
   uploaded_at?: string;
+  archived_at?: string | null;
 }
 
 const CACHE_KEY = 'tpac_gear_cache';
