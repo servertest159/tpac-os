@@ -16,15 +16,17 @@ export const useEvents = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const fetchEvents = useCallback(async () => {
+  const fetchEvents = useCallback(async (includeArchived = false) => {
     try {
       setLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await supabase
+      let query = supabase
         .from('events')
         .select('*, event_role_requirements(quantity)')
         .order('date', { ascending: true });
+      if (!includeArchived) query = query.is('archived_at', null);
+      const { data, error: fetchError } = await query;
 
       if (fetchError) throw fetchError;
 
