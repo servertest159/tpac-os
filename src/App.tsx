@@ -13,11 +13,15 @@ import FeedbackNew from "@/pages/FeedbackNew";
 import InventoryLoadout from "@/pages/InventoryLoadout";
 import Profile from "@/pages/Profile";
 import DeveloperNotes from "@/pages/DeveloperNotes";
+import AdminAccess from "@/pages/AdminAccess";
 import NotFound from "@/pages/NotFound";
 import "./App.css";
 
 import { Toaster } from "@/components/ui/toaster";
 import AccessGate from "@/components/auth/AccessGate";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+import ConnectionBanner from "@/components/ui/connection-banner";
+
 function App() {
   const [hasAccess, setHasAccess] = useState<boolean>(() => localStorage.getItem('tpac_access_granted') === 'true');
 
@@ -27,25 +31,29 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        
-        <Route path="/events" element={<Events />} />
-        <Route path="/events/new" element={<EventNew />} />
-        <Route path="/events/:id" element={<EventDetail />} />
-        <Route path="/events/:id/edit" element={<EventNew />} />
-        <Route path="/events/:id/gear" element={<InventoryLoadout />} />
-        <Route path="/gear" element={<Gear />} />
-        <Route path="/gear/new" element={<GearNew />} />
-        <Route path="/gear/:id/edit" element={<GearEdit />} />
-        <Route path="/feedback" element={<Feedback />} />
-        <Route path="/feedback/new" element={<FeedbackNew />} />
-        <Route path="/inventory-loadout" element={<InventoryLoadout />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/developer-notes" element={<DeveloperNotes />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <ConnectionBanner />
+      <ErrorBoundary>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+
+          <Route path="/events" element={<Events />} />
+          <Route path="/events/new" element={<EventNew />} />
+          <Route path="/events/:id" element={<EventDetail />} />
+          <Route path="/events/:id/edit" element={<EventNew />} />
+          <Route path="/events/:id/gear" element={<InventoryLoadout />} />
+          <Route path="/gear" element={<Gear />} />
+          <Route path="/gear/new" element={<GearNew />} />
+          <Route path="/gear/:id/edit" element={<GearEdit />} />
+          <Route path="/feedback" element={<Feedback />} />
+          <Route path="/feedback/new" element={<FeedbackNew />} />
+          <Route path="/inventory-loadout" element={<InventoryLoadout />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/admin/access" element={<AdminAccess />} />
+          <Route path="/developer-notes" element={<DeveloperNotes />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </ErrorBoundary>
       <Toaster />
     </BrowserRouter>
   );
