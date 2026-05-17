@@ -54,6 +54,7 @@ const Header = () => {
     { path: "/gear", label: "Inventory", icon: <Package className="w-4 h-4" /> },
     { path: "/feedback", label: "AARs", icon: <MessageSquare className="w-4 h-4" /> },
     { path: "/profile", label: "Profile", icon: <User className="w-4 h-4" /> },
+    ...(isSuperAdmin() ? [{ path: "/admin/access", label: "Access", icon: <KeyRound className="w-4 h-4" /> }] : []),
     { path: "/developer-notes", label: "Dev Notes", icon: <FileCode className="w-4 h-4" /> },
   ];
 
