@@ -115,6 +115,75 @@ export type Database = {
           },
         ]
       }
+      access_codes: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          expires_at: string | null
+          holder_name: string | null
+          id: string
+          last_used_at: string | null
+          notes: string | null
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          expires_at?: string | null
+          holder_name?: string | null
+          id?: string
+          last_used_at?: string | null
+          notes?: string | null
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          expires_at?: string | null
+          holder_name?: string | null
+          id?: string
+          last_used_at?: string | null
+          notes?: string | null
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      access_codes_audit_log: {
+        Row: {
+          access_code_id: string | null
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          performed_by_code: string | null
+          performed_by_role: string | null
+        }
+        Insert: {
+          access_code_id?: string | null
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          performed_by_code?: string | null
+          performed_by_role?: string | null
+        }
+        Update: {
+          access_code_id?: string | null
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          performed_by_code?: string | null
+          performed_by_role?: string | null
+        }
+        Relationships: []
+      }
       clearance_documents: {
         Row: {
           clearance_id: string
