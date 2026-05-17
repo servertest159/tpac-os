@@ -2,8 +2,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Calendar, Package, MessageSquare, LogOut, User, FileCode } from "lucide-react";
+import { LayoutDashboard, Calendar, Package, MessageSquare, LogOut, User, FileCode, KeyRound } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isSuperAdmin } from "@/lib/auth";
 
 
 const cleanupAuthState = () => {
