@@ -177,6 +177,10 @@ const GearList = () => {
         <GearUtilizationChart gear={gear.filter((g) => !g.archived_at)} />
       </ScrollReveal>
 
+      <ScrollReveal variant="fade-up" delay={120}>
+        <GearUsageHistory />
+      </ScrollReveal>
+
       <div className="flex flex-wrap items-center gap-3">
         <Input
           placeholder="Search inventory..."
