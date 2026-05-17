@@ -96,51 +96,13 @@ const DeveloperNotes = () => {
           </Card>
         </ScrollReveal>
 
-        {/* Security & RLS */}
-        <ScrollReveal variant="fade-right">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Security & Row Level Security
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <h4 className="font-semibold">Events Table Policies</h4>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>✓ Public read access for all events</li>
-                  <li>✓ Users can create events (auto-assigned as creator)</li>
-                  <li>✓ Only event creators can update their events</li>
-                  <li>✓ All authenticated users can delete events</li>
-                </ul>
-              </div>
-              <div className="space-y-2">
-                <h4 className="font-semibold">Gear Table Policies</h4>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>✓ Public read access for all gear</li>
-                  <li>✓ Admins only for create/update/delete operations</li>
-                  <li>✓ Uses <code className="bg-muted px-1 rounded">has_role()</code> function for permission checks</li>
-                </ul>
-              </div>
-              <div className="space-y-2">
-                <h4 className="font-semibold">Audit Logging</h4>
-                <p className="text-sm text-muted-foreground">
-                  All access to sensitive data (profiles, clearances, relief contacts) is logged 
-                  with IP addresses, timestamps, and accessed fields for security monitoring.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </ScrollReveal>
-
         {/* Role System */}
         <ScrollReveal variant="fade-left">
           <Card>
             <CardHeader>
               <CardTitle>Role-Based Access Control</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <div className="space-y-2">
                 <h4 className="font-semibold">Available Roles</h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
@@ -153,33 +115,22 @@ const DeveloperNotes = () => {
                   <span>• Publicity Heads</span>
                   <span>• Member</span>
                 </div>
-                <p className="text-sm text-muted-foreground mt-4">
-                  Admin roles (President, Vice-President) have elevated permissions for gear management, 
-                  user management, and viewing all profiles and audit logs.
-                </p>
               </div>
-            </CardContent>
-          </Card>
-        </ScrollReveal>
-
-        {/* Future Enhancements */}
-        <ScrollReveal variant="fade-right">
-          <Card>
-            <CardHeader>
-              <CardTitle>Future Enhancements</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
-                <span>• Soft delete / archive functionality</span>
-                <span>• Undo after delete feature</span>
-                <span>• Bulk operations</span>
-                <span>• Advanced search and filtering</span>
-                <span>• Export functionality (PDF, CSV)</span>
-                <span>• Calendar view for programmes</span>
-                <span>• Mobile app version</span>
-                <span>• Push notifications</span>
-                <span>• Gear maintenance reminders</span>
-                <span>• Analytics dashboard</span>
+              <div className="space-y-2">
+                <h4 className="font-semibold">Admin Permissions</h4>
+                <p className="text-sm text-muted-foreground">
+                  All admin roles (President, Vice-President, Honorary Secretary, Honorary Treasurer,
+                  Training Heads, Quartermaster, and Publicity Heads) have full permissions for:
+                </p>
+                <ul className="text-sm text-muted-foreground space-y-1 pl-4">
+                  <li>✓ Gear management (create, edit, archive, delete inventory)</li>
+                  <li>✓ User management (invite, assign roles, deactivate)</li>
+                  <li>✓ Viewing all profiles across the organisation</li>
+                  <li>✓ Accessing audit logs and security monitoring</li>
+                </ul>
+                <p className="text-sm text-muted-foreground italic mt-2">
+                  Members retain read-only access scoped to their own profile and assigned programmes.
+                </p>
               </div>
             </CardContent>
           </Card>
