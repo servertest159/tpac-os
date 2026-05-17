@@ -135,6 +135,23 @@ const DeveloperNotes = () => {
             </CardContent>
           </Card>
         </ScrollReveal>
+
+        {/* Future Enhancements */}
+        <ScrollReveal variant="fade-right">
+          <Card>
+            <CardHeader>
+              <CardTitle>Future Enhancements</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                <span>• Mobile app version</span>
+                <span>• Push notifications</span>
+                <span>• Gear maintenance reminders</span>
+                <span>• Advanced analytics dashboard</span>
+              </div>
+            </CardContent>
+          </Card>
+        </ScrollReveal>
       </div>
     </MainLayout>
   );
