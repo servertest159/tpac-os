@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import GearPhotoPreview from "./GearPhotoPreview";
 import GearUtilizationChart from "./GearUtilizationChart";
+import GearUsageHistory from "./GearUsageHistory";
 import { useGearInventory, type GearItem } from "@/hooks/useGearInventory";
 import { ScrollReveal, ScrollRevealGroup } from "@/components/ui/scroll-reveal";
 import { supabase } from "@/integrations/supabase/client";
@@ -174,6 +175,10 @@ const GearList = () => {
 
       <ScrollReveal variant="fade-up" delay={80}>
         <GearUtilizationChart gear={gear.filter((g) => !g.archived_at)} />
+      </ScrollReveal>
+
+      <ScrollReveal variant="fade-up" delay={120}>
+        <GearUsageHistory />
       </ScrollReveal>
 
       <div className="flex flex-wrap items-center gap-3">
