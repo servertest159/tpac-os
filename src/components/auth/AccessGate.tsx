@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
 import tpacLogo from "@/assets/tpac-logo.png";
 
 interface AccessGateProps {
@@ -14,48 +15,48 @@ const AccessGate: React.FC<AccessGateProps> = ({ onAccessGranted }) => {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const accessCodeRoles: { [key: number]: string } = {
-    938271: 'President',
-    472839: 'Vice-President',
-    615204: 'Honorary Secretary',
-    307198: 'Honorary Assistant Secretary',
-    529746: 'Honorary Treasurer',
-    184302: 'Honorary Assistant Treasurer',
-    763910: 'Training Head (General)',
-    920458: 'Training Head (Land)',
-    381207: 'Training Head (Water)',
-    640193: 'Training Head (Welfare)',
-    859321: 'Quartermaster',
-    712496: 'Assistant Quarter Master',
-    530984: 'Publicity Head',
-    298374: 'First Assistant Publicity Head',
-    476213: 'Second Assistant Publicity Head',
-    888888: 'Member',
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate a brief loading state for security appearance
-    setTimeout(() => {
-      const numericCode = parseInt(code.trim());
-      const role = accessCodeRoles[numericCode];
-      
-      if (role) {
-        setMessage(`✅ Access granted. Welcome, ${role}.`);
-        localStorage.setItem("tpac_access_granted", "true");
-        localStorage.setItem("tpac_user_role", role);
-        localStorage.setItem("tpac_access_code", code.trim());
-        setTimeout(() => {
-          onAccessGranted();
-        }, 1000);
-      } else {
-        setMessage("❌ Invalid code. This Platform is invite-only. Please contact the developer if you believe this is a mistake.");
+    setMessage("");
+
+    const trimmed = code.trim();
+    try {
+      const { data, error } = await supabase
+        .from("access_codes")
+        .select("id, code, role, holder_name, active, expires_at")
+        .eq("code", trimmed)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!data) {
+        setMessage("❌ Invalid code. This platform is invite-only. Contact the developer if you believe this is a mistake.");
         setCode("");
+      } else if (!data.active) {
+        setMessage("⚠️ This code has been deactivated. Please request a new one from your President or Vice-President.");
+        setCode("");
+      } else if (data.expires_at && new Date(data.expires_at) < new Date()) {
+        setMessage("⚠️ This code has expired. Please request a renewed code from your President or Vice-President.");
+        setCode("");
+      } else {
+        setMessage(`✅ Access granted. Welcome, ${data.holder_name || data.role}.`);
+        localStorage.setItem("tpac_access_granted", "true");
+        localStorage.setItem("tpac_user_role", data.role);
+        localStorage.setItem("tpac_access_code", trimmed);
+        if (data.holder_name) localStorage.setItem("tpac_holder_name", data.holder_name);
+
+        // Fire-and-forget: stamp last_used_at
+        supabase.from("access_codes").update({ last_used_at: new Date().toISOString() }).eq("id", data.id).then(() => {});
+
+        setTimeout(() => onAccessGranted(), 800);
       }
+    } catch (err) {
+      console.error("AccessGate error", err);
+      setMessage("❌ Could not verify code. Check your connection and try again.");
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   return (
@@ -83,19 +84,17 @@ const AccessGate: React.FC<AccessGateProps> = ({ onAccessGranted }) => {
                 className="text-center text-lg tracking-wider"
               />
             </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isLoading || !code.trim()}
-            >
+
+            <Button type="submit" className="w-full" disabled={isLoading || !code.trim()}>
               {isLoading ? "Verifying..." : "Access Platform"}
             </Button>
-            
+
             {message && (
               <div className={`text-center text-sm p-3 rounded ${
-                message.includes("✅") 
-                  ? "bg-green-50 text-green-700 border border-green-200" 
+                message.includes("✅")
+                  ? "bg-green-50 text-green-700 border border-green-200"
+                  : message.includes("⚠️")
+                  ? "bg-amber-50 text-amber-800 border border-amber-200"
                   : "bg-red-50 text-red-700 border border-red-200"
               }`}>
                 {message}
