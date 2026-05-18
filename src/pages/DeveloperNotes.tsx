@@ -2,7 +2,7 @@ import React from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
-import { Compass, KeyRound, Database, LifeBuoy, Clock, Archive } from "lucide-react";
+import { Compass, KeyRound, Database, LifeBuoy, Clock, Archive, FileDown } from "lucide-react";
 
 const DeveloperNotes = () => {
   return (
@@ -144,7 +144,53 @@ const DeveloperNotes = () => {
           </Card>
         </ScrollReveal>
 
-        <ScrollReveal variant="fade-up" delay={260}>
+        <ScrollReveal variant="fade-up" delay={240}>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileDown className="h-5 w-5" />
+                Exporting CSVs (Feedback & Gear)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                Use this when you need offline copies of AAR feedback or the gear inventory — for
+                hand-overs, reports, or external sharing. All exports go through the Supabase dashboard.
+              </p>
+              <div>
+                <p className="font-medium text-foreground mb-1">Export feedback (AAR forms & reports)</p>
+                <ol className="space-y-1 pl-4 list-decimal list-inside">
+                  <li>Open the Supabase dashboard → <strong>Table Editor</strong>.</li>
+                  <li>Select the <code>aar_reports</code> table for filed reports (or <code>aar_forms</code> for form links).</li>
+                  <li>Click the <strong>⋯</strong> menu in the top-right of the table → <strong>Export data as CSV</strong>.</li>
+                  <li>Save the file as <code>aar-reports-YYYY-MM-DD.csv</code> to the club's shared drive.</li>
+                  <li>Repeat for the other table if you need both.</li>
+                </ol>
+              </div>
+              <div>
+                <p className="font-medium text-foreground mb-1">Export gear inventory</p>
+                <ol className="space-y-1 pl-4 list-decimal list-inside">
+                  <li>Open the Supabase dashboard → <strong>Table Editor</strong> → <code>gear</code>.</li>
+                  <li>(Optional) Filter to a category or condition using the <strong>Filter</strong> button before exporting.</li>
+                  <li>Click the <strong>⋯</strong> menu → <strong>Export data as CSV</strong>.</li>
+                  <li>Save as <code>gear-inventory-YYYY-MM-DD.csv</code>.</li>
+                  <li>For usage history, repeat with the <code>gear_usage</code> table and save as <code>gear-usage-YYYY-MM-DD.csv</code>.</li>
+                </ol>
+              </div>
+              <div>
+                <p className="font-medium text-foreground mb-1">Custom export (specific columns or joins)</p>
+                <ol className="space-y-1 pl-4 list-decimal list-inside">
+                  <li>Open Supabase → <strong>SQL Editor</strong>.</li>
+                  <li>Write a <code>SELECT</code> query (e.g. join <code>aar_reports</code> with <code>events</code>).</li>
+                  <li>Run it, then click <strong>Download CSV</strong> on the results panel.</li>
+                </ol>
+              </div>
+              <p className="italic">Open the CSV in Google Sheets or Excel. UTF-8 is preserved, so names and notes render correctly.</p>
+            </CardContent>
+          </Card>
+        </ScrollReveal>
+
+        <ScrollReveal variant="fade-up" delay={280}>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
