@@ -2,7 +2,7 @@ import React from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
-import { Compass, KeyRound, Database, LifeBuoy, Clock } from "lucide-react";
+import { Compass, KeyRound, Database, LifeBuoy, Clock, Archive } from "lucide-react";
 
 const DeveloperNotes = () => {
   return (
@@ -100,7 +100,51 @@ const DeveloperNotes = () => {
           </Card>
         </ScrollReveal>
 
-        <ScrollReveal variant="fade-up" delay={240}>
+        <ScrollReveal variant="fade-up" delay={220}>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Archive className="h-5 w-5" />
+                Backup & Restore
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                Supabase takes automatic daily backups of the entire database. This checklist is for
+                when a committee needs to export, restore, or hand over data deliberately.
+              </p>
+              <div>
+                <p className="font-medium text-foreground mb-1">Routine backup (monthly, recommended)</p>
+                <ol className="space-y-1 pl-4 list-decimal list-inside">
+                  <li>Open the Supabase dashboard → <strong>Database → Backups</strong>.</li>
+                  <li>Confirm the latest daily backup timestamp is within the last 24 hours.</li>
+                  <li>For an off-site copy, run <code>Database → Export</code> and save the SQL dump to the club's shared drive, named <code>tpac-os-YYYY-MM-DD.sql</code>.</li>
+                </ol>
+              </div>
+              <div>
+                <p className="font-medium text-foreground mb-1">Restoring after data loss</p>
+                <ol className="space-y-1 pl-4 list-decimal list-inside">
+                  <li>Stop further writes — deactivate non-admin codes at <code>/admin/access</code>.</li>
+                  <li>In Supabase → <strong>Database → Backups</strong>, pick the most recent backup before the incident and click <strong>Restore</strong>.</li>
+                  <li>Wait for the restore to complete (typically a few minutes), then reload the app.</li>
+                  <li>Spot-check: latest programmes visible, gear list intact, access codes still work.</li>
+                  <li>Re-activate the deactivated codes.</li>
+                </ol>
+              </div>
+              <div>
+                <p className="font-medium text-foreground mb-1">Hand-over export (end of AY)</p>
+                <ol className="space-y-1 pl-4 list-decimal list-inside">
+                  <li>Export a full SQL dump as above and store it in the incoming committee's drive.</li>
+                  <li>Export key tables to CSV (<code>events</code>, <code>gear</code>, <code>profiles</code>) for offline reference.</li>
+                  <li>Rotate all access codes at <code>/admin/access</code> and update holder names.</li>
+                </ol>
+              </div>
+              <p className="italic">Keep at least the last 3 monthly exports. Backups you can't find are backups you don't have.</p>
+            </CardContent>
+          </Card>
+        </ScrollReveal>
+
+        <ScrollReveal variant="fade-up" delay={260}>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
