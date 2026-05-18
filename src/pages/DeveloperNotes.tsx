@@ -1,154 +1,121 @@
 import React from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileCode, Shield, Zap, Package, Users, Calendar, AlertTriangle } from "lucide-react";
-import { ScrollReveal, ScrollRevealGroup } from "@/components/ui/scroll-reveal";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { Compass, KeyRound, Database, LifeBuoy, Clock } from "lucide-react";
 
 const DeveloperNotes = () => {
   return (
     <MainLayout>
-      <div className="space-y-6 page-enter">
+      <div className="space-y-6 page-enter max-w-3xl mx-auto">
         <ScrollReveal variant="fade-up">
           <div>
-            <h1>Developer's Notes</h1>
-            <p className="text-muted-foreground">Technical documentation and system architecture</p>
+            <h1>System Notes</h1>
+            <p className="text-muted-foreground">
+              What this software is, and how to keep it running for the long haul.
+            </p>
           </div>
         </ScrollReveal>
 
-        {/* Overview */}
-        <ScrollReveal variant="fade-up" delay={100}>
+        <ScrollReveal variant="fade-up" delay={80}>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileCode className="h-5 w-5" />
-                System Overview
+                <Compass className="h-5 w-5" />
+                Purpose
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
               <p>
-              TPAC OS is a comprehensive programme management system designed for field operations coordination. 
-                The system handles event planning, gear inventory, participant management, itinerary scheduling, 
-                and after-action reporting for organizational programmes.
+                TPAC OS is the club's operating system for programmes: events, gear, participants,
+                itineraries, emergency contacts and after-action reports — all in one place,
+                in real time.
               </p>
-              <p className="text-sm text-muted-foreground mt-2 italic">
-                by fittra syaifullah AY 25/26
-              </p>
-              <p className="text-sm text-muted-foreground italic">
-                System is to be kept running perpetually
-              </p>
+              <p className="italic">Built by Fittra Syaifullah, AY 25/26. Designed to outlive any single committee.</p>
             </CardContent>
           </Card>
         </ScrollReveal>
 
-        {/* Core Features */}
-        <ScrollReveal variant="fade-up" delay={150}>
+        <ScrollReveal variant="fade-up" delay={120}>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Zap className="h-5 w-5" />
-                Core Features
+                <KeyRound className="h-5 w-5" />
+                Access & Roles
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <ScrollRevealGroup className="grid grid-cols-1 md:grid-cols-2 gap-4" staggerDelay={100}>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-primary" />
-                    <h4 className="font-semibold">Programme Management</h4>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Create, edit, and delete programmes with status tracking, multi-day support, 
-                    and real-time updates via Supabase subscriptions.
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Package className="h-4 w-4 text-primary" />
-                    <h4 className="font-semibold">Gear Inventory</h4>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Track gear with photos, quantities, conditions, and availability. 
-                    Detect conflicts for overlapping programme dates.
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-primary" />
-                    <h4 className="font-semibold">Participant System</h4>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Invitation management with status tracking, role-based requirements, 
-                    and profile management with contact info.
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <FileCode className="h-4 w-4 text-primary" />
-                    <h4 className="font-semibold">Itinerary & Reports</h4>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Day-by-day scheduling, emergency contacts, and after-action report 
-                    collection with ratings and feedback.
-                  </p>
-                </div>
-              </ScrollRevealGroup>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                Sign-in uses 6-digit access codes managed entirely from inside the app —
+                no source code changes required to onboard a new committee.
+              </p>
+              <ul className="space-y-1 pl-4">
+                <li>• <strong className="text-foreground">President & Vice-President</strong> manage codes at <code>/admin/access</code> (issue, rotate, deactivate).</li>
+                <li>• <strong className="text-foreground">All admin roles</strong> (Pres, VP, Hon Sec, Hon Treas, Training Heads, QM, Publicity) can manage gear, members, profiles and audit logs.</li>
+                <li>• <strong className="text-foreground">Members</strong> have read access scoped to their own profile and assigned programmes.</li>
+              </ul>
+              <p>At every AY hand-over: rotate codes, update holder names. That is the entire transition.</p>
             </CardContent>
           </Card>
         </ScrollReveal>
 
-        {/* Role System */}
-        <ScrollReveal variant="fade-left">
+        <ScrollReveal variant="fade-up" delay={160}>
           <Card>
             <CardHeader>
-              <CardTitle>Role-Based Access Control</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                Data & Storage
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <h4 className="font-semibold">Available Roles</h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
-                  <span>• President</span>
-                  <span>• Vice-President</span>
-                  <span>• Honorary Secretary</span>
-                  <span>• Honorary Treasurer</span>
-                  <span>• Training Heads</span>
-                  <span>• Quartermaster</span>
-                  <span>• Publicity Heads</span>
-                  <span>• Member</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <h4 className="font-semibold">Admin Permissions</h4>
-                <p className="text-sm text-muted-foreground">
-                  All admin roles (President, Vice-President, Honorary Secretary, Honorary Treasurer,
-                  Training Heads, Quartermaster, and Publicity Heads) have full permissions for:
-                </p>
-                <ul className="text-sm text-muted-foreground space-y-1 pl-4">
-                  <li>✓ Gear management (create, edit, archive, delete inventory)</li>
-                  <li>✓ User management (invite, assign roles, deactivate)</li>
-                  <li>✓ Viewing all profiles across the organisation</li>
-                  <li>✓ Accessing audit logs and security monitoring</li>
-                </ul>
-                <p className="text-sm text-muted-foreground italic mt-2">
-                  Members retain read-only access scoped to their own profile and assigned programmes.
-                </p>
-              </div>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                All data lives in Supabase (Postgres). Every sensitive table has Row Level Security
+                and an audit log. Photos and documents are stored in Supabase Storage buckets.
+              </p>
+              <p>
+                The UI updates in real time via Postgres change listeners — there is no manual refresh
+                or refetch logic to maintain.
+              </p>
             </CardContent>
           </Card>
         </ScrollReveal>
 
-        {/* Future Enhancements */}
-        <ScrollReveal variant="fade-right">
+        <ScrollReveal variant="fade-up" delay={200}>
           <Card>
             <CardHeader>
-              <CardTitle>Future Enhancements</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Built for 5+ Years
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
-                <span>• Mobile app version</span>
-                <span>• Push notifications</span>
-                <span>• Gear maintenance reminders</span>
-                <span>• Advanced analytics dashboard</span>
-              </div>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <ul className="space-y-2 pl-4">
+                <li>• <strong className="text-foreground">No hardcoded people.</strong> Codes, roles and form links live in the database, editable in-app.</li>
+                <li>• <strong className="text-foreground">Soft deletes & audit logs.</strong> Nothing is truly lost; every sensitive action is traceable.</li>
+                <li>• <strong className="text-foreground">Self-healing UI.</strong> Error boundaries and offline banners recover without a developer.</li>
+                <li>• <strong className="text-foreground">Stable stack.</strong> React + Supabase — both have long-term support commitments.</li>
+                <li>• <strong className="text-foreground">Documented in-app.</strong> Future committees read this page, not a Notion doc that gets lost.</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </ScrollReveal>
+
+        <ScrollReveal variant="fade-up" delay={240}>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <LifeBuoy className="h-5 w-5" />
+                When Something Breaks
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm text-muted-foreground">
+              <p>Try in this order:</p>
+              <ol className="space-y-1 pl-4 list-decimal list-inside">
+                <li>Reload the page — the offline banner will reconnect automatically.</li>
+                <li>Check <code>/admin/access</code> if a login is failing — the code may be deactivated or expired.</li>
+                <li>Review audit logs in the admin area to see who changed what, and when.</li>
+                <li>Only if none of the above works, contact the original maintainer.</li>
+              </ol>
             </CardContent>
           </Card>
         </ScrollReveal>
