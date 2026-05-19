@@ -155,8 +155,17 @@ const DeveloperNotes = () => {
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <p>
                 Use this when you need offline copies of AAR feedback or the gear inventory — for
-                hand-overs, reports, or external sharing. All exports go through the Supabase dashboard.
+                hand-overs, reports, or external sharing.
               </p>
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+                <p className="font-medium text-foreground mb-1">In-app exports (fastest)</p>
+                <p className="mb-2">
+                  Go to <a href="/admin/exports" className="underline text-primary">/admin/exports</a> and click
+                  Download CSV next to AAR Reports, AAR Form Links, Gear Inventory, or Gear Usage History.
+                  No Supabase login needed.
+                </p>
+              </div>
+              <p className="font-medium text-foreground pt-1">Or via Supabase dashboard (for custom queries):</p>
               <div>
                 <p className="font-medium text-foreground mb-1">Export feedback (AAR forms & reports)</p>
                 <ol className="space-y-1 pl-4 list-decimal list-inside">
