@@ -14,6 +14,7 @@ import InventoryLoadout from "@/pages/InventoryLoadout";
 import Profile from "@/pages/Profile";
 import DeveloperNotes from "@/pages/DeveloperNotes";
 import AdminAccess from "@/pages/AdminAccess";
+import AdminExports from "@/pages/AdminExports";
 import NotFound from "@/pages/NotFound";
 import "./App.css";
 
