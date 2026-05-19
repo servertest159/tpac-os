@@ -51,6 +51,7 @@ function App() {
           <Route path="/inventory-loadout" element={<InventoryLoadout />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/admin/access" element={<AdminAccess />} />
+          <Route path="/admin/exports" element={<AdminExports />} />
           <Route path="/developer-notes" element={<DeveloperNotes />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
