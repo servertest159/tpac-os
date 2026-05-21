@@ -254,9 +254,7 @@ const FeedbackList = () => {
                       ) : (
                         <Button variant="outline" className="flex-1" disabled>No URL</Button>
                       )}
-                      <Button variant="destructive" size="icon" onClick={() => handleDeleteForm(item.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <ConfirmDeleteButton label={item.title} onConfirm={() => handleDeleteForm(item)} />
                     </CardFooter>
                   </Card>
                 ))}
@@ -291,9 +289,7 @@ const FeedbackList = () => {
                       <Button variant="outline" className="flex-1" disabled>
                         View Report
                       </Button>
-                      <Button variant="destructive" size="icon" onClick={() => handleDeleteReport(report.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <ConfirmDeleteButton label={report.programme_title} onConfirm={() => handleDeleteReport(report)} />
                     </CardFooter>
                   </Card>
                 ))}
