@@ -13,3 +13,6 @@ verify_jwt = false
 
 [functions.delete-event]
 verify_jwt = false
+
+[functions.archive-events]
+verify_jwt = false

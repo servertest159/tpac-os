@@ -18,6 +18,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { canDeleteProgrammes } from "@/lib/auth";
 import { deleteProgrammes } from "@/lib/deleteProgrammes";
+import { setProgrammesArchived } from "@/lib/setProgrammesArchive";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { ScrollReveal, ScrollRevealGroup } from "@/components/ui/scroll-reveal";
@@ -100,8 +101,7 @@ const EventList = () => {
     try {
       // Snapshot rows for potential undo (single-item only — bulk undo is risky)
       const snapshots = sourceEvents.filter((e) => ids.includes(e.id));
-      const { error } = await supabase.from("events").delete().in("id", ids);
-      if (error) throw error;
+      await deleteProgrammes(ids);
       const canUndo = ids.length === 1 && snapshots.length === 1;
       toast({
         title: "Deleted",
@@ -135,14 +135,11 @@ const EventList = () => {
 
   const handleArchive = async (ids: string[]) => {
     try {
-      const { error } = await supabase
-        .from("events")
-        .update({ archived_at: new Date().toISOString() })
-        .in("id", ids);
-      if (error) throw error;
+      await setProgrammesArchived(ids, true);
       toast({ title: "Archived", description: `${ids.length} programme(s) moved to archive.` });
       clearSelection();
       await refetch();
+      await fetchArchived();
     } catch (err: any) {
       toast({ title: "Archive failed", description: err?.message ?? "Error", variant: "destructive" });
     }
@@ -150,11 +147,7 @@ const EventList = () => {
 
   const handleRestore = async (ids: string[]) => {
     try {
-      const { error } = await supabase
-        .from("events")
-        .update({ archived_at: null })
-        .in("id", ids);
-      if (error) throw error;
+      await setProgrammesArchived(ids, false);
       toast({ title: "Restored", description: `${ids.length} programme(s) restored.` });
       clearSelection();
       await refetch();
