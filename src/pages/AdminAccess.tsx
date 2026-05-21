@@ -11,6 +11,10 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
@@ -137,7 +141,6 @@ const AdminAccess: React.FC = () => {
   };
 
   const deleteCode = async (c: AccessCode) => {
-    if (!confirm(`Permanently delete code ${c.code}?`)) return;
     const { error } = await supabase.from("access_codes").delete().eq("id", c.id);
     if (error) return toast({ title: "Delete failed", description: error.message, variant: "destructive" });
     audit("delete", c.id, { code: c.code, role: c.role });
@@ -263,9 +266,27 @@ const AdminAccess: React.FC = () => {
                             <Button size="sm" variant="outline" onClick={() => rotateCode(c)} title="Generate new code">
                               <RefreshCw className="h-3.5 w-3.5" />
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={() => deleteCode(c)} title="Delete">
-                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button size="sm" variant="ghost" title="Delete" aria-label={`Delete code ${c.code}`}>
+                                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete code {c.code}?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    The holder ({c.holder_name || c.role}) will no longer be able to sign in. This cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => deleteCode(c)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                    Delete code
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </TableCell>
                       </TableRow>
