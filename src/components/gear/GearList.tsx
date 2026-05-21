@@ -5,8 +5,12 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Package, Edit, Trash2, RefreshCw, Archive, ArchiveRestore, Pencil } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -15,6 +19,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import GearPhotoPreview from "./GearPhotoPreview";
 import GearUtilizationChart from "./GearUtilizationChart";
@@ -75,12 +80,28 @@ const GearList = () => {
   const selectAll = () => setSelected(new Set(filteredGear.map((g) => g.id)));
   const clearSelection = () => setSelected(new Set());
 
-  const handleDelete = async (id: string, name: string) => {
+  const handleDelete = async (item: GearItem) => {
     try {
-      await deleteGear(id);
-      toast({ title: "✅ Gear item deleted", description: `${name} removed from inventory.` });
+      await deleteGear(item.id);
+      const { id: _id, ...snapshot } = item;
+      toast({
+        title: "Gear deleted",
+        description: `${item.name} removed from inventory.`,
+        action: (
+          <ToastAction
+            altText="Undo delete"
+            onClick={async () => {
+              const { error } = await supabase.from("gear").insert(snapshot as any);
+              if (error) toast({ title: "Undo failed", description: error.message, variant: "destructive" });
+              else { toast({ title: "Restored", description: item.name }); refetch(); }
+            }}
+          >
+            Undo
+          </ToastAction>
+        ),
+      });
     } catch (e) {
-      toast({ title: "❌ Failed to delete", variant: "destructive" });
+      toast({ title: "Failed to delete", variant: "destructive" });
     }
   };
 
@@ -242,14 +263,27 @@ const GearList = () => {
         </div>
       ) : filteredGear.length === 0 ? (
         <ScrollReveal variant="fade-up">
-          <div className="text-center py-12">
-            <Package className="mx-auto h-12 w-12 text-muted-foreground" />
-            <h3 className="mt-4 mb-2">{viewFilter === "archived" ? "No archived gear" : "Inventory is Empty"}</h3>
-            <p className="text-muted-foreground mb-4">
-              {searchTerm ? "No gear matches your search." :
-                viewFilter === "archived" ? "Archived gear will appear here." : "Log your first piece of gear."}
+          <div className="text-center py-16 px-4">
+            <Package className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
+            <h3 className="mb-2 text-lg font-semibold">
+              {searchTerm
+                ? "No matching gear"
+                : viewFilter === "archived"
+                ? "No archived gear yet"
+                : "Your inventory is empty"}
+            </h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              {searchTerm
+                ? `Nothing matches "${searchTerm}". Try a different name or category.`
+                : viewFilter === "archived"
+                ? "Archived gear will appear here. You can restore it any time."
+                : "Log your first piece of equipment to start tracking conditions, availability, and maintenance."}
             </p>
-            {viewFilter === "active" && <Button asChild><Link to="/gear/new">Log Gear Item</Link></Button>}
+            {viewFilter === "active" && !searchTerm && (
+              <Button asChild size="lg">
+                <Link to="/gear/new">Add your first gear item</Link>
+              </Button>
+            )}
           </div>
         </ScrollReveal>
       ) : (
@@ -315,21 +349,30 @@ const GearList = () => {
                       else toast({ title: "Archived", description: item.name });
                     }}><Archive className="mr-2 h-4 w-4" />Archive</Button>
                   )}
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="destructive" size="sm"><Trash2 className="h-4 w-4" /></Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Delete Gear Item</DialogTitle>
-                        <DialogDescription>Permanently remove {item.name}? Cannot be undone.</DialogDescription>
-                      </DialogHeader>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={(e) => (e.currentTarget.closest("[role=dialog]") as any)?.querySelector("button[aria-label=Close]")?.click()}>Cancel</Button>
-                        <Button variant="destructive" onClick={() => handleDelete(item.id, item.name)}>Delete</Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="sm" aria-label={`Delete ${item.name}`}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete {item.name}?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This removes the item from inventory. You can undo from the toast shortly after.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDelete(item)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </CardFooter>
               </Card>
             );
