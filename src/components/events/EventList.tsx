@@ -16,6 +16,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
+import { canDeleteProgrammes } from "@/lib/auth";
+import { deleteProgrammes } from "@/lib/deleteProgrammes";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { ScrollReveal, ScrollRevealGroup } from "@/components/ui/scroll-reveal";
@@ -30,6 +32,7 @@ type ViewMode = "list" | "calendar";
 type FilterMode = "all" | "upcoming" | "past" | "aborted" | "archived";
 
 const EventList = () => {
+  const deleteAllowed = canDeleteProgrammes();
   const { events, loading, error, refetch } = useEvents();
   const [archivedEvents, setArchivedEvents] = React.useState<EventWithRequirements[]>([]);
   const [view, setView] = React.useState<ViewMode>("list");
@@ -290,6 +293,7 @@ const EventList = () => {
               <Archive className="h-4 w-4" />
             </Button>
           )}
+          {deleteAllowed && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="ghost" size="icon" title="Delete"><Trash2 className="h-4 w-4" /></Button>
@@ -305,6 +309,7 @@ const EventList = () => {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+          )}
         </CardFooter>
       </Card>
     );
@@ -446,6 +451,7 @@ const EventList = () => {
                   <Archive className="h-4 w-4 mr-1" />Archive
                 </Button>
               )}
+              {deleteAllowed && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button size="sm" variant="destructive"><Trash2 className="h-4 w-4 mr-1" />Delete</Button>
@@ -461,6 +467,7 @@ const EventList = () => {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+              )}
               <Button size="sm" variant="ghost" onClick={clearSelection}>Clear</Button>
             </div>
           )}

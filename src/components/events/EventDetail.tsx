@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, MapPin, Users, Clock, Edit, Trash2, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useEventDetail } from "@/hooks/useEventDetail";
-import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { format } from 'date-fns';
@@ -16,6 +15,8 @@ import EventParticipantsPanel from "./EventParticipantsPanel";
 import EventLoadoutPanel from "./EventLoadoutPanel";
 import EventItineraryPanel from "./EventItineraryPanel";
 import { Card, CardContent } from "@/components/ui/card";
+import { canDeleteProgrammes } from "@/lib/auth";
+import { deleteProgrammes } from "@/lib/deleteProgrammes";
 
 const EventDetailSkeleton = () => (
   <div className="space-y-6">
@@ -50,12 +51,7 @@ const EventDetail = () => {
     if (!id) return;
     
     try {
-      const { error } = await supabase
-        .from("events")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
+      await deleteProgrammes([id]);
 
       toast({
         title: "Programme Deleted",
@@ -65,11 +61,12 @@ const EventDetail = () => {
       navigate('/events');
     } catch (err) {
       console.error('Error deleting programme:', err);
-      const msg = err && typeof err === 'object' && 'code' in (err as any) && (err as any).code === '23503'
-        ? 'This programme has related records (e.g., itinerary items, gear assignments, or emergency contacts). Remove them first, then try again.'
-        : err instanceof Error
-          ? err.message
-          : 'An error occurred while deleting the programme.';
+      const msg =
+        err && typeof err === "object" && "code" in (err as { code?: string }) && (err as { code: string }).code === "23503"
+          ? "This programme has related records (e.g., itinerary items, gear assignments, or emergency contacts). Remove them first, then try again."
+          : err instanceof Error
+            ? err.message
+            : "An error occurred while deleting the programme.";
       toast({
         title: "Failed to delete programme",
         description: msg,
@@ -128,6 +125,7 @@ const EventDetail = () => {
                 Edit
               </Link>
             </Button>
+            {canDeleteProgrammes() && (
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
               <DialogTrigger asChild>
                 <Button variant="destructive" className="hover-scale">
@@ -152,6 +150,7 @@ const EventDetail = () => {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+            )}
         </div>
       </div>
 

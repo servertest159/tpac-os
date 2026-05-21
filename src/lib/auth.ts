@@ -35,6 +35,12 @@ export const isSuperAdmin = (): boolean => {
   return !!role && SUPER_ADMIN_ROLES.has(role);
 };
 
+/** Committee / leadership roles may delete programmes; Members cannot. */
+export const canDeleteProgrammes = (): boolean => {
+  const role = getCurrentRole();
+  return !!role && role !== "Member";
+};
+
 export const signOut = () => {
   localStorage.removeItem("tpac_access_granted");
   localStorage.removeItem("tpac_user_role");
