@@ -21,7 +21,6 @@ const cleanupAuthState = () => {
 
 const Header = () => {
   const location = useLocation();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
 
   useEffect(() => {
@@ -88,83 +87,14 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center space-x-2">
-          {/* Auth Buttons for Desktop */}
-            {isAuthed && (
-              <Button variant="ghost" onClick={handleLogout} className="hidden md:inline-flex items-center">
-                <LogOut className="w-4 h-4 mr-2" />
-                Log Out
-              </Button>
-            )}
-
-          {/* Mobile menu button */}
-          <Button
-            variant="ghost"
-            className="md:hidden"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              {isMenuOpen ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              ) : (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              )}
-            </svg>
-          </Button>
+          {isAuthed && (
+            <Button variant="ghost" onClick={handleLogout} className="hidden md:inline-flex items-center">
+              <LogOut className="w-4 h-4 mr-2" />
+              Log Out
+            </Button>
+          )}
         </div>
       </div>
-
-      {/* Mobile Navigation Menu */}
-      {isMenuOpen && (
-        <div className="md:hidden bg-white border-t animate-slide-up">
-          <div className="container mx-auto px-4 py-2">
-            {navItems.map((item, index) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  "flex items-center space-x-2 py-3 px-2 rounded-md transition-all animate-fade-in",
-                  isActive(item.path) ? "text-primary font-medium bg-accent" : "text-gray-700 hover:bg-accent/50"
-                )}
-                style={{ animationDelay: `${index * 0.05}s` }}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </Link>
-            ))}
-            <div className="border-t -mx-4 my-2"></div>
-            {isAuthed && (
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setIsMenuOpen(false);
-                }}
-                className="flex items-center space-x-2 py-3 px-2 w-full text-left text-red-600 hover:bg-red-50 rounded transition-all animate-fade-in"
-                style={{ animationDelay: `${navItems.length * 0.05}s` }}
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Log Out</span>
-              </button>
-            )}
-          </div>
-        </div>
-      )}
     </header>
   );
 };
