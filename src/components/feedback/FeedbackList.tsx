@@ -199,17 +199,19 @@ const FeedbackList = () => {
       </div>
 
       {!hasContent ? (
-        <div className="text-center py-12">
-          <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 mb-2">No AAR data found</h3>
-          <p className="text-muted-foreground mb-4">Link an AAR form or file a report to get started.</p>
-          <div className="flex gap-2 justify-center">
-            <AddFeedbackDialog onFormSubmit={handleAddForm}>
-              <Button variant="outline">Link AAR Form</Button>
-            </AddFeedbackDialog>
-            <Button asChild>
-              <Link to="/feedback/new">File AAR Report</Link>
+        <div className="text-center py-16 px-4">
+          <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
+          <h3 className="mb-2 text-lg font-semibold">No AARs yet</h3>
+          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+            Capture lessons learned by filing your first After Action Review, or link a Google Form to collect responses.
+          </p>
+          <div className="flex flex-wrap gap-2 justify-center">
+            <Button asChild size="lg">
+              <Link to="/feedback/new">File your first AAR</Link>
             </Button>
+            <AddFeedbackDialog onFormSubmit={handleAddForm}>
+              <Button variant="outline" size="lg">Link a Form</Button>
+            </AddFeedbackDialog>
           </div>
         </div>
       ) : (
