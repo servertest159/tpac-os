@@ -1,52 +1,48 @@
-# Vercel CLI — scope `syaifullahfittra-1444`
+# Vercel CLI — scope matching your dashboard
 
-This repo pins CLI commands to **your Vercel username/slug** `syaifullahfittra-1444` so deploys don’t hit another team’s project.
+CLI scripts use **`syaifullahfittra-1444s-projects`** — the **slug from `npm run vercel:teams`** (Vercel’s default “username’s projects” team). Using just `syaifullahfittra-1444` caused **“scope does not exist”** for many accounts.
 
 ## One-time setup
 
-1. Install CLI if needed (global): `npm i -g vercel`, or rely on `npx vercel`.
+1. **`cd`** into this repo folder (must contain **`package.json`**):
 
-2. Log in as **that** account:
+   ```bash
+   cd "C:\Users\admin\logs os\tpac-os"
+   ```
+
+2. Log in as your Vercel user:
 
    ```bash
    npm run vercel:login
    ```
 
-3. Confirm:
+3. Confirm team slug (must match **`package.json`** scripts):
 
    ```bash
-   npm run vercel:whoami
+   npm run vercel:teams
    ```
 
-   You should see **syaifullahfittra-1444** (or your linked identity).
-
-4. Link this folder to a project **under that scope** (creates `tpac-os` if missing):
+4. Link this folder → project **`tpac-os`**:
 
    ```bash
    npm run vercel:link
    ```
 
-   This writes `.vercel/project.json` locally (ignored by git).
-
 ## Deploy
 
-- **Production**
-
-  ```bash
-  npm run vercel:deploy
-  ```
-
-- **Preview**
-
-  ```bash
-  npm run vercel:deploy:preview
-  ```
+```bash
+npm run vercel:deploy
+npm run vercel:deploy:preview   # preview URL
+```
 
 ## Troubleshooting
 
 | Issue | Fix |
 |--------|-----|
-| `The specified scope does not exist` | Run **`npm run vercel:login`** first while signed into Vercel as that user. Then **`npm run vercel:teams`** and confirm the slug matches **`syaifullahfittra-1444`** (copy from dashboard URL if unsure). |
-| `Error: Not authorized` | Run **`npm run vercel:login`** again; revoke stale tokens at **Vercel → Account Settings → Tokens**. |
-| Wrong team still receives deploys | Delete `.vercel` locally and run `npm run vercel:link` again after login. |
-| Scope slug differs | Replace `syaifullahfittra-1444` in `package.json` scripts with your exact slug from **Vercel dashboard URL** or `vercel teams ls`. |
+| `ENOENT` / **`package.json` not found** | Run commands **inside** the repo directory (see **`cd`** above). |
+| **`ENOTFOUND api.vercel.com`** | DNS/network: turn **VPN/proxy off** briefly, **`ipconfig /flushdns`**, set DNS to **`8.8.8.8`**, firewall allow **node.exe**/terminal, retry. Verify: `nslookup api.vercel.com` or open https://api.vercel.com in a browser. |
+| **`The specified scope does not exist`** | Run **`npm run vercel:teams`** and paste the **exact** slug into **`package.json`** `vercel:*` scripts (then commit or keep locally). |
+| **`Error: Not authorized`** | **`npm run vercel:login`**; clear tokens under **Vercel → Account → Tokens**. |
+| Wrong org still receives deploys | Delete **`.vercel`** in this repo, **`npm run vercel:link`** again. |
+
+`.vercel/` is gitignored; each clone must **`vercel:link`** once.

@@ -12,9 +12,9 @@
     "vercel:whoami": "vercel whoami",
     "vercel:teams": "vercel teams ls",
     "vercel:login": "vercel login",
-    "vercel:link": "vercel link --yes --scope syaifullahfittra-1444 --project tpac-os",
-    "vercel:deploy": "vercel deploy --prod --yes --scope syaifullahfittra-1444",
-    "vercel:deploy:preview": "vercel deploy --yes --scope syaifullahfittra-1444"
+    "vercel:link": "vercel link --yes --scope syaifullahfittra-1444s-projects --project tpac-os",
+    "vercel:deploy": "vercel deploy --prod --yes --scope syaifullahfittra-1444s-projects",
+    "vercel:deploy:preview": "vercel deploy --yes --scope syaifullahfittra-1444s-projects"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
