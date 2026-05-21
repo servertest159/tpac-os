@@ -9,6 +9,11 @@ import AddFeedbackDialog from "./AddFeedbackDialog";
 import { FeedbackListSkeleton } from "@/components/ui/loading-states";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface AarForm {
   id: string;
@@ -93,25 +98,65 @@ const FeedbackList = () => {
     }
   };
 
-  const handleDeleteForm = async (id: string) => {
+  const handleDeleteForm = async (item: AarForm) => {
     try {
-      const { error } = await supabase.from('aar_forms').delete().eq('id', id);
+      const { error } = await supabase.from('aar_forms').delete().eq('id', item.id);
       if (error) throw error;
-      toast({ title: "✅ Form deleted" });
+      const { id: _id, ...snapshot } = item;
+      toast({
+        title: "Form deleted",
+        action: (
+          <ToastAction altText="Undo delete" onClick={async () => {
+            const { error: insErr } = await supabase.from('aar_forms').insert(snapshot as any);
+            if (insErr) toast({ title: "Undo failed", description: insErr.message, variant: "destructive" });
+            else toast({ title: "Restored" });
+          }}>Undo</ToastAction>
+        ),
+      });
     } catch (err) {
       toast({ title: "❌ Failed to delete", variant: "destructive" });
     }
   };
 
-  const handleDeleteReport = async (id: string) => {
+  const handleDeleteReport = async (item: AarReport) => {
     try {
-      const { error } = await supabase.from('aar_reports').delete().eq('id', id);
+      const { error } = await supabase.from('aar_reports').delete().eq('id', item.id);
       if (error) throw error;
-      toast({ title: "✅ Report deleted" });
+      const { id: _id, ...snapshot } = item;
+      toast({
+        title: "Report deleted",
+        action: (
+          <ToastAction altText="Undo delete" onClick={async () => {
+            const { error: insErr } = await supabase.from('aar_reports').insert(snapshot as any);
+            if (insErr) toast({ title: "Undo failed", description: insErr.message, variant: "destructive" });
+            else toast({ title: "Restored" });
+          }}>Undo</ToastAction>
+        ),
+      });
     } catch (err) {
       toast({ title: "❌ Failed to delete", variant: "destructive" });
     }
   };
+
+  const ConfirmDeleteButton = ({ label, onConfirm }: { label: string; onConfirm: () => void }) => (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="destructive" size="icon" aria-label={`Delete ${label}`}>
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete {label}?</AlertDialogTitle>
+          <AlertDialogDescription>You can undo this from the toast briefly after.</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
 
   if (loading) {
     return <FeedbackListSkeleton />;
