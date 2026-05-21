@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { ScrollReveal, ScrollRevealGroup } from "@/components/ui/scroll-reveal";
 import {
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -94,9 +95,33 @@ const EventList = () => {
 
   const handleDelete = async (ids: string[]) => {
     try {
+      // Snapshot rows for potential undo (single-item only — bulk undo is risky)
+      const snapshots = sourceEvents.filter((e) => ids.includes(e.id));
       const { error } = await supabase.from("events").delete().in("id", ids);
       if (error) throw error;
-      toast({ title: "Deleted", description: `${ids.length} programme(s) permanently removed.` });
+      const canUndo = ids.length === 1 && snapshots.length === 1;
+      toast({
+        title: "Deleted",
+        description: `${ids.length} programme(s) removed.`,
+        action: canUndo ? (
+          <ToastAction
+            altText="Undo delete"
+            onClick={async () => {
+              const snap = snapshots[0] as any;
+              const { event_role_requirements, derivedStatus, total_roles, ...row } = snap;
+              const { error: insErr } = await supabase.from("events").insert(row);
+              if (insErr) {
+                toast({ title: "Undo failed", description: insErr.message, variant: "destructive" });
+              } else {
+                toast({ title: "Restored", description: row.title });
+                await refetch();
+              }
+            }}
+          >
+            Undo
+          </ToastAction>
+        ) : undefined,
+      });
       clearSelection();
       await refetch();
       if (filter === "archived") fetchArchived();
@@ -445,13 +470,28 @@ const EventList = () => {
       {view === "calendar" ? (
         renderCalendar()
       ) : filteredEvents.length === 0 ? (
-        <div className="text-center py-12">
-          <h3 className="mb-2">No Programmes Found</h3>
-          <p className="text-muted-foreground mb-4">
-            {filter === "archived" ? "No archived programmes." : "Nothing matches this filter."}
+        <div className="text-center py-16 px-4">
+          <CalendarIcon className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
+          <h3 className="mb-2 text-lg font-semibold">
+            {filter === "archived"
+              ? "No archived programmes yet"
+              : filter === "aborted"
+              ? "No aborted programmes"
+              : filter === "past"
+              ? "No completed programmes yet"
+              : "No programmes yet"}
+          </h3>
+          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+            {filter === "archived"
+              ? "Archive a programme to keep it out of your main list without deleting it."
+              : filter === "aborted"
+              ? "Cancelled programmes will appear here."
+              : "Plan your first field operation to start coordinating participants, roles, and gear."}
           </p>
           {filter !== "archived" && filter !== "aborted" && (
-            <Button asChild><Link to="/events/new">Plan a Programme</Link></Button>
+            <Button asChild size="lg">
+              <Link to="/events/new">Create your first programme</Link>
+            </Button>
           )}
         </div>
       ) : (
