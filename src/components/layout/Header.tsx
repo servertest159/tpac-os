@@ -21,7 +21,6 @@ const cleanupAuthState = () => {
 
 const Header = () => {
   const location = useLocation();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
 
   useEffect(() => {
