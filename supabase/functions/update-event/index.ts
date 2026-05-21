@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0'
+import { resolveAccessCodeRole } from "../_shared/accessCode.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,7 +8,7 @@ const corsHeaders = {
 }
 
 interface UpdateEventRequest {
-  accessCode: string
+  accessCode: string | number
   eventId: string
   eventData: {
     title: string
@@ -23,27 +24,6 @@ interface UpdateEventRequest {
   }>
 }
 
-const validAccessCodes = {
-  938271: 'President',
-  472839: 'Vice-President',
-  615204: 'Honorary Secretary',
-  307198: 'Honorary Assistant Secretary',
-  529746: 'Honorary Treasurer',
-  184302: 'Honorary Assistant Treasurer',
-  763910: 'Training Head (General)',
-  920458: 'Training Head (Land)',
-  381207: 'Training Head (Water)',
-  640193: 'Training Head (Welfare)',
-  859321: 'Quartermaster',
-  712496: 'Assistant Quarter Master',
-  530984: 'Publicity Head',
-  298374: 'First Assistant Publicity Head',
-  476213: 'Second Assistant Publicity Head',
-  888888: 'Member',
-} as const
-
-type AccessRole = typeof validAccessCodes[keyof typeof validAccessCodes]
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -58,17 +38,15 @@ serve(async (req) => {
 
     const { accessCode, eventId, eventData, roleRequirements }: UpdateEventRequest = await req.json()
 
-    // Validate access code (tolerant to string/number; always return 200 with success=false on invalid)
-    const codeKey = String(accessCode ?? '').trim()
-    const role: AccessRole | undefined = (validAccessCodes as Record<string, AccessRole>)[codeKey] ?? (validAccessCodes as any)[Number(codeKey)]
-    if (!role) {
+    const resolved = await resolveAccessCodeRole(supabase, accessCode)
+    if (!resolved.ok) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid access code' }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, error: resolved.error }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       )
     }
 
-    console.log('Updating event via access code:', { role, eventId })
+    console.log('Updating event via access code:', { role: resolved.role, eventId })
 
     // Update the event (using service role to bypass RLS)
     const { error: updateError } = await supabase
@@ -123,7 +101,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in update-event function:', error)
     return new Response(
-      JSON.stringify({ error: 'Failed to update programme', details: (error as any)?.message }),
+      JSON.stringify({ error: 'Failed to update programme', details: error instanceof Error ? error.message : String(error) }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }

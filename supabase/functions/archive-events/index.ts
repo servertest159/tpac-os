@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0"
+import { resolveAccessCodeRole } from "../_shared/accessCode.ts"
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,31 +10,8 @@ const corsHeaders = {
 interface ArchiveEventsRequest {
   accessCode: string | number
   eventIds: string[]
-  /** true = archive (set archived_at); false = restore (clear archived_at) */
   archive: boolean
 }
-
-/** Must stay in sync with create-event / update-event / delete-event maps. */
-const validAccessCodes = {
-  938271: "President",
-  472839: "Vice-President",
-  615204: "Honorary Secretary",
-  307198: "Honorary Assistant Secretary",
-  529746: "Honorary Treasurer",
-  184302: "Honorary Assistant Treasurer",
-  763910: "Training Head (General)",
-  920458: "Training Head (Land)",
-  381207: "Training Head (Water)",
-  640193: "Training Head (Welfare)",
-  859321: "Quartermaster",
-  712496: "Assistant Quarter Master",
-  530984: "Publicity Head",
-  298374: "First Assistant Publicity Head",
-  476213: "Second Assistant Publicity Head",
-  888888: "Member",
-} as const
-
-type AccessRole = (typeof validAccessCodes)[keyof typeof validAccessCodes]
 
 const jsonBody = (
   payload: Record<string, unknown>,
@@ -58,14 +36,9 @@ serve(async (req) => {
     const body: ArchiveEventsRequest = await req.json()
     const { accessCode, eventIds, archive } = body
 
-    const codeKey = String(accessCode ?? "").trim()
-    const numericKey = Number(codeKey)
-    const role: AccessRole | undefined =
-      (validAccessCodes as Record<string, AccessRole>)[codeKey] ??
-      validAccessCodes[numericKey as keyof typeof validAccessCodes]
-
-    if (!role) {
-      return jsonBody({ success: false, error: "Invalid access code" })
+    const resolved = await resolveAccessCodeRole(supabase, accessCode)
+    if (!resolved.ok) {
+      return jsonBody({ success: false, error: resolved.error })
     }
 
     const ids = Array.isArray(eventIds)

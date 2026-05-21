@@ -20,11 +20,10 @@ import { canDeleteProgrammes } from "@/lib/auth";
 import { deleteProgrammes } from "@/lib/deleteProgrammes";
 import { setProgrammesArchived } from "@/lib/setProgrammesArchive";
 import { useToast } from "@/hooks/use-toast";
-import { ToastAction } from "@/components/ui/toast";
 import { ScrollReveal, ScrollRevealGroup } from "@/components/ui/scroll-reveal";
 import {
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
-  addDays, addMonths, isSameMonth, isSameDay, parseISO,
+  addDays, addMonths, isSameMonth, isSameDay,
 } from "date-fns";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -99,31 +98,10 @@ const EventList = () => {
 
   const handleDelete = async (ids: string[]) => {
     try {
-      // Snapshot rows for potential undo (single-item only — bulk undo is risky)
-      const snapshots = sourceEvents.filter((e) => ids.includes(e.id));
       await deleteProgrammes(ids);
-      const canUndo = ids.length === 1 && snapshots.length === 1;
       toast({
         title: "Deleted",
         description: `${ids.length} programme(s) removed.`,
-        action: canUndo ? (
-          <ToastAction
-            altText="Undo delete"
-            onClick={async () => {
-              const snap = snapshots[0] as any;
-              const { event_role_requirements, derivedStatus, total_roles, ...row } = snap;
-              const { error: insErr } = await supabase.from("events").insert(row);
-              if (insErr) {
-                toast({ title: "Undo failed", description: insErr.message, variant: "destructive" });
-              } else {
-                toast({ title: "Restored", description: row.title });
-                await refetch();
-              }
-            }}
-          >
-            Undo
-          </ToastAction>
-        ) : undefined,
       });
       clearSelection();
       await refetch();

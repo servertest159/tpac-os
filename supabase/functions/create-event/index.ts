@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0'
+import { resolveAccessCodeRole } from "../_shared/accessCode.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,7 +8,7 @@ const corsHeaders = {
 }
 
 interface CreateEventRequest {
-  accessCode: string
+  accessCode: string | number
   eventData: {
     title: string
     date: string
@@ -20,25 +21,6 @@ interface CreateEventRequest {
     role: string
     quantity: number
   }>
-}
-
-const validAccessCodes = {
-  938271: 'President',
-  472839: 'Vice-President',
-  615204: 'Honorary Secretary',
-  307198: 'Honorary Assistant Secretary',
-  529746: 'Honorary Treasurer',
-  184302: 'Honorary Assistant Treasurer',
-  763910: 'Training Head (General)',
-  920458: 'Training Head (Land)',
-  381207: 'Training Head (Water)',
-  640193: 'Training Head (Welfare)',
-  859321: 'Quartermaster',
-  712496: 'Assistant Quarter Master',
-  530984: 'Publicity Head',
-  298374: 'First Assistant Publicity Head',
-  476213: 'Second Assistant Publicity Head',
-  888888: 'Member'
 }
 
 serve(async (req) => {
@@ -55,20 +37,18 @@ serve(async (req) => {
 
     const { accessCode, eventData, roleRequirements }: CreateEventRequest = await req.json()
 
-    // Validate access code (be tolerant to string/number and avoid non-2xx)
-    const codeKey = String(accessCode ?? '').trim()
-    const role = (validAccessCodes as Record<string, string>)[codeKey] ?? validAccessCodes[(Number(codeKey) as keyof typeof validAccessCodes)]
-    if (!role) {
+    const resolved = await resolveAccessCodeRole(supabase, accessCode)
+    if (!resolved.ok) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid access code' }),
+        JSON.stringify({ success: false, error: resolved.error }),
         {
           status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
       )
     }
 
-    console.log('Creating event with access code:', accessCode)
+    console.log('Creating event with validated role:', resolved.role)
     console.log('Event data:', eventData)
 
     // Create the event (using service role to bypass RLS)
@@ -132,7 +112,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: 'Failed to create programme',
-        details: error.message 
+        details: error instanceof Error ? error.message : String(error),
       }),
       { 
         status: 500, 
