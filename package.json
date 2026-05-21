@@ -8,7 +8,13 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "vercel:whoami": "vercel whoami",
+    "vercel:teams": "vercel teams ls",
+    "vercel:login": "vercel login",
+    "vercel:link": "vercel link --yes --scope syaifullahfittra-1444 --project tpac-os",
+    "vercel:deploy": "vercel deploy --prod --yes --scope syaifullahfittra-1444",
+    "vercel:deploy:preview": "vercel deploy --yes --scope syaifullahfittra-1444"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
