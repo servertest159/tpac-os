@@ -55,7 +55,8 @@ const DeveloperNotes = () => {
                 no source code changes required to onboard a new committee.
               </p>
               <ul className="space-y-1 pl-4">
-                <li>• <strong className="text-foreground">Committee roles</strong> — every code role except <strong className="text-foreground">Member</strong> — manage invite codes at <code>/admin/access</code> (issue, rotate, deactivate), gear, roster views on Profile, exports, AAR administration, and access-code audit logs shown on that admin page.</li>
+                <li>• <strong className="text-foreground">Platform maintainer</strong> manages invite codes at <code>/admin/access</code> (issue, rotate, deactivate). That page is restricted to the developer session only.</li>
+                <li>• <strong className="text-foreground">Committee roles</strong> — every code role except <strong className="text-foreground">Member</strong> — can manage gear, roster on Profile where shown, CSV exports (<code>/admin/exports</code>), AAR administration, and use operational tools; they do not open the Access Codes admin page.</li>
                 <li>• <strong className="text-foreground">Member</strong> codes can view programmes and inventory but cannot change gear, bulk operations, invite codes, CSV exports, or delete AAR content.</li>
               </ul>
               <p>At every AY hand-over: rotate codes, update holder names. That is the entire transition.</p>

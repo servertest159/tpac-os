@@ -4,8 +4,8 @@ import { canStaffManage } from "@/lib/auth";
 import { ShieldAlert } from "lucide-react";
 
 /**
- * Access-code roles other than {@link MEMBER_ROLE_LABEL} may manage gear, AAR admin surfaces,
- * data exports, profiles (where RLS allows), and /admin/access codes.
+ * Access-code roles other than {@link MEMBER_ROLE_LABEL} may manage operational data: gear, AAR admin surfaces,
+ * data exports, profiles (where RLS allows). Issue/rotate/deactivate codes at `/admin/access` are developer-session only (`canManageAccessCodes` in `auth`).
  */
 export default function RequireNonMemberStaff({ children }: { children: React.ReactNode }) {
   if (!canStaffManage()) {

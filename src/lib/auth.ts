@@ -49,6 +49,9 @@ export function isDeveloper(): boolean {
   return typeof window !== "undefined" && getCurrentCode() === DEVELOPER_ACCESS_CODE;
 }
 
+/** Only the hard-coded developer session may open /admin/access (issue/rotate/deactivate codes). */
+export const canManageAccessCodes = (): boolean => isDeveloper();
+
 export const getCurrentRole = (): string | null =>
   typeof window !== "undefined" ? localStorage.getItem("tpac_user_role") : null;
 

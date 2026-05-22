@@ -13,7 +13,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { signOut as tpacSignOut, canStaffManage } from "@/lib/auth";
+import { signOut as tpacSignOut, canStaffManage, canManageAccessCodes } from "@/lib/auth";
 import {
   Sheet,
   SheetContent,
@@ -42,11 +42,11 @@ const MobileTabBar: React.FC = () => {
 
   const moreItems = [
     { path: "/profile", label: "Profile", icon: User },
+    ...(canManageAccessCodes()
+      ? [{ path: "/admin/access", label: "Access Codes", icon: KeyRound }]
+      : []),
     ...(canStaffManage()
-      ? [
-          { path: "/admin/access", label: "Access Codes", icon: KeyRound },
-          { path: "/admin/exports", label: "Exports", icon: Download },
-        ]
+      ? [{ path: "/admin/exports", label: "Exports", icon: Download }]
       : []),
     { path: "/developer-notes", label: "Dev Notes", icon: FileCode },
   ];

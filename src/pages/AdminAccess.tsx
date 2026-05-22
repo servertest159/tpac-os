@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { canStaffManage, getCurrentCode, getCurrentRole, MEMBER_ROLE_LABEL, ADMIN_ROLES } from "@/lib/auth";
+import { canManageAccessCodes, getCurrentCode, getCurrentRole, MEMBER_ROLE_LABEL, ADMIN_ROLES } from "@/lib/auth";
 import { KeyRound, Plus, RefreshCw, ShieldAlert, Trash2 } from "lucide-react";
 
 interface AuditRow {
@@ -61,7 +61,7 @@ const randomCode = () => String(Math.floor(100000 + Math.random() * 900000));
 
 const AdminAccess: React.FC = () => {
   const { toast } = useToast();
-  const allowed = canStaffManage();
+  const allowed = canManageAccessCodes();
   const [codes, setCodes] = React.useState<AccessCode[]>([]);
   const [auditRows, setAuditRows] = React.useState<AuditRow[]>([]);
   const [auditLoading, setAuditLoading] = React.useState(true);
@@ -133,9 +133,9 @@ const AdminAccess: React.FC = () => {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              Profiles signed in with a Member code can view programmes and inventory but cannot issue, rotate,
-              deactivate, or delete invite codes here. Use a committee or role-lead code, or ask leadership to elevate
-              your access.
+              Access code administration (issue, rotate, deactivate) is limited to the platform maintainer
+              developer session. Committee roles can still use Programmes, inventory, exports, and AAR tools
+              from the rest of the app.
             </p>
           </CardContent>
         </Card>
