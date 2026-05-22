@@ -77,10 +77,10 @@ const Header = () => {
 
   return (
     <header className="bg-white border-b sticky top-0 z-30">
-      <div className="container mx-auto px-4 flex items-center justify-between h-16">
+      <div className="container mx-auto px-4 flex items-center justify-between h-14 sm:h-16">
         <div className="flex items-center gap-3 min-w-0">
           <Link to="/dashboard" className="flex items-center shrink-0">
-            <span className="font-bold text-2xl text-black">TPAC OS</span>
+            <span className="font-bold text-xl sm:text-2xl text-black">TPAC OS</span>
           </Link>
           {isAuthed && roleLabel ? (
             <Badge
@@ -94,7 +94,7 @@ const Header = () => {
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-1">
+        <nav className="hidden lg:flex items-center space-x-1">
           {navItems.map((item, index) => (
             <Link
               key={item.path}
@@ -110,12 +110,12 @@ const Header = () => {
 
         <div className="flex items-center space-x-2 shrink-0">
           {isAuthed && roleLabel ? (
-            <Badge variant="outline" className="lg:hidden text-[11px] font-normal px-2 py-0.5 max-w-[min(200px,42vw)] truncate" title={roleBadgeTitle}>
+            <Badge variant="outline" className="lg:hidden text-[11px] font-normal px-2 py-0.5 max-w-[min(180px,44vw)] truncate" title={roleBadgeTitle}>
               {roleLabel}
             </Badge>
           ) : null}
           {isAuthed && (
-            <Button variant="ghost" onClick={handleLogout} className="hidden md:inline-flex items-center">
+            <Button variant="ghost" onClick={handleLogout} className="hidden lg:inline-flex items-center">
               <LogOut className="w-4 h-4 mr-2" />
               Log Out
             </Button>

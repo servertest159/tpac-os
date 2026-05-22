@@ -608,12 +608,12 @@ const EventList = () => {
   return (
     <div className="space-y-6 page-enter">
       <ScrollReveal variant="fade-up">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
             <h1>Programmes</h1>
             <p className="text-muted-foreground">Coordinate your field operations.</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:flex sm:items-center sm:shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline"><Download className="h-4 w-4 mr-2" />Export</Button>
@@ -645,8 +645,8 @@ const EventList = () => {
         </div>
       </ScrollReveal>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Tabs value={filter} onValueChange={(v) => { setFilter(v as FilterMode); clearSelection(); }}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <Tabs value={filter} onValueChange={(v) => { setFilter(v as FilterMode); clearSelection(); }} className="w-full sm:w-auto overflow-x-auto">
           <TabsList>
             <TabsTrigger value="all">All Active</TabsTrigger>
             <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
@@ -655,7 +655,7 @@ const EventList = () => {
             <TabsTrigger value="archived">Archived</TabsTrigger>
           </TabsList>
         </Tabs>
-        <Tabs value={view} onValueChange={(v) => setView(v as ViewMode)}>
+        <Tabs value={view} onValueChange={(v) => setView(v as ViewMode)} className="w-full sm:w-auto overflow-x-auto">
           <TabsList>
             <TabsTrigger value="list"><LayoutGrid className="h-4 w-4 mr-1" />List</TabsTrigger>
             <TabsTrigger value="calendar"><CalendarDays className="h-4 w-4 mr-1" />Calendar</TabsTrigger>

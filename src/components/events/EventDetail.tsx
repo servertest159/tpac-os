@@ -163,17 +163,17 @@ const EventDetail = () => {
 
   return (
     <div className="space-y-6 page-enter">
-      <div className="flex items-center justify-between animate-fade-in">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1>{event.title}</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between animate-fade-in">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="break-words">{event.title}</h1>
             {getStatusBadge()}
           </div>
           <p className="text-muted-foreground">
             Programme Debrief & Coordination
           </p>
         </div>
-        <div className="flex flex-wrap gap-2 justify-end">
+        <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:justify-end sm:shrink-0">
             <Button variant="outline" className="hover-scale" disabled={pdfBusy} onClick={() => void handleExportPdf()}>
               <FileDown className="mr-2 h-4 w-4" />
               {pdfBusy ? "Preparing PDF…" : "Export PDF"}

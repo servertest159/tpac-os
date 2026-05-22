@@ -174,8 +174,8 @@ const GearList = () => {
   if (error && retryCount >= 3) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div><h1>Inventory</h1><p className="text-muted-foreground">Track and maintain your kit.</p></div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0"><h1>Inventory</h1><p className="text-muted-foreground">Track and maintain your kit.</p></div>
           {staffManage && (
             <Button asChild><Link to="/gear/new">Log New Gear</Link></Button>
           )}
@@ -192,8 +192,8 @@ const GearList = () => {
   return (
     <div className="space-y-6 page-enter">
       <ScrollReveal variant="fade-up">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div><h1>Inventory</h1><p className="text-muted-foreground">Track and maintain your kit.</p></div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0"><h1>Inventory</h1><p className="text-muted-foreground">Track and maintain your kit.</p></div>
           {staffManage && (
             <Button asChild><Link to="/gear/new">Log New Gear</Link></Button>
           )}
@@ -208,14 +208,14 @@ const GearList = () => {
         <GearUsageHistory />
       </ScrollReveal>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <Input
           placeholder="Search inventory..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
+          className="w-full sm:max-w-sm"
         />
-        <Tabs value={viewFilter} onValueChange={(v) => { setViewFilter(v as ViewFilter); clearSelection(); }}>
+        <Tabs value={viewFilter} onValueChange={(v) => { setViewFilter(v as ViewFilter); clearSelection(); }} className="w-full sm:w-auto overflow-x-auto">
           <TabsList>
             <TabsTrigger value="active">Active</TabsTrigger>
             <TabsTrigger value="archived">Archived</TabsTrigger>

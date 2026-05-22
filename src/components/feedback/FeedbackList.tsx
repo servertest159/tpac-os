@@ -170,12 +170,12 @@ const FeedbackList = () => {
 
   return (
     <div className="space-y-6 page-enter">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h1>AAR (After Action Review)</h1>
           <p className="text-muted-foreground">Manage AAR form links and filed reports.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:flex sm:shrink-0">
           {staffManage && (
           <AddFeedbackDialog onFormSubmit={handleAddForm}>
             <Button variant="outline">Link AAR Form</Button>
@@ -190,7 +190,7 @@ const FeedbackList = () => {
         </div>
       </div>
 
-      <div className="flex space-x-2 mb-6">
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0">
         <Button variant={filter === "all" ? "default" : "outline"} onClick={() => setFilter("all")}>
           All ({aarForms.length + aarReports.length})
         </Button>

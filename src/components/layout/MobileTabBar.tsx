@@ -28,7 +28,7 @@ const handleLogout = () => {
 
 const coreTabs = [
   { path: "/dashboard", label: "Home", icon: LayoutDashboard },
-  { path: "/events", label: "Programmes", icon: Calendar },
+  { path: "/events", label: "Plans", icon: Calendar },
   { path: "/gear", label: "Inventory", icon: Package },
   { path: "/feedback", label: "AARs", icon: MessageSquare },
 ];
@@ -53,7 +53,7 @@ const MobileTabBar: React.FC = () => {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-border"
+      className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-border shadow-[0_-8px_24px_-18px_rgba(0,0,0,0.45)]"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label="Primary"
     >
@@ -68,12 +68,12 @@ const MobileTabBar: React.FC = () => {
               aria-label={t.label}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors min-h-11",
+                "flex min-w-0 flex-col items-center justify-center gap-1 px-1 text-[10px] sm:text-[11px] font-medium leading-tight transition-colors min-h-11",
                 active ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
               <Icon className={cn("h-5 w-5", active && "scale-110")} />
-              <span>{t.label}</span>
+              <span className="max-w-full truncate">{t.label}</span>
             </Link>
           );
         })}
@@ -82,14 +82,14 @@ const MobileTabBar: React.FC = () => {
           <SheetTrigger
             aria-label="More options"
             className={cn(
-              "flex flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors min-h-11",
+              "flex min-w-0 flex-col items-center justify-center gap-1 px-1 text-[10px] sm:text-[11px] font-medium leading-tight transition-colors min-h-11",
               "text-muted-foreground hover:text-foreground"
             )}
           >
             <MoreHorizontal className="h-5 w-5" />
-            <span>More</span>
+            <span className="max-w-full truncate">More</span>
           </SheetTrigger>
-          <SheetContent side="bottom" className="rounded-t-2xl">
+          <SheetContent side="bottom" className="rounded-t-2xl pb-[calc(1rem+env(safe-area-inset-bottom))] max-h-[85dvh] overflow-y-auto">
             <SheetHeader>
               <SheetTitle>More</SheetTitle>
             </SheetHeader>
