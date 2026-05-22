@@ -44,7 +44,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { accessCode, eventId, eventData, roleRequirements }: UpdateEventRequest = await req.json()
+    const { accessCode, eventId, eventData, roleRequirements, itineraryItems }: UpdateEventRequest = await req.json()
 
     const resolved = await resolveAccessCodeRole(supabase, accessCode)
     if (!resolved.ok) {
