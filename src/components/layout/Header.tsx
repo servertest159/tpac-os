@@ -68,14 +68,11 @@ const Header = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const signedInLabel =
-    holder && role
-      ? `Signed in as ${holder} · ${role}`
-      : role
-        ? `Signed in as ${role}`
-        : holder
-          ? `Signed in as ${holder}`
-          : null;
+  const roleLabel = role?.trim() || null;
+  const roleBadgeTitle =
+    roleLabel && holder?.trim()
+      ? `${roleLabel} — ${holder.trim()}`
+      : roleLabel || holder?.trim() || undefined;
 
   return (
     <header className="bg-white border-b sticky top-0 z-30">
@@ -84,13 +81,13 @@ const Header = () => {
           <Link to="/dashboard" className="flex items-center shrink-0">
             <span className="font-bold text-2xl text-black">TPAC OS</span>
           </Link>
-          {isAuthed && signedInLabel ? (
+          {isAuthed && roleLabel ? (
             <Badge
               variant="secondary"
-              className="hidden lg:inline-flex truncate max-w-[min(380px,calc(100vw-620px))] font-normal py-1 px-2"
-              title={signedInLabel}
+              className="hidden lg:inline-flex max-w-[min(280px,calc(100vw-620px))] font-normal py-1 px-2.5 whitespace-nowrap"
+              title={roleBadgeTitle}
             >
-              {signedInLabel}
+              {roleLabel}
             </Badge>
           ) : null}
         </div>
@@ -111,9 +108,9 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center space-x-2 shrink-0">
-          {isAuthed && signedInLabel ? (
-            <Badge variant="outline" className="lg:hidden text-[11px] font-normal truncate max-w-[140px]" title={signedInLabel}>
-              {holder ?? role}
+          {isAuthed && roleLabel ? (
+            <Badge variant="outline" className="lg:hidden text-[11px] font-normal px-2 py-0.5 max-w-[min(200px,42vw)] truncate" title={roleBadgeTitle}>
+              {roleLabel}
             </Badge>
           ) : null}
           {isAuthed && (
