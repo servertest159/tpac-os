@@ -13,7 +13,12 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { canDeleteProgrammes } from "@/lib/auth";
@@ -232,60 +237,77 @@ const EventList = () => {
     }
   };
 
-  const exportCSV = () => {
-    const rows = filteredEvents.map((e) => ({
+  type ProgrammeExportSource = (typeof filteredEvents)[number];
+
+  /** CSV/PDF Status column mirrors card badges where possible */
+  function archivedOrDerivedStatus(e: ProgrammeExportSource): string {
+    const row = e as EventWithRequirements;
+    if (row.archived_at != null && String(row.archived_at).length > 0) return "archived";
+    return e.derivedStatus;
+  }
+
+  const buildCsvRecords = (list: ProgrammeExportSource[]) =>
+    list.map((e) => ({
       Title: e.title,
       Date: format(new Date(e.date), "yyyy-MM-dd"),
       EndDate: e.end_date ? format(new Date(e.end_date), "yyyy-MM-dd") : "",
       Location: e.location ?? "",
-      Status: e.derivedStatus,
+      Status: archivedOrDerivedStatus(e),
       Participants: `${e.current_participants ?? 0}/${e.max_participants ?? 0}`,
       RolesNeeded: e.total_roles,
       Description: (e.description ?? "").replace(/\n/g, " "),
     }));
+
+  const downloadProgrammesCsv = (list: ProgrammeExportSource[], fileSlug: string) => {
+    const rows = buildCsvRecords(list);
     if (rows.length === 0) {
-      toast({ title: "Nothing to export" });
-      return;
+      toast({ title: "Nothing to export", description: "Pick programmes or choose programmes in this tab." });
+      return false;
     }
     const headers = Object.keys(rows[0]);
     const csv = [
       headers.join(","),
       ...rows.map((r) =>
-        headers.map((h) => `"${String((r as any)[h]).replace(/"/g, '""')}"`).join(",")
+        headers.map((h) => `"${String((r as Record<string, unknown>)[h]).replace(/"/g, '""')}"`).join(",")
       ),
     ].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `programmes-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.download = `${fileSlug}-${format(new Date(), "yyyy-MM-dd")}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     toast({ title: "CSV exported", description: `${rows.length} programme(s).` });
+    return true;
   };
 
-  const exportPDF = () => {
-    if (filteredEvents.length === 0) {
-      toast({ title: "Nothing to export" });
-      return;
+  const downloadProgrammesPdf = (
+    list: ProgrammeExportSource[],
+    summaryLine: string,
+    fileSlug: string,
+  ) => {
+    if (list.length === 0) {
+      toast({ title: "Nothing to export", description: "Pick programmes or choose programmes in this tab." });
+      return false;
     }
     const doc = new jsPDF({ orientation: "landscape" });
     doc.setFontSize(16);
-    doc.text("Programmes Report", 14, 16);
+    doc.text("Programmes report", 14, 16);
     doc.setFontSize(10);
-    doc.text(`Generated ${format(new Date(), "PPp")} • Filter: ${filter}`, 14, 22);
+    doc.text(`Generated ${format(new Date(), "PPp")} • ${summaryLine}`, 14, 22);
 
     autoTable(doc, {
       startY: 28,
       head: [["Title", "Date", "Location", "Status", "Participants", "Roles"]],
-      body: filteredEvents.map((e) => [
+      body: list.map((e) => [
         e.title,
         format(new Date(e.date), "PP") +
           (e.end_date && !isSameDay(new Date(e.date), new Date(e.end_date))
             ? ` – ${format(new Date(e.end_date), "PP")}`
             : ""),
         e.location ?? "—",
-        e.derivedStatus,
+        archivedOrDerivedStatus(e),
         `${e.current_participants ?? 0}/${e.max_participants ?? 0}`,
         String(e.total_roles),
       ]),
@@ -293,9 +315,85 @@ const EventList = () => {
       headStyles: { fillColor: [220, 38, 38] },
     });
 
-    doc.save(`programmes-${format(new Date(), "yyyy-MM-dd")}.pdf`);
-    toast({ title: "PDF exported", description: `${filteredEvents.length} programme(s).` });
+    doc.save(`${fileSlug}-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    toast({ title: "PDF exported", description: `${list.length} programme(s).` });
+    return true;
   };
+
+  const exportFilteredCsv = () => {
+    downloadProgrammesCsv(filteredEvents, `programmes-tab-${filter}`);
+  };
+
+  const exportFilteredPdf = () => {
+    downloadProgrammesPdf(
+      filteredEvents,
+      `Full tab (${filter}); ${filteredEvents.length} programme(s)`,
+      `programmes-tab-${filter}`,
+    );
+  };
+
+  const selectedExportList = () => filteredEvents.filter((e) => selected.has(e.id));
+
+  const exportSelectedCsv = () => {
+    if (selected.size === 0) {
+      toast({ title: "No selection", description: "Tick programmes in List view first." });
+      return;
+    }
+    const list = selectedExportList();
+    if (list.length === 0) {
+      toast({
+        title: "Selection not in this tab",
+        description: "Switch back to the tab where those programmes are listed, or clear and re‑select.",
+      });
+      return;
+    }
+    downloadProgrammesCsv(list, `programmes-selected-${list.length}`);
+  };
+
+  const exportSelectedPdf = () => {
+    if (selected.size === 0) {
+      toast({ title: "No selection", description: "Tick programmes in List view first." });
+      return;
+    }
+    const list = selectedExportList();
+    if (list.length === 0) {
+      toast({
+        title: "Selection not in this tab",
+        description: "Switch back to the tab where those programmes are listed, or clear and re‑select.",
+      });
+      return;
+    }
+    downloadProgrammesPdf(list, `Selected ${list.length} programme(s)`, `programmes-selected-${list.length}`);
+  };
+
+  /** Export picker used in toolbar (calendar) when user has leftovers from List */
+  const renderExportSelectionDropdown = (triggerClassName?: string) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className={triggerClassName}
+          disabled={selected.size === 0}
+        >
+          <Download className="h-4 w-4 mr-1 shrink-0" />
+          Selected ({selected.size})
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+          Exports ticked programmes ({selected.size}) in this tab.
+        </DropdownMenuLabel>
+        <DropdownMenuItem onClick={exportSelectedCsv} disabled={selected.size === 0}>
+          <FileText className="h-4 w-4 mr-2" /> CSV
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={exportSelectedPdf} disabled={selected.size === 0}>
+          <FileText className="h-4 w-4 mr-2" /> PDF
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   if (loading && filter !== "archived") {
     return (
@@ -427,9 +525,11 @@ const EventList = () => {
 
     return (
       <div className="rounded-lg border bg-card">
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center justify-between p-4 border-b gap-2 flex-wrap">
           <h3 className="text-lg font-semibold">{format(calendarMonth, "MMMM yyyy")}</h3>
-          <div className="flex gap-1">
+          <div className="flex gap-2 items-center flex-wrap justify-end ml-auto">
+            {selected.size > 0 ? renderExportSelectionDropdown() : null}
+            <div className="flex gap-1">
             <Button variant="outline" size="icon" aria-label="Previous month" onClick={() => setCalendarMonth(addMonths(calendarMonth, -1))}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -437,6 +537,7 @@ const EventList = () => {
             <Button variant="outline" size="icon" aria-label="Next month" onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}>
               <ChevronRight className="h-4 w-4" />
             </Button>
+            </div>
           </div>
         </div>
         <p className="text-xs text-muted-foreground px-4 py-2 border-b leading-relaxed">
@@ -516,9 +617,26 @@ const EventList = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline"><Download className="h-4 w-4 mr-2" />Export</Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={exportCSV}><FileText className="h-4 w-4 mr-2" />CSV</DropdownMenuItem>
-                <DropdownMenuItem onClick={exportPDF}><FileText className="h-4 w-4 mr-2" />PDF</DropdownMenuItem>
+              <DropdownMenuContent align="end" className="min-w-[12rem]">
+                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                  Visible tab ({filteredEvents.length})
+                </DropdownMenuLabel>
+                <DropdownMenuItem onClick={exportFilteredCsv}>
+                  <FileText className="h-4 w-4 mr-2" /> CSV (whole tab)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportFilteredPdf}>
+                  <FileText className="h-4 w-4 mr-2" /> PDF (whole tab)
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                  Tick rows in List, then export ({selected.size} selected)
+                </DropdownMenuLabel>
+                <DropdownMenuItem onClick={exportSelectedCsv} disabled={selected.size === 0}>
+                  <FileText className="h-4 w-4 mr-2" /> CSV (selected only)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportSelectedPdf} disabled={selected.size === 0}>
+                  <FileText className="h-4 w-4 mr-2" /> PDF (selected only)
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <Button asChild><Link to="/events/new">Plan Programme</Link></Button>
@@ -613,6 +731,7 @@ const EventList = () => {
             <Button size="sm" variant="ghost" disabled={selected.size === 0} onClick={() => selected.size > 0 && clearSelection()}>
               Clear
             </Button>
+            {renderExportSelectionDropdown()}
           </div>
         </div>
       )}
