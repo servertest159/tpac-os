@@ -1,14 +1,20 @@
-
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, FileText, ChevronDown } from "lucide-react";
 import { FeedbackListSkeleton } from "@/components/ui/loading-states";
+import { downloadAarReportCsv, downloadAarReportPdf } from "@/lib/exportAarReport";
 
 type AarReportRow = Tables<"aar_reports">;
 
@@ -93,6 +99,34 @@ const FeedbackReportDetail: React.FC = () => {
     );
   }
 
+  const handleExportPdf = () => {
+    try {
+      downloadAarReportPdf(report);
+      toast({ title: "PDF exported", description: `Saved "${report.programme_title}" as PDF.` });
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "PDF export failed",
+        description: err instanceof Error ? err.message : "Try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleExportCsv = () => {
+    try {
+      downloadAarReportCsv(report);
+      toast({ title: "CSV exported", description: "One-row file opens in Excel or Sheets." });
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "CSV export failed",
+        description: err instanceof Error ? err.message : "Try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <MainLayout>
       <div className="space-y-6 page-enter">
@@ -118,7 +152,19 @@ const FeedbackReportDetail: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary">
+                  Export
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleExportPdf}>Download PDF</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportCsv}>Download CSV</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             {report.event_id ? (
               <Button variant="outline" asChild>
                 <Link to={`/events/${report.event_id}`}>View programme</Link>
