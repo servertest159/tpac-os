@@ -563,14 +563,14 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
 
           <div className="space-y-2">
             <Label>Role Requirements</Label>
-            <div className="space-y-2 rounded-md border p-4">
+            <div className="space-y-3 rounded-md border p-3 sm:p-4">
                 {roleRequirements.map((req, index) => (
-                    <div key={index} className="grid grid-cols-[1fr_auto_auto] items-center gap-2">
+                    <div key={index} className="grid grid-cols-[1fr_auto] gap-2 sm:grid-cols-[1fr_auto_auto] sm:items-center">
                         <Select
                             value={req.role}
                             onValueChange={(value) => handleRequirementChange(index, 'role', value)}
                         >
-                            <SelectTrigger>
+                            <SelectTrigger className="col-span-2 sm:col-span-1">
                                 <SelectValue placeholder="Select a role" />
                             </SelectTrigger>
                             <SelectContent>
@@ -584,7 +584,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
                             min={1}
                             value={req.quantity}
                             onChange={(e) => handleRequirementChange(index, 'quantity', parseInt(e.target.value, 10) || 1)}
-                            className="w-20"
+                            className="w-full sm:w-20"
                         />
                         <Button type="button" variant="ghost" size="icon" onClick={() => removeRequirement(index)}>
                             <Trash2 className="h-4 w-4 text-destructive" />
@@ -600,11 +600,11 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
           </fieldset>
         </CardContent>
         
-        <CardFooter className="flex justify-between">
-          <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
+        <CardFooter className="grid grid-cols-1 gap-2 sm:flex sm:justify-between">
+          <Button type="button" variant="outline" onClick={handleCancel} disabled={loading} className="w-full sm:w-auto">
             Cancel
           </Button>
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading} className="w-full sm:w-auto">
             {loading ? "Saving..." : (isEditing ? "Update Programme" : "Plan Programme")}
           </Button>
         </CardFooter>

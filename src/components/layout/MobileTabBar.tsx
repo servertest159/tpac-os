@@ -38,7 +38,9 @@ const MobileTabBar: React.FC = () => {
   const [open, setOpen] = useState(false);
 
   const isActive = (path: string) =>
-    location.pathname === path || (path === "/dashboard" && location.pathname === "/");
+    location.pathname === path ||
+    (path === "/dashboard" && location.pathname === "/") ||
+    (path !== "/dashboard" && location.pathname.startsWith(`${path}/`));
 
   const moreItems = [
     { path: "/profile", label: "Profile", icon: User },
