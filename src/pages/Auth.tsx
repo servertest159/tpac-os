@@ -6,18 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-
-const cleanupAuthState = () => {
-  try {
-    localStorage.removeItem('supabase.auth.token');
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) localStorage.removeItem(key);
-    });
-    Object.keys(sessionStorage || {}).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) sessionStorage.removeItem(key);
-    });
-  } catch {}
-};
+import { clearSupabaseClientStorage } from "@/lib/auth";
 
 const Auth: React.FC = () => {
   const { toast } = useToast();
@@ -41,7 +30,7 @@ const Auth: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      cleanupAuthState();
+      clearSupabaseClientStorage();
       try { await supabase.auth.signOut({ scope: 'global' }); } catch {}
 
       if (mode === 'signin') {

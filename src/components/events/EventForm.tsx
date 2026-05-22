@@ -100,6 +100,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
 
     const { data: { session } } = await supabase.auth.getSession();
@@ -220,9 +221,10 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
       navigate("/events");
     } catch (error) {
       console.error('Error saving event:', error);
+      const detail = error instanceof Error ? error.message.trim() : "";
       toast({
         title: "Error",
-        description: `Failed to ${isEditing ? "update" : "plan"} programme. ${error instanceof Error ? error.message : ''}`,
+        description: `${detail ? `${detail}. ` : ""}Your edits are still in this form—check your connection, then try Save again.`,
         variant: "destructive",
       });
     } finally {
@@ -266,6 +268,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
+          <fieldset disabled={loading} className="space-y-4 min-w-0 border-0 p-0 m-0 disabled:opacity-[0.75] disabled:pointer-events-none">
           <div className="space-y-2 form-field">
             <Label htmlFor="title">Programme Title</Label>
             <Input
@@ -402,10 +405,11 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
                 </Button>
             </div>
           </div>
+          </fieldset>
         </CardContent>
         
         <CardFooter className="flex justify-between">
-          <Button type="button" variant="outline" onClick={handleCancel}>
+          <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
             Cancel
           </Button>
           <Button type="submit" disabled={loading}>

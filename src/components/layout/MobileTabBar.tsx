@@ -13,7 +13,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { isSuperAdmin } from "@/lib/auth";
+import { signOut as tpacSignOut, isSuperAdmin } from "@/lib/auth";
 import {
   Sheet,
   SheetContent,
@@ -22,19 +22,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-const cleanupAuthState = () => {
-  try {
-    Object.keys(localStorage).forEach((k) => {
-      if (k.startsWith("supabase.auth.") || k.includes("sb-")) localStorage.removeItem(k);
-    });
-  } catch {}
-};
-
 const handleLogout = () => {
-  cleanupAuthState();
-  localStorage.removeItem("tpac_access_granted");
-  localStorage.removeItem("tpac_user_role");
-  window.location.href = "/";
+  tpacSignOut();
 };
 
 const coreTabs = [

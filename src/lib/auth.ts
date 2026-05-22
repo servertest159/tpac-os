@@ -1,6 +1,29 @@
 // Centralised helpers for the custom AccessGate auth.
 // The role lives in localStorage and is set during sign-in.
 
+export const TPAC_SESSION_EVENT = "tpac-access-update";
+
+/** Headers / nav can listen to refresh “signed in as” chips after same-tab gate login/logout */
+export function emitTpacSessionUpdate(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event(TPAC_SESSION_EVENT));
+}
+
+/** Clears Supabase session tokens from browser storage (used before access-gate logout and email-auth flows). */
+export function clearSupabaseClientStorage(): void {
+  try {
+    localStorage.removeItem("supabase.auth.token");
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith("supabase.auth.") || key.includes("sb-")) localStorage.removeItem(key);
+    });
+    Object.keys(sessionStorage || {}).forEach((key) => {
+      if (key.startsWith("supabase.auth.") || key.includes("sb-")) sessionStorage.removeItem(key);
+    });
+  } catch {
+    /* ignore */
+  }
+}
+
 export const ADMIN_ROLES = new Set([
   "President",
   "Vice-President",
@@ -42,9 +65,11 @@ export const canDeleteProgrammes = (): boolean => {
 };
 
 export const signOut = () => {
+  clearSupabaseClientStorage();
   localStorage.removeItem("tpac_access_granted");
   localStorage.removeItem("tpac_user_role");
   localStorage.removeItem("tpac_access_code");
   localStorage.removeItem("tpac_holder_name");
+  emitTpacSessionUpdate();
   window.location.href = "/";
 };

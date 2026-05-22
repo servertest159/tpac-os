@@ -18,9 +18,13 @@ const ConnectionBanner: React.FC = () => {
   if (online) return null;
 
   return (
-    <div className="bg-amber-500 text-amber-950 text-sm py-2 px-4 flex items-center justify-center gap-2">
-      <WifiOff className="h-4 w-4" />
-      You're offline. Changes will sync when the connection returns.
+    <div
+      role="status"
+      aria-live="polite"
+      className="bg-amber-500 text-amber-950 text-sm py-2 px-4 flex items-center justify-center gap-2 text-center"
+    >
+      <WifiOff className="h-4 w-4 shrink-0" />
+      You are offline. Reconnect to refresh data; retry any action that just failed once you have signal again.
     </div>
   );
 };

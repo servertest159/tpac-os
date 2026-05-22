@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { FileText, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 const aarFormSchema = z.object({
@@ -75,11 +77,22 @@ const AarForm = () => {
       if (error) throw error;
 
       toast({
-        title: "✅ AAR Report Filed Successfully",
-        description: "Your After Action Report has been submitted and logged.",
+        title: "AAR filed",
+        description: eventId
+          ? "The report is stored with this programme. Committee can review from AARs."
+          : "The report has been logged. Visit AARs to review submissions.",
+        action: eventId ? (
+          <ToastAction altText="View programme" onClick={() => navigate(`/events/${eventId}`)}>
+            View programme
+          </ToastAction>
+        ) : (
+          <ToastAction altText="Open AARs" onClick={() => navigate("/feedback")}>
+            Open AARs
+          </ToastAction>
+        ),
       });
-      
-      navigate("/feedback");
+
+      navigate(eventId ? `/events/${eventId}` : "/feedback");
     } catch (error) {
       console.error("Error submitting AAR:", error);
       toast({
@@ -103,6 +116,13 @@ const AarForm = () => {
           Complete this form to document lessons learned and recommendations from your programme.
         </p>
       </div>
+
+      <Alert className="border-dashed bg-muted/30">
+        <AlertDescription>
+          This form does not auto-save while you type. Brief disconnects leave your draft untouched—until you tap submit.
+          Prefer copying long narratives to Notes before submitting if connectivity is unreliable.
+        </AlertDescription>
+      </Alert>
 
       <Card>
         <CardHeader>
@@ -267,6 +287,7 @@ const AarForm = () => {
               <Button
                 type="button"
                 variant="outline"
+                disabled={isSubmitting}
                 onClick={() => navigate("/feedback")}
               >
                 Cancel

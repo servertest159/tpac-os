@@ -5,8 +5,17 @@ import type {
   ToastProps,
 } from "@/components/ui/toast"
 
-const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_LIMIT = 3
+
+/** Delay after dismissal before pruning from state (toast close animation ~200–300ms) */
+const TOAST_REMOVE_DELAY = 400
+
+const DEFAULT_TOAST_DURATION = 5500
+const DESTRUCTIVE_TOAST_DURATION = 11500
+
+export function getToastDuration(variant?: 'default' | 'destructive'): number {
+  return variant === 'destructive' ? DESTRUCTIVE_TOAST_DURATION : DEFAULT_TOAST_DURATION
+}
 
 type ToasterToast = ToastProps & {
   id: string
@@ -153,6 +162,9 @@ function toast({ ...props }: Toast) {
     type: "ADD_TOAST",
     toast: {
       ...props,
+      duration:
+        props.duration ??
+        getToastDuration(props.variant as "default" | "destructive" | undefined),
       id,
       open: true,
       onOpenChange: (open) => {

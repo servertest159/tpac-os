@@ -2,25 +2,45 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import LoadoutChecker from "@/components/gear/LoadoutChecker";
-import { useEventDetail } from "@/hooks/useEventDetail";
 import { useGearConflicts } from "@/hooks/useGearConflicts";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const EventLoadoutPanel: React.FC = () => {
+export interface EventLoadoutPanelProps {
+  /** Programme start datetime (ISO) from loaded event — avoids double-fetch via useEventDetail */
+  eventDateISO: string;
+  eventEndDateISO?: string | null;
+}
+
+const ConflictSkeleton: React.FC = () => (
+  <div className="space-y-3 rounded-lg border bg-card p-4" aria-busy="true">
+    <div className="flex items-center gap-2">
+      <Skeleton className="h-9 w-full max-w-xs" />
+    </div>
+    <Skeleton className="h-4 w-full" />
+    <Skeleton className="h-4 w-5/6" />
+    <Skeleton className="h-4 w-2/3" />
+    <span className="sr-only">Checking gear availability…</span>
+  </div>
+);
+
+const EventLoadoutPanel: React.FC<EventLoadoutPanelProps> = ({ eventDateISO, eventEndDateISO }) => {
   const { id } = useParams();
-  const { event } = useEventDetail(id);
-  const { conflicts, loading } = useGearConflicts(
-    id,
-    event?.date ? new Date(event.date) : undefined,
-    event?.end_date ? new Date(event.end_date) : undefined
+  const eventDate = React.useMemo(() => new Date(eventDateISO), [eventDateISO]);
+  const eventEndDate = React.useMemo(
+    () => (eventEndDateISO ? new Date(eventEndDateISO) : undefined),
+    [eventEndDateISO],
   );
+  const { conflicts, loading } = useGearConflicts(id, eventDate, eventEndDate);
 
   return (
     <div className="space-y-4">
-      {!loading && conflicts.length > 0 && (
+      {loading ? (
+        <ConflictSkeleton />
+      ) : conflicts.length > 0 ? (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Gear Availability Conflicts Detected</AlertTitle>
@@ -32,7 +52,7 @@ const EventLoadoutPanel: React.FC = () => {
               <ul className="list-disc list-inside space-y-1 text-sm">
                 {conflicts.map((conflict, idx) => (
                   <li key={idx}>
-                    <strong>{conflict.gearName}</strong>: Need {conflict.quantityNeeded} total, 
+                    <strong>{conflict.gearName}</strong>: Need {conflict.quantityNeeded} total,
                     but only {conflict.quantityAvailable} available. Conflicts with{" "}
                     <Button
                       variant="link"
@@ -49,7 +69,7 @@ const EventLoadoutPanel: React.FC = () => {
             </div>
           </AlertDescription>
         </Alert>
-      )}
+      ) : null}
       <LoadoutChecker />
     </div>
   );

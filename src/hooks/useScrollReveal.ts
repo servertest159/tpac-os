@@ -6,14 +6,23 @@ interface UseScrollRevealOptions {
   triggerOnce?: boolean;
 }
 
+function prefersReducedMotion(): boolean {
+  if (typeof window === 'undefined' || !window.matchMedia) return false;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(
   options: UseScrollRevealOptions = {}
 ) {
   const { threshold = 0.1, rootMargin = '0px', triggerOnce = true } = options;
   const ref = useRef<T>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(() => prefersReducedMotion());
 
   useEffect(() => {
+    if (prefersReducedMotion()) {
+      setIsVisible(true);
+      return;
+    }
     const element = ref.current;
     if (!element) return;
 

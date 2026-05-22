@@ -55,17 +55,20 @@ serve(async (req) => {
 
     const archived_at = archive ? new Date().toISOString() : null
 
-    const { error } = await supabase
-      .from("events")
-      .update({ archived_at })
-      .in("id", ids)
+    const failed: { id: string; error: string }[] = []
+    let updatedCount = 0
 
-    if (error) throw error
+    for (const id of ids) {
+      const { error } = await supabase.from("events").update({ archived_at }).eq("id", id)
+      if (error) failed.push({ id, error: error.message })
+      else updatedCount++
+    }
 
     return jsonBody({
       success: true,
-      updatedCount: ids.length,
+      updatedCount,
       archive,
+      failed,
     })
   } catch (e) {
     console.error("archive-events error:", e)

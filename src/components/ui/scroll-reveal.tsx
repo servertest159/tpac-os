@@ -67,7 +67,7 @@ export function ScrollReveal({
     <div
       ref={ref}
       className={cn(
-        'transition-all',
+        'transition-all motion-reduce:transition-none motion-reduce:!opacity-100 motion-reduce:!translate-y-0 motion-reduce:!translate-x-0 motion-reduce:!scale-100 motion-reduce:!blur-none',
         isVisible ? styles.visible : styles.hidden,
         className
       )}
@@ -113,7 +113,7 @@ export function ScrollRevealGroup({
       {React.Children.map(children, (child, index) => (
         <div
           className={cn(
-            'transition-all',
+            'transition-all motion-reduce:transition-none motion-reduce:!opacity-100 motion-reduce:!translate-y-0 motion-reduce:!translate-x-0 motion-reduce:!scale-100 motion-reduce:!blur-none',
             isVisible ? styles.visible : styles.hidden
           )}
           style={{

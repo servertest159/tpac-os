@@ -56,10 +56,16 @@ serve(async (req) => {
       return jsonBody({ success: false, error: "No programme IDs provided." })
     }
 
-    const { error: delError } = await supabase.from("events").delete().in("id", ids)
-    if (delError) throw delError
+    const failed: { id: string; error: string }[] = []
+    let deletedCount = 0
 
-    return jsonBody({ success: true, deletedCount: ids.length })
+    for (const id of ids) {
+      const { error: delErr } = await supabase.from("events").delete().eq("id", id)
+      if (delErr) failed.push({ id, error: delErr.message })
+      else deletedCount++
+    }
+
+    return jsonBody({ success: true, deletedCount, failed })
   } catch (e) {
     console.error("delete-event error:", e)
     const message = e instanceof Error ? e.message : "Unexpected error deleting programmes"

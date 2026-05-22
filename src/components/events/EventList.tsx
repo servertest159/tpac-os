@@ -23,8 +23,9 @@ import { useToast } from "@/hooks/use-toast";
 import { ScrollReveal, ScrollRevealGroup } from "@/components/ui/scroll-reveal";
 import {
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
-  addDays, addMonths, isSameMonth, isSameDay,
+  addDays, addMonths, isSameMonth, isSameDay, eachDayOfInterval, startOfDay,
 } from "date-fns";
+import { foreignKeyViolationMessage } from "@/lib/dbErrors";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -98,40 +99,136 @@ const EventList = () => {
 
   const handleDelete = async (ids: string[]) => {
     try {
-      await deleteProgrammes(ids);
-      toast({
-        title: "Deleted",
-        description: `${ids.length} programme(s) removed.`,
+      const { deletedCount, failed } = await deleteProgrammes(ids);
+
+      const failedIds = new Set(failed.map((f) => f.id));
+      setSelected((prev) => {
+        const next = new Set(prev);
+        ids.forEach((id) => {
+          if (!failedIds.has(id)) next.delete(id);
+        });
+        return next;
       });
-      clearSelection();
+
       await refetch();
       if (filter === "archived") fetchArchived();
-    } catch (err: any) {
-      toast({ title: "Delete failed", description: err?.message ?? "Error", variant: "destructive" });
+
+      const failN = failed.length;
+      const hint = failN > 0 ? foreignKeyViolationMessage(new Error(failed[0].message)) ?? failed[0].message : "";
+
+      if (failN === 0) {
+        toast({
+          title: "Deleted",
+          description: `${deletedCount} programme(s) removed.`,
+        });
+      } else if (deletedCount > 0) {
+        toast({
+          variant: "destructive",
+          title: "Partially deleted",
+          description: `${deletedCount} removed, ${failN} failed. ${hint}`,
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Delete failed",
+          description: hint || `${failN} programme(s) could not be deleted.`,
+        });
+      }
+    } catch (err: unknown) {
+      const fk = foreignKeyViolationMessage(err);
+      toast({
+        title: "Delete failed",
+        description: fk ?? (err instanceof Error ? err.message : String(err)),
+        variant: "destructive",
+      });
     }
   };
 
   const handleArchive = async (ids: string[]) => {
     try {
-      await setProgrammesArchived(ids, true);
-      toast({ title: "Archived", description: `${ids.length} programme(s) moved to archive.` });
-      clearSelection();
+      const { updatedCount, failed } = await setProgrammesArchived(ids, true);
+
+      const failedIds = new Set(failed.map((f) => f.id));
+      setSelected((prev) => {
+        const next = new Set(prev);
+        ids.forEach((id) => {
+          if (!failedIds.has(id)) next.delete(id);
+        });
+        return next;
+      });
+
       await refetch();
       await fetchArchived();
-    } catch (err: any) {
-      toast({ title: "Archive failed", description: err?.message ?? "Error", variant: "destructive" });
+
+      const failN = failed.length;
+      const hint = failN > 0 ? foreignKeyViolationMessage(new Error(failed[0].message)) ?? failed[0].message : "";
+
+      if (failN === 0) {
+        toast({ title: "Archived", description: `${updatedCount} programme(s) moved to archive.` });
+      } else if (updatedCount > 0) {
+        toast({
+          variant: "destructive",
+          title: "Partially archived",
+          description: `${updatedCount} archived, ${failN} failed. ${hint}`,
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Archive failed",
+          description: hint || `${failN} programme(s) could not be archived.`,
+        });
+      }
+    } catch (err: unknown) {
+      const fk = foreignKeyViolationMessage(err);
+      toast({
+        title: "Archive failed",
+        description: fk ?? (err instanceof Error ? err.message : String(err)),
+        variant: "destructive",
+      });
     }
   };
 
   const handleRestore = async (ids: string[]) => {
     try {
-      await setProgrammesArchived(ids, false);
-      toast({ title: "Restored", description: `${ids.length} programme(s) restored.` });
-      clearSelection();
+      const { updatedCount, failed } = await setProgrammesArchived(ids, false);
+
+      const failedIds = new Set(failed.map((f) => f.id));
+      setSelected((prev) => {
+        const next = new Set(prev);
+        ids.forEach((id) => {
+          if (!failedIds.has(id)) next.delete(id);
+        });
+        return next;
+      });
+
       await refetch();
       fetchArchived();
-    } catch (err: any) {
-      toast({ title: "Restore failed", description: err?.message ?? "Error", variant: "destructive" });
+
+      const failN = failed.length;
+      const hint = failN > 0 ? foreignKeyViolationMessage(new Error(failed[0].message)) ?? failed[0].message : "";
+
+      if (failN === 0) {
+        toast({ title: "Restored", description: `${updatedCount} programme(s) restored.` });
+      } else if (updatedCount > 0) {
+        toast({
+          variant: "destructive",
+          title: "Partially restored",
+          description: `${updatedCount} restored, ${failN} failed. ${hint}`,
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Restore failed",
+          description: hint || `${failN} programme(s) could not be restored.`,
+        });
+      }
+    } catch (err: unknown) {
+      const fk = foreignKeyViolationMessage(err);
+      toast({
+        title: "Restore failed",
+        description: fk ?? (err instanceof Error ? err.message : String(err)),
+        variant: "destructive",
+      });
     }
   };
 
@@ -227,7 +324,11 @@ const EventList = () => {
     return (
       <Card key={event.id} className={`card-hover hover-lift relative ${checked ? "ring-2 ring-primary" : ""}`}>
         <div className="absolute top-3 left-3 z-10">
-          <Checkbox checked={checked} onCheckedChange={() => toggleSelect(event.id)} aria-label="Select programme" />
+          <Checkbox
+            checked={checked}
+            onCheckedChange={() => toggleSelect(event.id)}
+            aria-label={`Select programme: ${event.title}`}
+          />
         </div>
         <CardHeader className="pl-12">
           <div className="flex justify-between items-start gap-2">
@@ -256,18 +357,20 @@ const EventList = () => {
         <CardFooter className="flex gap-2">
           <Button asChild className="flex-1"><Link to={`/events/${event.id}`}>View</Link></Button>
           {isArchived ? (
-            <Button variant="outline" size="icon" onClick={() => handleRestore([event.id])} title="Restore">
+            <Button variant="outline" size="icon" onClick={() => handleRestore([event.id])} aria-label={`Restore archived programme ${event.title}`} title={`Restore (“${event.title}”)`}>
               <ArchiveRestore className="h-4 w-4" />
             </Button>
           ) : (
-            <Button variant="outline" size="icon" onClick={() => handleArchive([event.id])} title="Archive">
+            <Button variant="outline" size="icon" onClick={() => handleArchive([event.id])} aria-label={`Archive programme ${event.title}`} title={`Archive (hides “${event.title}”)`}>
               <Archive className="h-4 w-4" />
             </Button>
           )}
           {deleteAllowed && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon" title="Delete"><Trash2 className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" aria-label={`Delete programme ${event.title}`} title={`Delete permanently (“${event.title}”)`}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
@@ -288,20 +391,38 @@ const EventList = () => {
 
   // Calendar grid
   const renderCalendar = () => {
+    type CalItem = { event: (typeof filteredEvents)[number]; segment: "single" | "start" | "middle" | "end" };
+
     const monthStart = startOfMonth(calendarMonth);
     const monthEnd = endOfMonth(calendarMonth);
     const gridStart = startOfWeek(monthStart);
     const gridEnd = endOfWeek(monthEnd);
     const days: Date[] = [];
     let d = gridStart;
-    while (d <= gridEnd) { days.push(d); d = addDays(d, 1); }
+    while (d <= gridEnd) {
+      days.push(d);
+      d = addDays(d, 1);
+    }
 
-    const eventsByDay = new Map<string, typeof filteredEvents>();
+    const eventsByDay = new Map<string, CalItem[]>();
     filteredEvents.forEach((e) => {
-      const key = format(new Date(e.date), "yyyy-MM-dd");
-      const arr = eventsByDay.get(key) ?? [];
-      arr.push(e);
-      eventsByDay.set(key, arr);
+      const startD = startOfDay(new Date(e.date));
+      const endD0 = e.end_date ? startOfDay(new Date(e.end_date)) : startD;
+      const endD = endD0 < startD ? startD : endD0;
+      const rangeDays = eachDayOfInterval({ start: startD, end: endD });
+      const multi = rangeDays.length > 1;
+      rangeDays.forEach((dayDt) => {
+        const key = format(dayDt, "yyyy-MM-dd");
+        let segment: CalItem["segment"] = "single";
+        if (multi) {
+          if (isSameDay(dayDt, startD)) segment = "start";
+          else if (isSameDay(dayDt, endD)) segment = "end";
+          else segment = "middle";
+        }
+        const arr = eventsByDay.get(key) ?? [];
+        arr.push({ event: e, segment });
+        eventsByDay.set(key, arr);
+      });
     });
 
     return (
@@ -309,14 +430,23 @@ const EventList = () => {
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="text-lg font-semibold">{format(calendarMonth, "MMMM yyyy")}</h3>
           <div className="flex gap-1">
-            <Button variant="outline" size="icon" onClick={() => setCalendarMonth(addMonths(calendarMonth, -1))}><ChevronLeft className="h-4 w-4" /></Button>
+            <Button variant="outline" size="icon" aria-label="Previous month" onClick={() => setCalendarMonth(addMonths(calendarMonth, -1))}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
             <Button variant="outline" size="sm" onClick={() => setCalendarMonth(new Date())}>Today</Button>
-            <Button variant="outline" size="icon" onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}><ChevronRight className="h-4 w-4" /></Button>
+            <Button variant="outline" size="icon" aria-label="Next month" onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
         </div>
+        <p className="text-xs text-muted-foreground px-4 py-2 border-b leading-relaxed">
+          <span className="font-medium text-foreground">Browse only:</span> use List view to tick boxes and archive, restore, export, or delete.{" "}
+          Multi-day programmes show on each day they run:&nbsp;
+          <span className="whitespace-nowrap font-medium tabular-nums">▶ start · ⋯ middle days · ■ last day.</span>
+        </p>
         <div className="grid grid-cols-7 text-xs font-medium text-muted-foreground border-b">
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-            <div key={d} className="p-2 text-center">{d}</div>
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((wk) => (
+            <div key={wk} className="p-2 text-center">{wk}</div>
           ))}
         </div>
         <div className="grid grid-cols-7">
@@ -333,20 +463,34 @@ const EventList = () => {
                   {format(day, "d")}
                 </div>
                 <div className="space-y-1">
-                  {dayEvents.slice(0, 3).map((e) => (
-                    <Link
-                      key={e.id}
-                      to={`/events/${e.id}`}
-                      className={`block truncate text-xs px-1.5 py-0.5 rounded ${
-                        e.derivedStatus === "aborted" ? "bg-destructive/20 text-destructive" :
-                        e.derivedStatus === "past" ? "bg-secondary text-secondary-foreground" :
-                        "bg-primary/15 text-primary hover:bg-primary/25"
-                      }`}
-                      title={e.title}
-                    >
-                      {e.title}
-                    </Link>
-                  ))}
+                  {dayEvents.slice(0, 3).map(({ event: ev, segment }) => {
+                    const spanRange =
+                      ev.end_date && !isSameDay(new Date(ev.date), new Date(ev.end_date))
+                        ? `${format(startOfDay(new Date(ev.date)), "d MMM")}–${format(startOfDay(new Date(ev.end_date)), "d MMM")}`
+                        : "";
+                    const phase =
+                      segment === "start" ? "starts" : segment === "middle" ? "continues" : segment === "end" ? "ends" : "";
+                    const glyph = segment === "start" ? "▶ " : segment === "middle" ? "⋯ " : segment === "end" ? "■ " : "";
+                    const hint = phase ? `${ev.title}${spanRange ? ` (${spanRange})` : ""} — ${phase}` : ev.title;
+                    return (
+                      <Link
+                        key={`${ev.id}-${segment}-${format(day, "yyyy-MM-dd")}`}
+                        to={`/events/${ev.id}`}
+                        className={`block truncate text-xs px-1.5 py-0.5 rounded tabular-nums ${
+                          ev.derivedStatus === "aborted"
+                            ? "bg-destructive/20 text-destructive"
+                            : ev.derivedStatus === "past"
+                              ? "bg-secondary text-secondary-foreground"
+                              : "bg-primary/15 text-primary hover:bg-primary/25"
+                        }`}
+                        title={hint}
+                        aria-label={hint}
+                      >
+                        <span aria-hidden>{glyph}</span>
+                        {ev.title}
+                      </Link>
+                    );
+                  })}
                   {dayEvents.length > 3 && (
                     <div className="text-[10px] text-muted-foreground px-1.5">+{dayEvents.length - 3} more</div>
                   )}
@@ -400,37 +544,64 @@ const EventList = () => {
         </Tabs>
       </div>
 
+      <p className="text-sm text-muted-foreground max-w-3xl leading-relaxed">
+        <span className="font-medium text-foreground">Archive vs Delete:</span> Archive hides a programme from active lists but keeps its history—you can restore it later.&nbsp;
+        Delete removes it permanently and cannot be undone (committee roles only). Prefer archive unless you intentionally purge data.
+      </p>
+
+      {view === "calendar" && selected.size > 0 ? (
+        <p className="md:hidden rounded-md border border-dashed px-3 py-2 text-sm text-muted-foreground tabular-nums" role="status">
+          <span className="font-medium text-foreground">{selected.size} selected.</span> Open List view to archive, restore, or delete in bulk.
+        </p>
+      ) : null}
+
       {/* Bulk action bar */}
       {view === "list" && (
         <div className="flex flex-wrap items-center gap-2 rounded-md border bg-muted/30 px-3 py-2">
           <Checkbox
             checked={selected.size > 0 && selected.size === filteredEvents.length}
             onCheckedChange={(c) => (c ? selectAll() : clearSelection())}
-            aria-label="Select all"
+            aria-label="Select all programmes in this tab"
           />
-          <span className="text-sm text-muted-foreground">
-            {selected.size > 0 ? `${selected.size} selected` : `Select programmes for bulk actions`}
+          <span className="text-sm text-muted-foreground tabular-nums">
+            {selected.size > 0 ? `${selected.size} selected` : "Select programmes for bulk actions"}
           </span>
-          {selected.size > 0 && (
-            <div className="ml-auto flex flex-wrap gap-2">
-              {filter === "archived" ? (
-                <Button size="sm" variant="outline" onClick={() => handleRestore(Array.from(selected))}>
-                  <ArchiveRestore className="h-4 w-4 mr-1" />Restore
-                </Button>
-              ) : (
-                <Button size="sm" variant="outline" onClick={() => handleArchive(Array.from(selected))}>
-                  <Archive className="h-4 w-4 mr-1" />Archive
-                </Button>
-              )}
-              {deleteAllowed && (
+          <div className="ml-auto flex flex-wrap gap-2 items-center">
+            {filter === "archived" ? (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={selected.size === 0}
+                onClick={() => selected.size > 0 && handleRestore(Array.from(selected))}
+              >
+                <ArchiveRestore className="h-4 w-4 mr-1" />
+                Restore
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={selected.size === 0}
+                onClick={() => selected.size > 0 && handleArchive(Array.from(selected))}
+              >
+                <Archive className="h-4 w-4 mr-1" />
+                Archive
+              </Button>
+            )}
+            {deleteAllowed && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button size="sm" variant="destructive"><Trash2 className="h-4 w-4 mr-1" />Delete</Button>
+                  <Button size="sm" variant="destructive" disabled={selected.size === 0}>
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete
+                  </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Delete {selected.size} programme(s)?</AlertDialogTitle>
-                    <AlertDialogDescription>This permanently removes them and cannot be undone.</AlertDialogDescription>
+                    <AlertDialogDescription>
+                      This permanently removes selected programmes—unlike Archive, deleted data cannot be restored. Prefer Archive if you only need to tidy the main list.
+                    </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -438,10 +609,11 @@ const EventList = () => {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-              )}
-              <Button size="sm" variant="ghost" onClick={clearSelection}>Clear</Button>
-            </div>
-          )}
+            )}
+            <Button size="sm" variant="ghost" disabled={selected.size === 0} onClick={() => selected.size > 0 && clearSelection()}>
+              Clear
+            </Button>
+          </div>
         </div>
       )}
 
@@ -452,23 +624,41 @@ const EventList = () => {
           <CalendarIcon className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
           <h3 className="mb-2 text-lg font-semibold">
             {filter === "archived"
-              ? "No archived programmes yet"
+              ? "No archived programmes"
               : filter === "aborted"
-              ? "No aborted programmes"
-              : filter === "past"
-              ? "No completed programmes yet"
-              : "No programmes yet"}
+                ? "No aborted programmes"
+                : filter === "past"
+                  ? "No completed programmes in this tab"
+                  : filter === "upcoming"
+                    ? "No upcoming programmes"
+                    : "No programmes in this tab"}
           </h3>
-          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+          <p className="text-muted-foreground mb-6 max-w-md mx-auto leading-relaxed">
             {filter === "archived"
-              ? "Archive a programme to keep it out of your main list without deleting it."
+              ? "Archived items stay hidden from Active tabs but remain recoverable. Archive from the programme card when you want a tidy list without deleting history."
               : filter === "aborted"
-              ? "Cancelled programmes will appear here."
-              : "Plan your first field operation to start coordinating participants, roles, and gear."}
+                ? "Aborted programmes are kept for auditing. Recently cancelled entries may still appear under All Active until you archive them."
+                : filter === "past"
+                  ? "Completed programmes move here once their date passes. Finished a big op? Draft an AAR from the programme detail page."
+                  : filter === "upcoming"
+                    ? "Nothing scheduled ahead on the calendar yet. Draft dates, invite participants, then track loadout—all from a new programme plan."
+                    : "Plan your first field operation to start coordinating participants, roles, and gear."}
           </p>
           {filter !== "archived" && filter !== "aborted" && (
-            <Button asChild size="lg">
-              <Link to="/events/new">Create your first programme</Link>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Button asChild size="lg">
+                <Link to="/events/new">Plan programme</Link>
+              </Button>
+              {(filter === "past" || filter === "upcoming") && (
+                <Button variant="outline" size="lg" onClick={() => setFilter("all")}>
+                  View all active
+                </Button>
+              )}
+            </div>
+          )}
+          {filter === "archived" && (
+            <Button variant="outline" size="lg" onClick={() => setFilter("all")}>
+              Back to active programmes
             </Button>
           )}
         </div>

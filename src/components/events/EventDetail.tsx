@@ -10,13 +10,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useEventDetail } from "@/hooks/useEventDetail";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { format } from 'date-fns';
+import { format } from "date-fns";
 import EventParticipantsPanel from "./EventParticipantsPanel";
 import EventLoadoutPanel from "./EventLoadoutPanel";
 import EventItineraryPanel from "./EventItineraryPanel";
 import { Card, CardContent } from "@/components/ui/card";
 import { canDeleteProgrammes } from "@/lib/auth";
 import { deleteProgrammes } from "@/lib/deleteProgrammes";
+import { foreignKeyViolationMessage } from "@/lib/dbErrors";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const EventDetailSkeleton = () => (
   <div className="space-y-6">
@@ -46,12 +49,38 @@ const EventDetail = () => {
   const { event, loading, error, refetch } = useEventDetail(id);
 
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
+  const [deleteConfirmInput, setDeleteConfirmInput] = React.useState("");
+  const [deleteBusy, setDeleteBusy] = React.useState(false);
+  const deleteMatches = deleteConfirmInput.trim().toUpperCase() === "DELETE";
 
-  const handleAbort = async () => {
-    if (!id) return;
+  React.useEffect(() => {
+    if (!showDeleteDialog) setDeleteConfirmInput("");
+  }, [showDeleteDialog]);
+
+  const handleDeleteProgramme = async () => {
+    if (!id || !deleteMatches) return;
+    setDeleteBusy(true);
     
     try {
-      await deleteProgrammes([id]);
+      const { deletedCount, failed } = await deleteProgrammes([id]);
+      if (failed.length > 0) {
+        const fk =
+          foreignKeyViolationMessage(new Error(failed[0].message)) ?? failed[0].message;
+        toast({
+          title: "Failed to delete programme",
+          description: fk,
+          variant: "destructive",
+        });
+        return;
+      }
+      if (deletedCount < 1) {
+        toast({
+          title: "Failed to delete programme",
+          description: "Nothing was deleted. Refresh and try again.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       toast({
         title: "Programme Deleted",
@@ -61,17 +90,19 @@ const EventDetail = () => {
       navigate('/events');
     } catch (err) {
       console.error('Error deleting programme:', err);
+      const fk = foreignKeyViolationMessage(err);
       const msg =
-        err && typeof err === "object" && "code" in (err as { code?: string }) && (err as { code: string }).code === "23503"
-          ? "This programme has related records (e.g., itinerary items, gear assignments, or emergency contacts). Remove them first, then try again."
-          : err instanceof Error
+        fk ??
+          (err instanceof Error
             ? err.message
-            : "An error occurred while deleting the programme.";
+            : "An error occurred while deleting the programme.");
       toast({
         title: "Failed to delete programme",
         description: msg,
         variant: "destructive",
       });
+    } finally {
+      setDeleteBusy(false);
     }
   };
 
@@ -137,15 +168,38 @@ const EventDetail = () => {
                 <DialogHeader>
                   <DialogTitle>Delete Programme</DialogTitle>
                   <DialogDescription>
-                    Are you sure you want to delete this programme? This will permanently remove the programme and all related data (participants, loadout, itinerary). This cannot be undone.
+                    Delete permanently removes this programme—including participants, loadout links, itinerary, and other linked rows.
+                    This cannot be undone. Prefer Archive if you only need to hide it from active lists.
                   </DialogDescription>
+                  <p className="text-sm font-medium leading-snug" aria-live="polite">
+                    Confirming:&nbsp;<span className="text-foreground">{event.title}</span>
+                  </p>
                 </DialogHeader>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+                <div className="space-y-2 py-2">
+                  <Label htmlFor="delete-confirm-programme">
+                    Type <span className="font-mono font-semibold tracking-wide text-foreground">DELETE</span> to confirm
+                  </Label>
+                  <Input
+                    id="delete-confirm-programme"
+                    autoComplete="off"
+                    value={deleteConfirmInput}
+                    onChange={(e) => setDeleteConfirmInput(e.target.value)}
+                    placeholder="DELETE"
+                    disabled={deleteBusy}
+                    aria-required="true"
+                    className="font-mono"
+                  />
+                </div>
+                <DialogFooter className="gap-2 sm:gap-0">
+                  <Button variant="outline" disabled={deleteBusy} onClick={() => setShowDeleteDialog(false)}>
                     Cancel
                   </Button>
-                  <Button variant="destructive" onClick={handleAbort}>
-                    Confirm Delete
+                  <Button
+                    variant="destructive"
+                    disabled={!deleteMatches || deleteBusy}
+                    onClick={() => void handleDeleteProgramme()}
+                  >
+                    {deleteBusy ? "Deleting…" : "Confirm Delete"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -230,7 +284,7 @@ const EventDetail = () => {
         </TabsContent>
         
         <TabsContent value="gear" className="space-y-4 pt-4 animate-fade-in">
-          <EventLoadoutPanel />
+          <EventLoadoutPanel eventDateISO={event.date} eventEndDateISO={event.end_date} />
         </TabsContent>
         
         <TabsContent value="itinerary" className="space-y-4 pt-4 animate-fade-in">
