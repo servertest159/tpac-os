@@ -50,20 +50,20 @@ const EventParticipantsManual = ({ eventId, maxParticipants = 10, initialPartici
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Participants ({participants.length}/{maxParticipants})
+            Main Committee Members ({participants.length}/{maxParticipants})
           </CardTitle>
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
               <Button size="sm" disabled={participants.length >= maxParticipants}>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Participant
+                Add Member
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add Participant</DialogTitle>
+                <DialogTitle>Add Main Committee Member</DialogTitle>
                 <DialogDescription>
-                  Add a new participant to this programme.
+                  Add a main committee member to this programme.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
@@ -73,7 +73,7 @@ const EventParticipantsManual = ({ eventId, maxParticipants = 10, initialPartici
                     id="participant-name"
                     value={newParticipantName}
                     onChange={(e) => setNewParticipantName(e.target.value)}
-                    placeholder="Enter participant name"
+                    placeholder="Enter main committee member name"
                   />
                 </div>
                 <div>
@@ -91,7 +91,7 @@ const EventParticipantsManual = ({ eventId, maxParticipants = 10, initialPartici
                   Cancel
                 </Button>
                 <Button onClick={handleAddParticipant} disabled={!newParticipantName.trim()}>
-                  Add Participant
+                  Add Member
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -102,8 +102,8 @@ const EventParticipantsManual = ({ eventId, maxParticipants = 10, initialPartici
         {participants.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No participants added yet.</p>
-            <p className="text-sm">Click "Add Participant" to get started.</p>
+            <p>No main committee members added yet.</p>
+            <p className="text-sm">Click "Add Member" to get started.</p>
           </div>
         ) : (
           <div className="space-y-3">

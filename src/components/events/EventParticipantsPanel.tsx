@@ -8,7 +8,7 @@ interface EventParticipantsPanelProps {
 }
 
 const EventParticipantsPanel = ({ invitations = [], participantsCount = 0 }: EventParticipantsPanelProps) => {
-  // Convert existing invitations to manual participants format if needed
+  // Convert existing invitations to manual main-committee records if needed
   const initialParticipants = invitations
     .filter(inv => inv.status === 'accepted' && inv.profiles)
     .map(inv => ({

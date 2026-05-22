@@ -198,7 +198,7 @@ const EventDetail = () => {
                 <DialogHeader>
                   <DialogTitle>Delete Programme</DialogTitle>
                   <DialogDescription>
-                    Delete permanently removes this programme—including participants, loadout links, itinerary, and other linked rows.
+                    Delete permanently removes this programme—including main committee member records, loadout links, itinerary, and other linked rows.
                     This cannot be undone. Prefer Archive if you only need to hide it from active lists.
                   </DialogDescription>
                   <p className="text-sm font-medium leading-snug" aria-live="polite">
@@ -241,7 +241,7 @@ const EventDetail = () => {
       <Tabs defaultValue="overview" className="w-full animate-fade-in" style={{ animationDelay: '0.1s' }}>
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="participants">Participants</TabsTrigger>
+          <TabsTrigger value="participants">Main Committee</TabsTrigger>
           <TabsTrigger value="gear">Loadout</TabsTrigger>
           <TabsTrigger value="itinerary">Itinerary</TabsTrigger>
         </TabsList>
@@ -269,7 +269,7 @@ const EventDetail = () => {
                       <div className="flex items-center">
                         <Users className="mr-2 h-4 w-4 text-muted-foreground" />
                         <span>
-                          {participants.length} / {maxParticipants} participants confirmed
+                          {participants.length} / {maxParticipants} main committee members confirmed
                         </span>
                       </div>
                     </div>

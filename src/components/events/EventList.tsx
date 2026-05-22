@@ -254,7 +254,7 @@ const EventList = () => {
       EndDate: e.end_date ? format(new Date(e.end_date), "yyyy-MM-dd") : "",
       Location: e.location ?? "",
       Status: archivedOrDerivedStatus(e),
-      Participants: `${e.current_participants ?? 0}/${e.max_participants ?? 0}`,
+      "Main Committee Members": `${e.current_participants ?? 0}/${e.max_participants ?? 0}`,
       RolesNeeded: e.total_roles,
       Description: (e.description ?? "").replace(/\n/g, " "),
     }));
@@ -300,7 +300,7 @@ const EventList = () => {
 
     autoTable(doc, {
       startY: 28,
-      head: [["Title", "Date", "Location", "Status", "Participants", "Roles"]],
+      head: [["Title", "Date", "Location", "Status", "Main Committee", "Roles"]],
       body: list.map((e) => [
         e.title,
         format(new Date(e.date), "PP") +
@@ -449,7 +449,7 @@ const EventList = () => {
           <div className="space-y-2 text-sm">
             <div className="flex items-center gap-2"><CalendarIcon className="h-4 w-4 text-muted-foreground" />{new Date(event.date).toLocaleDateString()}</div>
             {event.location && <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground" />{event.location}</div>}
-            <div className="flex items-center gap-2"><Users className="h-4 w-4 text-muted-foreground" />{event.current_participants ?? 0}/{event.max_participants ?? 0} participants</div>
+            <div className="flex items-center gap-2"><Users className="h-4 w-4 text-muted-foreground" />{event.current_participants ?? 0}/{event.max_participants ?? 0} main committee members</div>
             {event.total_roles > 0 && <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-muted-foreground" />{event.total_roles} roles needed</div>}
           </div>
         </CardContent>
@@ -761,8 +761,8 @@ const EventList = () => {
                 : filter === "past"
                   ? "Completed programmes move here once their date passes. Finished a big op? Draft an AAR from the programme detail page."
                   : filter === "upcoming"
-                    ? "Nothing scheduled ahead on the calendar yet. Draft dates, invite participants, then track loadout—all from a new programme plan."
-                    : "Plan your first field operation to start coordinating participants, roles, and gear."}
+                    ? "Nothing scheduled ahead on the calendar yet. Draft dates, assign main committee members, then track loadout—all from a new programme plan."
+                    : "Plan your first field operation to start coordinating main committee members, roles, and gear."}
           </p>
           {staffManage && filter !== "archived" && filter !== "aborted" && (
             <div className="flex flex-wrap justify-center gap-3">

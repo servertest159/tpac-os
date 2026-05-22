@@ -78,8 +78,8 @@ export async function buildAndDownloadProgrammeDetailPdf(
       ["Date / time", dateLine],
       ["Location", event.location?.trim() || "—"],
       [
-        "Participants",
-        `${confirmed} / ${event.max_participants ?? 0} confirmed`,
+        "Main committee",
+        `${confirmed} / ${event.max_participants ?? 0} main committee members confirmed`,
       ],
     ],
     styles: { fontSize: 9 },

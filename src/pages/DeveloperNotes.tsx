@@ -32,7 +32,7 @@ const DeveloperNotes = () => {
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <p>
-                TPAC OS is the club's operating system for programmes: events, gear, participants,
+                TPAC OS is the club's operating system for programmes: events, gear, main committee members,
                 itineraries, emergency contacts and after-action reports — all in one place,
                 in real time.
               </p>

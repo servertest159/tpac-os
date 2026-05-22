@@ -549,7 +549,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="max_participants">Max Crew Size</Label>
+            <Label htmlFor="max_participants">Max Main Committee Members</Label>
             <Input
               id="max_participants"
               name="max_participants"
