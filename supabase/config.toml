@@ -1,5 +1,9 @@
 project_id = "cfxecxtkwgbfeqeichij"
 
+# Align with hosted Postgres major version so `supabase link` stops warning vs local tooling.
+[db]
+major_version = 15
+
 [auth]
 enabled = true
 site_url = "http://localhost:3000"
