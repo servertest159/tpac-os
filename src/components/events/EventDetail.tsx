@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, MapPin, Users, Clock, Edit, Trash2, AlertCircle } from "lucide-react";
+import { Calendar, MapPin, Users, Clock, Edit, Trash2, AlertCircle, FileDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useEventDetail } from "@/hooks/useEventDetail";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,6 +20,7 @@ import { deleteProgrammes } from "@/lib/deleteProgrammes";
 import { foreignKeyViolationMessage } from "@/lib/dbErrors";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { buildAndDownloadProgrammeDetailPdf } from "@/lib/exportProgrammeDetailPdf";
 
 const EventDetailSkeleton = () => (
   <div className="space-y-6">
@@ -51,6 +52,7 @@ const EventDetail = () => {
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
   const [deleteConfirmInput, setDeleteConfirmInput] = React.useState("");
   const [deleteBusy, setDeleteBusy] = React.useState(false);
+  const [pdfBusy, setPdfBusy] = React.useState(false);
   const deleteMatches = deleteConfirmInput.trim().toUpperCase() === "DELETE";
 
   React.useEffect(() => {
@@ -106,6 +108,27 @@ const EventDetail = () => {
     }
   };
 
+  const handleExportPdf = async () => {
+    if (!event || !id) return;
+    setPdfBusy(true);
+    try {
+      await buildAndDownloadProgrammeDetailPdf(event, id);
+      toast({
+        title: "PDF exported",
+        description: `Saved a briefing pack for "${event.title}".`,
+      });
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Could not export PDF",
+        description: err instanceof Error ? err.message : "Try again shortly.",
+        variant: "destructive",
+      });
+    } finally {
+      setPdfBusy(false);
+    }
+  };
+
   if (loading) {
     return <EventDetailSkeleton />;
   }
@@ -149,7 +172,11 @@ const EventDetail = () => {
             Programme Debrief & Coordination
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 justify-end">
+            <Button variant="outline" className="hover-scale" disabled={pdfBusy} onClick={() => void handleExportPdf()}>
+              <FileDown className="mr-2 h-4 w-4" />
+              {pdfBusy ? "Preparing PDF…" : "Export PDF"}
+            </Button>
             <Button asChild variant="outline" className="hover-scale">
               <Link to={`/events/${id}/edit`}>
                 <Edit className="mr-2 h-4 w-4" />
