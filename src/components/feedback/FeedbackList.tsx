@@ -296,8 +296,8 @@ const FeedbackList = () => {
                       </div>
                     </CardContent>
                     <CardFooter className="flex gap-2">
-                      <Button variant="outline" className="flex-1" disabled>
-                        View Report
+                      <Button asChild variant="outline" className="flex-1">
+                        <Link to={`/feedback/report/${report.id}`}>View Report</Link>
                       </Button>
                       {staffManage && (
                       <ConfirmDeleteButton label={report.programme_title} onConfirm={() => handleDeleteReport(report)} />

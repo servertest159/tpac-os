@@ -57,7 +57,7 @@ const DeveloperNotes = () => {
               <ul className="space-y-1 pl-4">
                 <li>• <strong className="text-foreground">Platform maintainer</strong> manages invite codes at <code>/admin/access</code> (issue, rotate, deactivate). That page is restricted to the developer session only.</li>
                 <li>• <strong className="text-foreground">Committee roles</strong> — every code role except <strong className="text-foreground">Member</strong> — can manage gear, roster on Profile where shown, CSV exports (<code>/admin/exports</code>), AAR administration, and use operational tools; they do not open the Access Codes admin page.</li>
-                <li>• <strong className="text-foreground">Member</strong> codes can view programmes and inventory but cannot change gear, bulk operations, invite codes, CSV exports, or delete AAR content.</li>
+                <li>• <strong className="text-foreground">Member</strong> codes can view programmes and inventory, open any filed AAR to read the full submission, and file new reports. Gear, exports, invite codes, and linking or deleting AAR forms and reports remain committee responsibilities.</li>
               </ul>
               <p>At every AY hand-over: rotate codes, update holder names. That is the entire transition.</p>
             </CardContent>

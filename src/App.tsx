@@ -10,6 +10,7 @@ const GearNew = lazy(() => import("@/pages/GearNew"));
 const GearEdit = lazy(() => import("@/pages/GearEdit"));
 const Feedback = lazy(() => import("@/pages/Feedback"));
 const FeedbackNew = lazy(() => import("@/pages/FeedbackNew"));
+const FeedbackReportDetail = lazy(() => import("@/pages/FeedbackReportDetail"));
 const InventoryLoadout = lazy(() => import("@/pages/InventoryLoadout"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const DeveloperNotes = lazy(() => import("@/pages/DeveloperNotes"));
@@ -52,6 +53,7 @@ function App() {
           <Route path="/gear/new" element={<Page><GearNew /></Page>} />
           <Route path="/gear/:id/edit" element={<Page><GearEdit /></Page>} />
           <Route path="/feedback" element={<Page><Feedback /></Page>} />
+          <Route path="/feedback/report/:reportId" element={<Page><FeedbackReportDetail /></Page>} />
           <Route path="/feedback/new" element={<Page><FeedbackNew /></Page>} />
           <Route path="/inventory-loadout" element={<Page><InventoryLoadout /></Page>} />
           <Route path="/profile" element={<Page><Profile /></Page>} />
