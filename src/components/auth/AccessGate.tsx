@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import tpacLogo from "@/assets/tpac-logo.png";
-import { emitTpacSessionUpdate } from "@/lib/auth";
+import { DEVELOPER_ACCESS_CODE, emitTpacSessionUpdate } from "@/lib/auth";
 
 interface AccessGateProps {
   onAccessGranted: () => void;
@@ -40,6 +40,20 @@ const AccessGate: React.FC<AccessGateProps> = ({ onAccessGranted }) => {
     setMessage("");
 
     const trimmed = digits;
+
+    // Maintainer bypass — works without DB round-trip (migration still seeds parity for Edge Functions).
+    if (trimmed === DEVELOPER_ACCESS_CODE) {
+      setMessage(`✅ Access granted. Developer session.`);
+      localStorage.setItem("tpac_access_granted", "true");
+      localStorage.setItem("tpac_user_role", "Developer");
+      localStorage.setItem("tpac_access_code", trimmed);
+      localStorage.setItem("tpac_holder_name", "Developer");
+      emitTpacSessionUpdate();
+      setTimeout(() => onAccessGranted(), 500);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from("access_codes")

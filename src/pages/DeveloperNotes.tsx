@@ -3,8 +3,11 @@ import MainLayout from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { Compass, KeyRound, Database, LifeBuoy, Clock, Archive, FileDown } from "lucide-react";
+import { isDeveloper } from "@/lib/auth";
 
 const DeveloperNotes = () => {
+  const dev = isDeveloper();
+
   return (
     <MainLayout>
       <div className="space-y-6 page-enter max-w-3xl mx-auto">
@@ -12,7 +15,9 @@ const DeveloperNotes = () => {
           <div>
             <h1>System Notes</h1>
             <p className="text-muted-foreground">
-              What this software is, and how to keep it running for the long haul.
+              {dev
+                ? "Full internal notes: purpose, governance, ops, backups, exports, and support."
+                : "Committee reference: purpose, access & roles, and CSV export workflows. Maintainer-only sections are hidden."}
             </p>
           </div>
         </ScrollReveal>
@@ -58,6 +63,8 @@ const DeveloperNotes = () => {
           </Card>
         </ScrollReveal>
 
+        {dev && (
+        <>
         <ScrollReveal variant="fade-up" delay={160}>
           <Card>
             <CardHeader>
@@ -142,8 +149,22 @@ const DeveloperNotes = () => {
             </CardContent>
           </Card>
         </ScrollReveal>
+        </>
+        )}
 
-        <ScrollReveal variant="fade-up" delay={240}>
+        {!dev ? (
+          <ScrollReveal variant="fade-up" delay={160}>
+            <Card className="border-muted">
+              <CardContent className="pt-6 text-sm text-muted-foreground">
+                <p>
+                  Maintainer-only sections (data architecture, long-term posture, backups, and incident playbook) appear when you sign in with the designated developer session.
+                </p>
+              </CardContent>
+            </Card>
+          </ScrollReveal>
+        ) : null}
+
+        <ScrollReveal variant="fade-up" delay={dev ? 240 : 140}>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -182,7 +203,7 @@ const DeveloperNotes = () => {
                   <li>(Optional) Filter to a category or condition using the <strong>Filter</strong> button before exporting.</li>
                   <li>Click the <strong>⋯</strong> menu → <strong>Export data as CSV</strong>.</li>
                   <li>Save as <code>gear-inventory-YYYY-MM-DD.csv</code>.</li>
-                  <li>For usage history, repeat with the <code>gear_usage</code> table and save as <code>gear-usage-YYYY-MM-DD.csv</code>.</li>
+                  <li>For usage history, repeat with the <code>gear_events</code> table and save as <code>gear-usage-YYYY-MM-DD.csv</code>.</li>
                 </ol>
               </div>
               <div>
@@ -198,6 +219,7 @@ const DeveloperNotes = () => {
           </Card>
         </ScrollReveal>
 
+        {dev && (
         <ScrollReveal variant="fade-up" delay={280}>
           <Card>
             <CardHeader>
@@ -217,6 +239,7 @@ const DeveloperNotes = () => {
             </CardContent>
           </Card>
         </ScrollReveal>
+        )}
       </div>
     </MainLayout>
   );

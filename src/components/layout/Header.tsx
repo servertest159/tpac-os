@@ -29,7 +29,8 @@ const Header = () => {
       if (
         e.key === "tpac_access_granted" ||
         e.key === "tpac_user_role" ||
-        e.key === "tpac_holder_name"
+        e.key === "tpac_holder_name" ||
+        e.key === "tpac_access_code"
       ) {
         updateAuth();
       }
