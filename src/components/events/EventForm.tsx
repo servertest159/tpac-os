@@ -10,7 +10,47 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Enums } from "@/integrations/supabase/types";
 import { Constants } from "@/integrations/supabase/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2 } from "lucide-react";
+import { Trash2, Plus, ArrowUp, ArrowDown } from "lucide-react";
+
+export interface ItineraryFormRow {
+  key: string;
+  day: number;
+  time: string;
+  activity: string;
+  location: string;
+}
+
+function newItineraryRow(partial?: Partial<Omit<ItineraryFormRow, "key">>): ItineraryFormRow {
+  return {
+    key: typeof crypto !== "undefined" ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+    day: partial?.day ?? 1,
+    time: partial?.time ?? "",
+    activity: partial?.activity ?? "",
+    location: partial?.location ?? "",
+  };
+}
+
+/** Rows with a non-empty activity are saved as itinerary_items (trip_id = event id). */
+function itineraryRowsToPayload(rows: ItineraryFormRow[]) {
+  return rows
+    .filter((r) => r.activity.trim().length > 0)
+    .map((r) => ({
+      day: Math.max(1, Math.floor(Number(r.day)) || 1),
+      time: r.time.trim() || null,
+      activity: r.activity.trim(),
+      location: r.location.trim() || null,
+    }));
+}
+
+async function persistItineraryRows(tripId: string, rows: ItineraryFormRow[]) {
+  const { error: delError } = await supabase.from("itinerary_items").delete().eq("trip_id", tripId);
+  if (delError) throw delError;
+  const payload = itineraryRowsToPayload(rows).map((r) => ({ trip_id: tripId, ...r }));
+  if (payload.length > 0) {
+    const { error } = await supabase.from("itinerary_items").insert(payload);
+    if (error) throw error;
+  }
+}
 
 interface EventFormProps {
   eventId?: string;
@@ -40,6 +80,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
     max_participants: 10,
   });
   const [roleRequirements, setRoleRequirements] = useState<RoleRequirement[]>([]);
+  const [itineraryRows, setItineraryRows] = useState<ItineraryFormRow[]>([newItineraryRow()]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -86,6 +127,26 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
           setRoleRequirements(
             data.event_role_requirements.map(r => ({ role: r.role, quantity: r.quantity }))
           );
+        }
+
+        const { data: itineraryData, error: itineraryError } = await supabase
+          .from("itinerary_items")
+          .select("*")
+          .eq("trip_id", eventId)
+          .order("day", { ascending: true });
+
+        if (!itineraryError && itineraryData && itineraryData.length > 0) {
+          setItineraryRows(
+            itineraryData.map((row) => ({
+              key: row.id,
+              day: row.day,
+              time: row.time ?? "",
+              activity: row.activity ?? "",
+              location: row.location ?? "",
+            })),
+          );
+        } else {
+          setItineraryRows([newItineraryRow()]);
         }
       }
     } catch (error) {
@@ -178,6 +239,8 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
             const { error: insertError } = await supabase.from('event_role_requirements').insert(newRequirements);
             if (insertError) throw insertError;
           }
+
+          await persistItineraryRows(eventIdToUse, itineraryRows);
         }
       } else {
         // Use edge functions for non-authenticated users with access codes
@@ -193,6 +256,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
               eventId,
               eventData,
               roleRequirements: filteredRequirements,
+              itineraryItems: itineraryRowsToPayload(itineraryRows),
             }
           });
 
@@ -205,6 +269,7 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
               accessCode,
               eventData,
               roleRequirements: filteredRequirements,
+              itineraryItems: itineraryRowsToPayload(itineraryRows),
             }
           });
 
@@ -255,6 +320,42 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
   const removeRequirement = (index: number) => {
     const newRequirements = roleRequirements.filter((_, i) => i !== index);
     setRoleRequirements(newRequirements);
+  };
+
+  const handleItineraryField = (
+    key: string,
+    field: keyof Omit<ItineraryFormRow, "key">,
+    value: string | number,
+  ) => {
+    setItineraryRows((prev) =>
+      prev.map((r) =>
+        r.key === key
+          ? {
+              ...r,
+              [field]:
+                field === "day"
+                  ? Math.max(1, Math.floor(Number(value)) || 1)
+                  : (value as string),
+            }
+          : r,
+      ),
+    );
+  };
+
+  const addItineraryRow = () =>
+    setItineraryRows((prev) => [...prev, newItineraryRow({ day: prev[prev.length - 1]?.day ?? 1 })]);
+
+  const removeItineraryRow = (key: string) =>
+    setItineraryRows((prev) => (prev.length <= 1 ? prev : prev.filter((r) => r.key !== key)));
+
+  const moveItineraryRow = (index: number, dir: -1 | 1) => {
+    setItineraryRows((prev) => {
+      const j = index + dir;
+      if (j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[j]] = [next[j], next[index]];
+      return next;
+    });
   };
 
   const handleCancel = () => {
@@ -354,6 +455,97 @@ const EventForm: React.FC<EventFormProps> = ({ eventId }) => {
               rows={4}
               required
             />
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <Label>Itinerary</Label>
+              <p className="text-xs text-muted-foreground mt-1">
+                Optional schedule: day number (for multi-day programmes), local time, activity, and location or waypoint.
+              </p>
+            </div>
+            <div className="rounded-md border p-4 space-y-4">
+              {itineraryRows.map((row, index) => (
+                <div
+                  key={row.key}
+                  className="flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-3 border-b pb-4 last:border-0 last:pb-0"
+                >
+                  <div className="space-y-1 w-full lg:w-16 shrink-0">
+                    <Label className="text-xs">Day</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={row.day}
+                      onChange={(e) => handleItineraryField(row.key, "day", e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="space-y-1 w-full lg:w-32 shrink-0">
+                    <Label className="text-xs">Time</Label>
+                    <Input
+                      type="time"
+                      value={row.time}
+                      onChange={(e) => handleItineraryField(row.key, "time", e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="space-y-1 flex-1 min-w-0">
+                    <Label className="text-xs">Activity</Label>
+                    <Input
+                      value={row.activity}
+                      onChange={(e) => handleItineraryField(row.key, "activity", e.target.value)}
+                      placeholder="e.g. Briefing, transit to site, activity block"
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="space-y-1 flex-1 min-w-0">
+                    <Label className="text-xs">Location / notes</Label>
+                    <Input
+                      value={row.location}
+                      onChange={(e) => handleItineraryField(row.key, "location", e.target.value)}
+                      placeholder="Waypoint or extra detail"
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="flex gap-1 shrink-0 justify-end">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={() => moveItineraryRow(index, -1)}
+                      aria-label="Move row up"
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={() => moveItineraryRow(index, 1)}
+                      aria-label="Move row down"
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={() => removeItineraryRow(row.key)}
+                      aria-label="Remove row"
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              <Button type="button" variant="outline" onClick={addItineraryRow} className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                Add itinerary step
+              </Button>
+            </div>
           </div>
           
           <div className="space-y-2">

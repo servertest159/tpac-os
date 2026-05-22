@@ -7,6 +7,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+interface ItineraryItemInput {
+  day: number
+  time?: string | null
+  activity: string
+  location?: string | null
+}
+
 interface UpdateEventRequest {
   accessCode: string | number
   eventId: string
@@ -22,6 +29,7 @@ interface UpdateEventRequest {
     role: string
     quantity: number
   }>
+  itineraryItems?: ItineraryItemInput[]
 }
 
 serve(async (req) => {
@@ -91,6 +99,32 @@ serve(async (req) => {
       if (insError) {
         console.error('Error inserting role requirements:', insError)
         throw insError
+      }
+    }
+
+    const { error: delItError } = await supabase
+      .from('itinerary_items')
+      .delete()
+      .eq('trip_id', eventId)
+    if (delItError) {
+      console.error('Error clearing itinerary:', delItError)
+      throw delItError
+    }
+
+    const itRows = (itineraryItems || [])
+      .filter((r) => r.activity && String(r.activity).trim().length > 0)
+      .map((r) => ({
+        trip_id: eventId,
+        day: Math.max(1, Math.floor(Number(r.day) || 1)),
+        time: r.time && String(r.time).trim() ? String(r.time).trim() : null,
+        activity: String(r.activity).trim(),
+        location: r.location && String(r.location).trim() ? String(r.location).trim() : null,
+      }))
+    if (itRows.length > 0) {
+      const { error: itInsError } = await supabase.from('itinerary_items').insert(itRows)
+      if (itInsError) {
+        console.error('Error inserting itinerary items:', itInsError)
+        throw itInsError
       }
     }
 

@@ -7,6 +7,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+interface ItineraryItemInput {
+  day: number
+  time?: string | null
+  activity: string
+  location?: string | null
+}
+
 interface CreateEventRequest {
   accessCode: string | number
   eventData: {
@@ -21,6 +28,7 @@ interface CreateEventRequest {
     role: string
     quantity: number
   }>
+  itineraryItems?: ItineraryItemInput[]
 }
 
 serve(async (req) => {
@@ -92,6 +100,25 @@ serve(async (req) => {
         }
 
         console.log('Role requirements created:', requirements)
+      }
+    }
+
+    if (itineraryItems && itineraryItems.length > 0 && newEvent) {
+      const rows = itineraryItems
+        .filter((r) => r.activity && String(r.activity).trim().length > 0)
+        .map((r) => ({
+          trip_id: newEvent.id,
+          day: Math.max(1, Math.floor(Number(r.day) || 1)),
+          time: r.time && String(r.time).trim() ? String(r.time).trim() : null,
+          activity: String(r.activity).trim(),
+          location: r.location && String(r.location).trim() ? String(r.location).trim() : null,
+        }))
+      if (rows.length > 0) {
+        const { error: itError } = await supabase.from('itinerary_items').insert(rows)
+        if (itError) {
+          console.error('Error creating itinerary items:', itError)
+          throw itError
+        }
       }
     }
 

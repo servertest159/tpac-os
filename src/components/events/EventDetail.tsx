@@ -315,7 +315,7 @@ const EventDetail = () => {
         </TabsContent>
         
         <TabsContent value="itinerary" className="space-y-4 pt-4 animate-fade-in">
-          <EventItineraryPanel />
+          <EventItineraryPanel items={event.itinerary_items ?? []} />
         </TabsContent>
       </Tabs>
     </div>

@@ -126,6 +126,28 @@ export async function buildAndDownloadProgrammeDetailPdf(
     y = doc.lastAutoTable?.finalY != null ? doc.lastAutoTable.finalY + 10 : y;
   }
 
+  const itinerarySorted = [...(event.itinerary_items ?? [])].sort((a, b) => {
+    if (a.day !== b.day) return a.day - b.day;
+    return (a.time || "").localeCompare(b.time || "");
+  });
+  if (itinerarySorted.length > 0) {
+    if (y > 200) doc.addPage();
+    autoTable(doc, {
+      startY: y > margin ? y : margin,
+      head: [["Day", "Time", "Activity", "Location"]],
+      body: itinerarySorted.map((row) => [
+        String(row.day),
+        row.time?.trim() || "—",
+        row.activity?.trim() || "—",
+        row.location?.trim() || "—",
+      ]),
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: headlineRed },
+      margin: { left: margin, right: margin },
+    });
+    y = doc.lastAutoTable?.finalY != null ? doc.lastAutoTable.finalY + 10 : y;
+  }
+
   if (y > 200) doc.addPage();
   autoTable(doc, {
     startY: y > margin ? y : margin,

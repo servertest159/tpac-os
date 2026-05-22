@@ -10,6 +10,7 @@ export type EventDetailType = Tables<'events'> & {
     status: Enums<'invitation_status'>;
     profiles: Pick<Tables<'profiles'>, 'id' | 'full_name' | 'email' | 'avatar_url'> | null;
   })[];
+  itinerary_items: Tables<'itinerary_items'>[];
 };
 
 export const useEventDetail = (eventId: string | undefined) => {
@@ -43,7 +44,20 @@ export const useEventDetail = (eventId: string | undefined) => {
 
       if (fetchError) throw fetchError;
 
-      setEvent(data as EventDetailType);
+      const { data: itineraryRows, error: itinError } = await supabase
+        .from('itinerary_items')
+        .select('*')
+        .eq('trip_id', eventId)
+        .order('day', { ascending: true });
+
+      if (itinError) {
+        console.warn('Could not load itinerary:', itinError);
+      }
+
+      setEvent({
+        ...(data as EventDetailType),
+        itinerary_items: itineraryRows ?? [],
+      });
 
     } catch (err) {
       console.error('Error fetching event details:', err);
@@ -88,6 +102,11 @@ export const useEventDetail = (eventId: string | undefined) => {
             'postgres_changes',
             { event: '*', schema: 'public', table: 'event_invitations', filter: `event_id=eq.${eventId}` },
             () => { console.log('refetching invites'); fetchEvent(); }
+          )
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'itinerary_items', filter: `trip_id=eq.${eventId}` },
+            () => { fetchEvent(); }
           )
           .subscribe();
 
