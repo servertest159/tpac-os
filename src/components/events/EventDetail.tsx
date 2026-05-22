@@ -15,7 +15,7 @@ import EventParticipantsPanel from "./EventParticipantsPanel";
 import EventLoadoutPanel from "./EventLoadoutPanel";
 import EventItineraryPanel from "./EventItineraryPanel";
 import { Card, CardContent } from "@/components/ui/card";
-import { canDeleteProgrammes } from "@/lib/auth";
+import { canDeleteProgrammes, canStaffManage } from "@/lib/auth";
 import { deleteProgrammes } from "@/lib/deleteProgrammes";
 import { foreignKeyViolationMessage } from "@/lib/dbErrors";
 import { Input } from "@/components/ui/input";
@@ -54,6 +54,7 @@ const EventDetail = () => {
   const [deleteBusy, setDeleteBusy] = React.useState(false);
   const [pdfBusy, setPdfBusy] = React.useState(false);
   const deleteMatches = deleteConfirmInput.trim().toUpperCase() === "DELETE";
+  const staffManage = canStaffManage();
 
   React.useEffect(() => {
     if (!showDeleteDialog) setDeleteConfirmInput("");
@@ -177,12 +178,14 @@ const EventDetail = () => {
               <FileDown className="mr-2 h-4 w-4" />
               {pdfBusy ? "Preparing PDF…" : "Export PDF"}
             </Button>
-            <Button asChild variant="outline" className="hover-scale">
-              <Link to={`/events/${id}/edit`}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-              </Link>
-            </Button>
+            {staffManage && (
+              <Button asChild variant="outline" className="hover-scale">
+                <Link to={`/events/${id}/edit`}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit
+                </Link>
+              </Button>
+            )}
             {canDeleteProgrammes() && (
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
               <DialogTrigger asChild>

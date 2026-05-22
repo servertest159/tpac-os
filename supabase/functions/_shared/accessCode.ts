@@ -4,6 +4,13 @@ export type ResolvedAccess =
   | { ok: true; id: string; role: string }
   | { ok: false; error: string };
 
+export const DEVELOPER_ACCESS_CODE = "111111";
+export const MEMBER_ROLE_LABEL = "Member";
+
+export function canMutateOperationalData(role: string): boolean {
+  return role !== MEMBER_ROLE_LABEL;
+}
+
 /**
  * Resolve invite code via public.access_codes (single source of truth).
  * Mirrors AccessGate.tsx rules: active flag + optional expiry.
@@ -15,6 +22,11 @@ export async function resolveAccessCodeRole(
   const codeKey = String(accessCode ?? "").trim();
   if (!codeKey) {
     return { ok: false, error: "Missing access code" };
+  }
+
+  // Maintainer parity with the SPA: developer keeps backend access even if the seed row is absent.
+  if (codeKey === DEVELOPER_ACCESS_CODE) {
+    return { ok: true, id: "developer", role: "Developer" };
   }
 
   const { data, error } = await supabase

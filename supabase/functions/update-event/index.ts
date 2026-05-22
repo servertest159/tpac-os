@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0'
-import { resolveAccessCodeRole } from "../_shared/accessCode.ts"
+import { canMutateOperationalData, resolveAccessCodeRole } from "../_shared/accessCode.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -50,6 +50,16 @@ serve(async (req) => {
     if (!resolved.ok) {
       return new Response(
         JSON.stringify({ success: false, error: resolved.error }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+
+    if (!canMutateOperationalData(resolved.role)) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Members cannot update programmes. Ask a committee lead to edit it.",
+        }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       )
     }

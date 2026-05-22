@@ -21,7 +21,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
-import { canDeleteProgrammes } from "@/lib/auth";
+import { canDeleteProgrammes, canStaffManage } from "@/lib/auth";
 import { deleteProgrammes } from "@/lib/deleteProgrammes";
 import { setProgrammesArchived } from "@/lib/setProgrammesArchive";
 import { useToast } from "@/hooks/use-toast";
@@ -39,6 +39,7 @@ type FilterMode = "all" | "upcoming" | "past" | "aborted" | "archived";
 
 const EventList = () => {
   const deleteAllowed = canDeleteProgrammes();
+  const staffManage = canStaffManage();
   const { events, loading, error, refetch } = useEvents();
   const [archivedEvents, setArchivedEvents] = React.useState<EventWithRequirements[]>([]);
   const [view, setView] = React.useState<ViewMode>("list");
@@ -639,7 +640,7 @@ const EventList = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button asChild><Link to="/events/new">Plan Programme</Link></Button>
+            {staffManage && <Button asChild><Link to="/events/new">Plan Programme</Link></Button>}
           </div>
         </div>
       </ScrollReveal>
@@ -685,7 +686,7 @@ const EventList = () => {
             {selected.size > 0 ? `${selected.size} selected` : "Select programmes for bulk actions"}
           </span>
           <div className="ml-auto flex flex-wrap gap-2 items-center">
-            {filter === "archived" ? (
+            {staffManage && (filter === "archived" ? (
               <Button
                 size="sm"
                 variant="outline"
@@ -705,7 +706,7 @@ const EventList = () => {
                 <Archive className="h-4 w-4 mr-1" />
                 Archive
               </Button>
-            )}
+            ))}
             {deleteAllowed && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -763,7 +764,7 @@ const EventList = () => {
                     ? "Nothing scheduled ahead on the calendar yet. Draft dates, invite participants, then track loadout—all from a new programme plan."
                     : "Plan your first field operation to start coordinating participants, roles, and gear."}
           </p>
-          {filter !== "archived" && filter !== "aborted" && (
+          {staffManage && filter !== "archived" && filter !== "aborted" && (
             <div className="flex flex-wrap justify-center gap-3">
               <Button asChild size="lg">
                 <Link to="/events/new">Plan programme</Link>

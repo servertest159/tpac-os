@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0"
-import { resolveAccessCodeRole } from "../_shared/accessCode.ts"
+import { canMutateOperationalData, resolveAccessCodeRole } from "../_shared/accessCode.ts"
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -40,7 +40,7 @@ serve(async (req) => {
       return jsonBody({ success: false, error: resolved.error })
     }
 
-    if (resolved.role === "Member") {
+    if (!canMutateOperationalData(resolved.role)) {
       return jsonBody({
         success: false,
         error:
