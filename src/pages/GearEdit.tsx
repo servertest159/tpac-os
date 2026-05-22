@@ -2,6 +2,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
+import RequireNonMemberStaff from "@/components/auth/RequireNonMemberStaff";
 import GearForm from "@/components/gear/GearForm";
 
 const GearEdit = () => {
@@ -9,7 +10,9 @@ const GearEdit = () => {
   
   return (
     <MainLayout>
-      <GearForm gearId={id} />
+      <RequireNonMemberStaff>
+        <GearForm gearId={id} />
+      </RequireNonMemberStaff>
     </MainLayout>
   );
 };

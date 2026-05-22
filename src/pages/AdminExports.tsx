@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
+import RequireNonMemberStaff from "@/components/auth/RequireNonMemberStaff";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, FileDown, Loader2 } from "lucide-react";
@@ -95,44 +96,46 @@ const AdminExports = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6 page-enter max-w-3xl mx-auto">
-        <div>
-          <h1 className="flex items-center gap-2">
-            <FileDown className="h-6 w-6" />
-            Data Exports
-          </h1>
-          <p className="text-muted-foreground">
-            Download feedback and gear data as CSV. Files open in Excel or Google Sheets.
-          </p>
-        </div>
+      <RequireNonMemberStaff>
+        <div className="space-y-6 page-enter max-w-3xl mx-auto">
+          <div>
+            <h1 className="flex items-center gap-2">
+              <FileDown className="h-6 w-6" />
+              Data Exports
+            </h1>
+            <p className="text-muted-foreground">
+              Download feedback and gear data as CSV. Files open in Excel or Google Sheets.
+            </p>
+          </div>
 
-        <div className="grid gap-4">
-          {EXPORTS.map((exp) => (
-            <Card key={exp.table}>
-              <CardHeader>
-                <CardTitle className="text-lg">{exp.label}</CardTitle>
-                <CardDescription>{exp.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button
-                  onClick={() => handleExport(exp.table, exp.filePrefix)}
-                  disabled={loading !== null}
-                >
-                  {loading === exp.table ? (
-                    <>
-                      <Loader2 className="animate-spin" /> Exporting…
-                    </>
-                  ) : (
-                    <>
-                      <Download /> Download CSV
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+          <div className="grid gap-4">
+            {EXPORTS.map((exp) => (
+              <Card key={exp.table}>
+                <CardHeader>
+                  <CardTitle className="text-lg">{exp.label}</CardTitle>
+                  <CardDescription>{exp.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button
+                    onClick={() => handleExport(exp.table, exp.filePrefix)}
+                    disabled={loading !== null}
+                  >
+                    {loading === exp.table ? (
+                      <>
+                        <Loader2 className="animate-spin" /> Exporting…
+                      </>
+                    ) : (
+                      <>
+                        <Download /> Download CSV
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
-      </div>
+      </RequireNonMemberStaff>
     </MainLayout>
   );
 };

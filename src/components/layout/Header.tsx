@@ -3,14 +3,14 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LayoutDashboard, Calendar, Package, MessageSquare, LogOut, User, FileCode, KeyRound } from "lucide-react";
+import { LayoutDashboard, Calendar, Package, MessageSquare, LogOut, User, FileCode, KeyRound, FileDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   TPAC_SESSION_EVENT,
   signOut as tpacSignOut,
   getCurrentHolderName,
   getCurrentRole,
-  isSuperAdmin,
+  canStaffManage,
 } from "@/lib/auth";
 
 const Header = () => {
@@ -56,8 +56,11 @@ const Header = () => {
     { path: "/gear", label: "Inventory", icon: <Package className="w-4 h-4" /> },
     { path: "/feedback", label: "AARs", icon: <MessageSquare className="w-4 h-4" /> },
     { path: "/profile", label: "Profile", icon: <User className="w-4 h-4" /> },
-    ...(isSuperAdmin()
-      ? [{ path: "/admin/access", label: "Access", icon: <KeyRound className="w-4 h-4" /> }]
+    ...(canStaffManage()
+      ? [
+          { path: "/admin/access", label: "Access", icon: <KeyRound className="w-4 h-4" /> },
+          { path: "/admin/exports", label: "Exports", icon: <FileDown className="w-4 h-4" /> },
+        ]
       : []),
     { path: "/developer-notes", label: "Dev Notes", icon: <FileCode className="w-4 h-4" /> },
   ];

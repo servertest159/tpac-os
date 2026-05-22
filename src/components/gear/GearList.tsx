@@ -27,6 +27,7 @@ import GearUsageHistory from "./GearUsageHistory";
 import { useGearInventory, type GearItem } from "@/hooks/useGearInventory";
 import { ScrollReveal, ScrollRevealGroup } from "@/components/ui/scroll-reveal";
 import { supabase } from "@/integrations/supabase/client";
+import { canStaffManage } from "@/lib/auth";
 
 type ViewFilter = "active" | "archived";
 
@@ -42,6 +43,7 @@ const GearList = () => {
   const [bulkType, setBulkType] = React.useState<string>("");
   const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
   const { toast } = useToast();
+  const staffManage = canStaffManage();
   const { gear, loading, error, retryCount, deleteGear, refetch } = useGearInventory();
 
   const fetchArchived = React.useCallback(async () => {
@@ -174,7 +176,9 @@ const GearList = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div><h1>Inventory</h1><p className="text-muted-foreground">Track and maintain your kit.</p></div>
-          <Button asChild><Link to="/gear/new">Log New Gear</Link></Button>
+          {staffManage && (
+            <Button asChild><Link to="/gear/new">Log New Gear</Link></Button>
+          )}
         </div>
         <div className="text-center py-12">
           <Package className="mx-auto h-12 w-12 text-muted-foreground" />
@@ -190,7 +194,9 @@ const GearList = () => {
       <ScrollReveal variant="fade-up">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div><h1>Inventory</h1><p className="text-muted-foreground">Track and maintain your kit.</p></div>
-          <Button asChild><Link to="/gear/new">Log New Gear</Link></Button>
+          {staffManage && (
+            <Button asChild><Link to="/gear/new">Log New Gear</Link></Button>
+          )}
         </div>
       </ScrollReveal>
 
@@ -224,6 +230,7 @@ const GearList = () => {
       </div>
 
       {/* Bulk action bar */}
+      {staffManage && (
       <div className="flex flex-wrap items-center gap-2 rounded-md border bg-muted/30 px-3 py-2">
         <Checkbox
           checked={selected.size > 0 && selected.size === filteredGear.length}
@@ -256,6 +263,7 @@ const GearList = () => {
           </div>
         )}
       </div>
+      )}
 
       {loading && gear.length === 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -279,7 +287,7 @@ const GearList = () => {
                 ? "Archived gear will appear here. You can restore it any time."
                 : "Log your first piece of equipment to start tracking conditions, availability, and maintenance."}
             </p>
-            {viewFilter === "active" && !searchTerm && (
+            {viewFilter === "active" && !searchTerm && staffManage && (
               <Button asChild size="lg">
                 <Link to="/gear/new">Add your first gear item</Link>
               </Button>
@@ -291,11 +299,13 @@ const GearList = () => {
           {filteredGear.map((item) => {
             const checked = selected.has(item.id);
             return (
-              <Card key={item.id} className={`card-premium card-hover hover-lift overflow-hidden relative ${checked ? "ring-2 ring-primary" : ""}`}>
+              <Card key={item.id} className={`card-premium card-hover hover-lift overflow-hidden relative ${staffManage && checked ? "ring-2 ring-primary" : ""}`}>
+                {staffManage && (
                 <div className="absolute top-3 left-3 z-10 bg-background/80 backdrop-blur rounded p-1">
                   <Checkbox checked={checked} onCheckedChange={() => toggleSelect(item.id)} aria-label="Select" />
                 </div>
-                <CardHeader className="pb-3 pl-12">
+                )}
+                <CardHeader className={`pb-3 ${staffManage ? "pl-12" : ""}`}>
                   <div className="flex gap-4 items-start">
                     <GearPhotoPreview
                       gearName={item.name}
@@ -332,6 +342,7 @@ const GearList = () => {
                     </div>
                   )}
                 </CardContent>
+                {staffManage ? (
                 <CardFooter className="flex gap-2 pt-4 border-t bg-muted/20">
                   <Button asChild variant="outline" size="sm" className="flex-1">
                     <Link to={`/gear/${item.id}/edit`}><Edit className="mr-2 h-4 w-4" />Edit</Link>
@@ -374,6 +385,7 @@ const GearList = () => {
                     </AlertDialogContent>
                   </AlertDialog>
                 </CardFooter>
+                ) : null}
               </Card>
             );
           })}

@@ -39,6 +39,9 @@ export const ADMIN_ROLES = new Set([
 
 export const SUPER_ADMIN_ROLES = new Set(["President", "Vice-President"]);
 
+/** Invite role that should not manage gear, destructive AAR actions, exports, or codes. */
+export const MEMBER_ROLE_LABEL = "Member" as const;
+
 export const getCurrentRole = (): string | null =>
   typeof window !== "undefined" ? localStorage.getItem("tpac_user_role") : null;
 
@@ -61,7 +64,16 @@ export const isSuperAdmin = (): boolean => {
 /** Committee / leadership roles may delete programmes; Members cannot. */
 export const canDeleteProgrammes = (): boolean => {
   const role = getCurrentRole();
-  return !!role && role !== "Member";
+  return !!role && role !== MEMBER_ROLE_LABEL;
+};
+
+/**
+ * True when the current access-code role may manage operational data: gear CRUD, AAR link/report admin,
+ * exports, access codes, and staff roster views (subject to Supabase RLS).
+ */
+export const canStaffManage = (): boolean => {
+  const role = getCurrentRole();
+  return !!role && role !== MEMBER_ROLE_LABEL;
 };
 
 export const signOut = () => {

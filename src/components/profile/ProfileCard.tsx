@@ -3,22 +3,22 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { ProfileSkeleton } from "@/components/ui/loading-states";
+import { TPAC_SESSION_EVENT, MEMBER_ROLE_LABEL } from "@/lib/auth";
+import StaffRosterCard from "./StaffRosterCard";
 
 const ProfileCard = () => {
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(() =>
+    typeof window !== "undefined" ? localStorage.getItem("tpac_user_role") : null
+  );
 
   useEffect(() => {
-    // Simulate loading state for better UX
-    const timer = setTimeout(() => {
-      const role = localStorage.getItem("tpac_user_role");
-      setUserRole(role);
-      setLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
+    const read = () => setUserRole(localStorage.getItem("tpac_user_role"));
+    read();
+    window.addEventListener(TPAC_SESSION_EVENT, read);
+    return () => window.removeEventListener(TPAC_SESSION_EVENT, read);
   }, []);
+
+  const staffManage = !!userRole && userRole !== MEMBER_ROLE_LABEL;
 
   const getInitials = (role: string | null) => {
     if (!role) return "?";
@@ -29,15 +29,11 @@ const ProfileCard = () => {
     return role.substring(0, 2).toUpperCase();
   };
   
-  if (loading) {
-    return <ProfileSkeleton />;
-  }
-  
   return (
     <div className="space-y-6 page-enter">
       <div>
         <h1>Profile</h1>
-        <p className="text-muted-foreground">Your currently assumed role.</p>
+        <p className="text-muted-foreground">Your currently assumed role and roster visibility.</p>
       </div>
       <Card className="w-full max-w-lg mx-auto mt-6 animate-scale-in">
         <CardHeader>
@@ -59,6 +55,7 @@ const ProfileCard = () => {
           </div>
         </CardContent>
       </Card>
+      {staffManage && <StaffRosterCard />}
     </div>
   );
 };

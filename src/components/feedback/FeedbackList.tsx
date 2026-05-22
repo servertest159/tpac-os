@@ -9,6 +9,7 @@ import AddFeedbackDialog from "./AddFeedbackDialog";
 import { FeedbackListSkeleton } from "@/components/ui/loading-states";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { canStaffManage } from "@/lib/auth";
 import { ToastAction } from "@/components/ui/toast";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -42,6 +43,7 @@ const FeedbackList = () => {
   const [filter, setFilter] = useState<"all" | "forms" | "reports">("all");
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const staffManage = canStaffManage();
 
   const fetchData = useCallback(async () => {
     try {
@@ -174,9 +176,11 @@ const FeedbackList = () => {
           <p className="text-muted-foreground">Manage AAR form links and filed reports.</p>
         </div>
         <div className="flex gap-2">
+          {staffManage && (
           <AddFeedbackDialog onFormSubmit={handleAddForm}>
             <Button variant="outline">Link AAR Form</Button>
           </AddFeedbackDialog>
+          )}
           <Button asChild>
             <Link to="/feedback/new">
               <FileText className="mr-2 h-4 w-4" />
@@ -209,9 +213,11 @@ const FeedbackList = () => {
             <Button asChild size="lg">
               <Link to="/feedback/new">File your first AAR</Link>
             </Button>
-            <AddFeedbackDialog onFormSubmit={handleAddForm}>
-              <Button variant="outline" size="lg">Link a Form</Button>
-            </AddFeedbackDialog>
+            {staffManage && (
+              <AddFeedbackDialog onFormSubmit={handleAddForm}>
+                <Button variant="outline" size="lg">Link a Form</Button>
+              </AddFeedbackDialog>
+            )}
           </div>
         </div>
       ) : (
@@ -256,7 +262,9 @@ const FeedbackList = () => {
                       ) : (
                         <Button variant="outline" className="flex-1" disabled>No URL</Button>
                       )}
+                      {staffManage && (
                       <ConfirmDeleteButton label={item.title} onConfirm={() => handleDeleteForm(item)} />
+                      )}
                     </CardFooter>
                   </Card>
                 ))}
@@ -291,7 +299,9 @@ const FeedbackList = () => {
                       <Button variant="outline" className="flex-1" disabled>
                         View Report
                       </Button>
+                      {staffManage && (
                       <ConfirmDeleteButton label={report.programme_title} onConfirm={() => handleDeleteReport(report)} />
+                      )}
                     </CardFooter>
                   </Card>
                 ))}

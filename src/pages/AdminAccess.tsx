@@ -22,8 +22,18 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { isSuperAdmin, getCurrentCode, getCurrentRole, ADMIN_ROLES } from "@/lib/auth";
+import { canStaffManage, getCurrentCode, getCurrentRole, MEMBER_ROLE_LABEL, ADMIN_ROLES } from "@/lib/auth";
 import { KeyRound, Plus, RefreshCw, ShieldAlert, Trash2 } from "lucide-react";
+
+interface AuditRow {
+  id: string;
+  access_code_id: string | null;
+  action: string;
+  performed_by_code: string | null;
+  performed_by_role: string | null;
+  details: Record<string, unknown> | null;
+  created_at: string;
+}
 
 interface AccessCode {
   id: string;
@@ -51,8 +61,10 @@ const randomCode = () => String(Math.floor(100000 + Math.random() * 900000));
 
 const AdminAccess: React.FC = () => {
   const { toast } = useToast();
-  const allowed = isSuperAdmin();
+  const allowed = canStaffManage();
   const [codes, setCodes] = React.useState<AccessCode[]>([]);
+  const [auditRows, setAuditRows] = React.useState<AuditRow[]>([]);
+  const [auditLoading, setAuditLoading] = React.useState(true);
   const [loading, setLoading] = React.useState(true);
   const [search, setSearch] = React.useState("");
   const [newOpen, setNewOpen] = React.useState(false);
@@ -79,15 +91,38 @@ const AdminAccess: React.FC = () => {
     setLoading(false);
   }, [toast]);
 
+  const fetchAudit = React.useCallback(async () => {
+    setAuditLoading(true);
+    const { data, error } = await supabase
+      .from("access_codes_audit_log")
+      .select("id, access_code_id, action, performed_by_code, performed_by_role, details, created_at")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (error) toast({ title: "Failed to load audit log", description: error.message, variant: "destructive" });
+    else setAuditRows((data as AuditRow[]) || []);
+    setAuditLoading(false);
+  }, [toast]);
+
   React.useEffect(() => {
     if (!allowed) return;
     fetchCodes();
-    const ch = supabase
+    fetchAudit();
+    const chCodes = supabase
       .channel("access-codes-admin")
-      .on("postgres_changes", { event: "*", schema: "public", table: "access_codes" }, fetchCodes)
+      .on("postgres_changes", { event: "*", schema: "public", table: "access_codes" }, () => {
+        fetchCodes();
+        fetchAudit();
+      })
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [allowed, fetchCodes]);
+    const chAudit = supabase
+      .channel("access-codes-audit")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "access_codes_audit_log" }, () => fetchAudit())
+      .subscribe();
+    return () => {
+      supabase.removeChannel(chCodes);
+      supabase.removeChannel(chAudit);
+    };
+  }, [allowed, fetchCodes, fetchAudit]);
 
   if (!allowed) {
     return (
@@ -98,7 +133,9 @@ const AdminAccess: React.FC = () => {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              Only the President and Vice-President can manage access codes.
+              Profiles signed in with a Member code can view programmes and inventory but cannot issue, rotate,
+              deactivate, or delete invite codes here. Use a committee or role-lead code, or ask leadership to elevate
+              your access.
             </p>
           </CardContent>
         </Card>
@@ -240,7 +277,7 @@ const AdminAccess: React.FC = () => {
                       <TableRow key={c.id}>
                         <TableCell className="font-mono">{c.code}</TableCell>
                         <TableCell>
-                          <Badge variant={ADMIN_ROLES.has(c.role) ? "default" : "secondary"}>{c.role}</Badge>
+                          <Badge variant={c.role === MEMBER_ROLE_LABEL ? "secondary" : ADMIN_ROLES.has(c.role) ? "default" : "outline"}>{c.role}</Badge>
                         </TableCell>
                         <TableCell>
                           <Input
@@ -296,6 +333,52 @@ const AdminAccess: React.FC = () => {
                         <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                           No codes match.
                         </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="card-premium">
+          <CardHeader>
+            <CardTitle>Access code audit log</CardTitle>
+            <p className="text-sm text-muted-foreground">Latest 100 actions on codes (create, rotate, activate, deactivate, delete, holder edits).</p>
+          </CardHeader>
+          <CardContent>
+            {auditLoading ? (
+              <div className="space-y-2">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-10" />)}</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>When</TableHead>
+                      <TableHead>Action</TableHead>
+                      <TableHead>By role</TableHead>
+                      <TableHead>Code used</TableHead>
+                      <TableHead>Details</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {auditRows.map((a) => (
+                      <TableRow key={a.id}>
+                        <TableCell className="whitespace-nowrap text-muted-foreground text-sm">
+                          {new Date(a.created_at).toLocaleString()}
+                        </TableCell>
+                        <TableCell><Badge variant="outline">{a.action}</Badge></TableCell>
+                        <TableCell>{a.performed_by_role ?? "—"}</TableCell>
+                        <TableCell className="font-mono text-sm">{a.performed_by_code ?? "—"}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground max-w-xs truncate font-mono" title={a.details ? JSON.stringify(a.details) : ""}>
+                          {a.details ? JSON.stringify(a.details) : "—"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {auditRows.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center text-muted-foreground py-8">No audit entries yet.</TableCell>
                       </TableRow>
                     )}
                   </TableBody>
