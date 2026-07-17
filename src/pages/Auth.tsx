@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { clearSupabaseClientStorage } from "@/lib/auth";
+import tpacLogo from "@/assets/tpac-logo.png";
 
 const Auth: React.FC = () => {
   const { toast } = useToast();
@@ -60,7 +61,7 @@ const Auth: React.FC = () => {
         <Card className="card-hover">
           <CardHeader>
             <div className="flex flex-col items-center space-y-2">
-              <img src="/src/assets/tpac-logo.png" alt="TPAC Logo" className="h-16 w-auto mb-2" />
+              <img src={tpacLogo} alt="TPAC Logo" className="h-16 w-auto mb-2" />
               <CardTitle className="text-center">{mode === 'signin' ? 'Log in' : 'Create account'}</CardTitle>
             </div>
           </CardHeader>
