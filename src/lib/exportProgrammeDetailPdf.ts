@@ -87,7 +87,7 @@ export async function buildAndDownloadProgrammeDetailPdf(
     margin: { left: margin, right: margin },
   });
 
-  y = doc.lastAutoTable?.finalY != null ? doc.lastAutoTable.finalY + 10 : y + 40;
+  y = (doc as any).lastAutoTable?.finalY != null ? (doc as any).lastAutoTable.finalY + 10 : y + 40;
 
   if (event.description?.trim()) {
     if (y > 240) doc.addPage();
@@ -123,7 +123,7 @@ export async function buildAndDownloadProgrammeDetailPdf(
       headStyles: { fillColor: headlineRed },
       margin: { left: margin, right: margin },
     });
-    y = doc.lastAutoTable?.finalY != null ? doc.lastAutoTable.finalY + 10 : y;
+    y = (doc as any).lastAutoTable?.finalY != null ? (doc as any).lastAutoTable.finalY + 10 : y;
   }
 
   const itinerarySorted = [...(event.itinerary_items ?? [])].sort((a, b) => {
@@ -145,7 +145,7 @@ export async function buildAndDownloadProgrammeDetailPdf(
       headStyles: { fillColor: headlineRed },
       margin: { left: margin, right: margin },
     });
-    y = doc.lastAutoTable?.finalY != null ? doc.lastAutoTable.finalY + 10 : y;
+    y = (doc as any).lastAutoTable?.finalY != null ? (doc as any).lastAutoTable.finalY + 10 : y;
   }
 
   if (y > 200) doc.addPage();
@@ -166,7 +166,7 @@ export async function buildAndDownloadProgrammeDetailPdf(
     columnStyles: { 2: { cellWidth: 55 } },
   });
 
-  const afterInvites = doc.lastAutoTable?.finalY ?? y;
+  const afterInvites = (doc as any).lastAutoTable?.finalY ?? y;
   y = afterInvites + 10;
 
   if (gearAssignments.length === 0) {
